@@ -1,0 +1,11 @@
+{
+  "name": "the-royal-race",
+  "version": "0.7.0",
+  "private": true,
+  "description": "The Royal Race \u2014 jeu de courses hippiques (PC / mobile, navigateur)",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "check": "node tools/build.mjs --check",
+    "start": "node tools/build.mjs && python3 -m http.server 8000"
+  }
+}

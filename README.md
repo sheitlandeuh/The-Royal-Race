@@ -1,28 +1,41 @@
 # The Royal Race
 
-Version jouable du jeu de courses hippiques, publiée le 23 septembre 2026.
+Jeu de courses hippiques pour navigateur (PC et mobile) : domaine équestre, écurie, entraînement, courses en 3D.
 
-## Lancer le jeu
+## Jouer
 
-Ouvrir `index.html` dans un navigateur récent, ou servir le dossier avec un serveur statique local :
+Ouvrir `index.html` via un petit serveur local (les navigateurs bloquent certains fichiers en `file://`) :
 
 ```sh
-python3 -m http.server 8000
+npm start          # construit puis sert sur http://localhost:8000
 ```
 
-Puis ouvrir `http://localhost:8000`.
+Tout est inclus : aucune connexion Internet n’est nécessaire (Three.js est embarqué dans `assets/vendor/`).
 
-La scène 3D charge Three.js depuis un CDN ; une connexion Internet est nécessaire pour cette dépendance. Les images du jeu sont incluses dans `assets/`.
+## Développer
 
-## Commandes
+Le code source est dans `src/`. **Ne pas modifier `index.html` à la main** : il est généré.
 
-- `F` : sortir des stalles après le compte à rebours.
-- Flèches gauche et droite : placement sur la piste.
-- Espace ou bouton SPRINT : accélération.
-- `A` et `E` : regarder à gauche et à droite.
+```sh
+npm run check      # vérifie la syntaxe de chaque module
+npm run build      # src/ -> index.html
+```
 
-L'endurance varie selon le sprint, le placement dans le sillage et les trajectoires en virage. Après l'arrivée de tous les chevaux, le classement donne accès au podium.
+| Dossier | Contenu |
+|---|---|
+| `src/index.html` | structure HTML (écrans, HUD) |
+| `src/css/` | styles, assemblés dans l’ordre des numéros |
+| `src/js/` | modules du jeu, exécutés dans l’ordre des numéros |
+| `assets/` | fichiers livrés avec le jeu (≈ 4 Mo) |
+| `assets-src/` | images originales en haute définition (non livrées) |
+| `tools/` | build + scripts de génération des images (détourage du village, halos, masques des casaques) |
 
-## Version en ligne
+### Modules JS
+`01-core` état et utilitaires · `02-village` carte, halo, vie ambiante · `03-panels` panneaux · `04-race-state` état de course + générateur aléatoire à graine · `05-race-scene` décor 3D, stalles, départ · `06-livery` robes et casaques · `07-stable` chevaux, stats, entraînement, sauvegarde · `08-horse3d` cheval + jockey 3D · `09-race-fx` rendu réaliste · `10-race` simulation de course · `11-studio` atelier du champion · `12-stable-ui` écurie et engagements · `13-settings` réglages et qualité graphique · `14-career` ligues, programme, missions, événement · `15-sound` son synthétisé et speaker · `16-tutorial` conseils de l’entraîneur.
 
-[Ouvrir le jeu](https://the-royal-race.muller-thomas1.chatgpt.site).
+### Commandes en course
+Bouton **PARTEZ !** (ou `F`) au GO · flèches / boutons ◀ ▶ pour la position · **SPRINT** (ou espace) · `A` / `E` pour regarder sur les côtés.
+
+## Simulation
+La course est **déterministe** : avec la même graine (tirée à la création du plateau) et les mêmes actions du joueur, le résultat est identique. C’est ce qui permettra au serveur de revérifier les courses (étape 3).
+Voir `claude/the-royal-race-systeme-ecurie.md` (projet) pour les formules.

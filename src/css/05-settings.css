@@ -1,0 +1,9 @@
+    /* ===== Réglages + corrections de mise en page ===== */
+    .dock{z-index:25}.panel{padding-bottom:110px}
+    @media(max-width:850px){.panel{padding:12px 10px 92px}}
+    .set{display:flex;flex-direction:column;gap:16px;margin-top:14px}.set h4{margin:0 0 8px;font-size:11px;letter-spacing:.16em;color:#e8c875}
+    .seg{display:flex;gap:4px;padding:4px;border-radius:999px;background:#0006;border:1px solid #ffffff22;width:max-content;max-width:100%;flex-wrap:wrap}.seg button{border:0;border-radius:999px;background:none;padding:8px 14px;font-weight:800;font-size:13px;color:#d6e2ea}.seg button.on{background:linear-gradient(#f0c75c,#b27a1f);color:#23160a}
+    .hint{margin:8px 0 0;color:#b9cbd8;font-size:13px}.tog{display:flex;gap:10px;align-items:center;font-size:14px;margin:6px 0}.tog input{width:20px;height:20px;accent-color:#f0c457}
+    .sl{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;font-size:14px;margin:6px 0}.sl input{accent-color:#f0c457}
+    .action.danger{border-color:#7a1414;background:linear-gradient(#e0484e,#8f1c22)}
+    body.no-anim .map-shade{animation:none}

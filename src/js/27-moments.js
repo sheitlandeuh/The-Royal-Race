@@ -44,7 +44,7 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_
   rivalAI.forEach((ai,i)=>{const j=i+1,g=progress[j]-progress[0];if(raceFinished[j]||raceFinished[0])return;
    if(ai.final&&!M.said['f'+j]&&g>-4&&g<8){M.said['f'+j]=1;say(`${raceNames[j]} lance son sprint`)}
    else if(ai.energy<=0&&!M.said['e'+j]&&g>-2&&g<8){M.said['e'+j]=1;say(`${raceNames[j]} est à bout de souffle !`)}})}
- function choose(ch){if(M&&M.cur&&!M.pending)M.pending=ch}
+ function choose(ch){if(M&&M.cur&&!M.pending){M.pending=ch;hooks.emit('moment:choose',ch)}}
  card.addEventListener('click',e=>{const b=e.target.closest('[data-mo]');if(b)choose(b.dataset.mo)});
  document.addEventListener('keydown',e=>{if(!M||!M.cur)return;if(e.code==='Digit1'||e.code==='Numpad1')choose('a');if(e.code==='Digit2'||e.code==='Numpad2')choose('b')});
  // bilan affiché sous l'analyse de course
@@ -52,7 +52,7 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_
    txt=e.k==='tire'?(e.ch==='a'?'Cheval repris : énergie économisée':'Cheval laissé libre : plus vite, mais plus d’énergie brûlée'):e.k==='breche'?(e.ch==='b'?'Ouverture ignorée':e.ok?'Ouverture prise : tu cours libre':'Ouverture tentée : elle s’est refermée'):`${e.ch==='a'?'Attaque de':'Tu as laissé filer'} ${escapeHTML(n)}${e.ch==='a'?' suivie':''} — il finit ${ord(fin)}${fin>me?', derrière toi':''}`;
    const d=e.dPos==null?'':e.dPos>0?` <em class="up">+${e.dPos} place${e.dPos>1?'s':''}</em>`:e.dPos<0?` <em class="down">${e.dPos} place${e.dPos<-1?'s':''}</em>`:'';return `<li>${txt}${d}</li>`}).join('');
   return `<div class="mo-sum"><b>⚡ Temps forts</b><ul>${L}</ul></div>`}
- return{reset,fx,tick,choose,summary,get cur(){return M&&M.cur},get log(){return M?M.log:[]},get active(){return !!(M&&M.cur)}}})();
+ return{reset,fx,tick,choose,summary,get cur(){return M&&M.cur},get plan(){return M&&{...M.plan}},set plan(p){if(M)M.plan={...p}},get log(){return M?M.log:[]},get active(){return !!(M&&M.cur)}}})();
 hooks.on('race:launch',()=>moments.reset());
 hooks.on('race:end',()=>{$('#fbStars').insertAdjacentHTML('beforeend',moments.summary());replay.show()});
 /* ===== Recourir : relancer la même course en un geste (nouveau plateau), ou changer de cheval s'il est fatigué ===== */

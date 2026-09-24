@@ -7,7 +7,7 @@ const playtest=(()=>{const q=new URLSearchParams(location.search);if(!q.has('tes
  const S={who,start:new Date().toISOString(),ua:navigator.userAgent,screen:`${innerWidth}×${innerHeight}`,ev:[]};all.push(S);
  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(all))}catch(e){}};
  const now=()=>Math.round(performance.now()-T0);let lastAct=now();
- function log(type,data={}){S.ev.push({t:now(),type,...data});lastAct=now();save()}
+ function log(type,data={}){if(typeof replays!=='undefined'&&replays.busy)return;S.ev.push({t:now(),type,...data});lastAct=now();save()}
  // ce que le moteur annonce
  hooks.on('race:start',()=>log('course',{nom:RACE.n,dist:RACE.dist,cheval:stable.active().name,tactique:state.strategy,rythme:pace.info().label}));
  hooks.on('race:go',(ms,fen)=>log('depart',{reaction:Math.round(ms),fenetre:Math.round(fen)}));

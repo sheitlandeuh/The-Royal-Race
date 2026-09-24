@@ -10,6 +10,7 @@ Propriétaire : Enzo. Échanges et textes du jeu en français.
 - Sans Node : `python3 tools/build.py` (même résultat que `npm run build`, sans la vérification de syntaxe) puis `python3 -m http.server 8000`.
 - `node tools/balance-test.cjs` : bot Playwright qui court des dizaines de courses (équilibrage).
 - Sans installation : `tools/balance-bot.js`, à charger dans la console du jeu (`await import('./tools/balance-bot.js')`, puis `await bot.run([...])` ou `await bot.pair('attaque','m2')`). Il couvre aussi les temps forts.
+- Tests : `await import('./tools/tests.js').then(m => m.run())` dans la console du jeu (`{quick:true}` pour la version rapide). À lancer avant chaque commit qui touche la course, l'équilibrage ou les premières minutes.
 - Ne jamais modifier `index.html` à la main : il est régénéré. On modifie `src/`, puis on build.
 
 ## Architecture

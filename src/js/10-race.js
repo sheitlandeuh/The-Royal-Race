@@ -64,7 +64,10 @@ function raceAnalysis(rank){const RW=RS.window,r=RS.reaction,dep=r<RW*1.78,draft
  if(!dep)adv=['stalles','Travaille les sorties de stalles pour gagner en réactivité.'];else if(boxPct>.12)adv=['groupe','Ton cheval se fait enfermer : le galop en groupe améliore son intelligence de course.'];
  else if(RS.exhaustedM>=40||(RS.hadSprint&&h.stats.end<62))adv=['canter','Il manque d’endurance sur cette distance : fais-lui du canter long.'];else if(rank>1)adv=[h.stats.vit<=h.stats.acc?'galop':'fractionne',h.stats.vit<=h.stats.acc?'Il manque de vitesse de pointe : galop de vitesse à l’hippodrome.':'Son sprint manque de punch : fractionné à la carrière.'];
  return{lines,stars,adv}}
-function completeRace(){clearInterval(raceLoop);raceLoop=null;const rank=finishOrder.indexOf(0)+1,win=rank===1,A=raceAnalysis(rank);if(A.lines[2][0])career.bump('sprint');
+function completeRace(){clearInterval(raceLoop);raceLoop=null;
+ // Défi du jour : ni trophées, ni gains, ni fatigue — le module 37-defi affiche son propre bilan
+ if(RACE.defi){hooks.emit('defi:end');hooks.emit('race:end',finishOrder.indexOf(0)+1);return}
+const rank=finishOrder.indexOf(0)+1,win=rank===1,A=raceAnalysis(rank);if(A.lines[2][0])career.bump('sprint');
  const CR=career.afterRace(rank,RACE,A.stars),prize=Math.round(RACE.purse*[1,.46,.26,.17,.13,.1][rank-1]*(1+CR.streakBonus));state.gold+=prize;sync();const AR=stable.afterRace(stable.data.active,rank,6);
  sound.crowdLevel(1);setTimeout(()=>sound.crowdLevel(.2),2500);if(win){sound.fanfare();buzz([60,40,120])}else buzz(40);sound.say(`${raceNames[finishOrder[0]]} remporte le ${RACE.n} !`,true);
  $('#fbGain').innerHTML=`+${fmt(prize)} or${CR.streakBonus?` <small>(série ×${1+CR.streakBonus})</small>`:''} · ${CR.d>0?'+':''}${CR.d} trophées · +${AR.xp} XP${AR.up?` · NIVEAU ${stable.active().level} !`:''}${CR.promoted?` · PROMU EN LIGUE ${CR.promoted.n.toUpperCase()} !`:CR.relegated?` · Retour en ligue ${CR.relegated.n}`:''}${CR.chest?`<br>🎁 Coffre ${CR.chest.n} gagné !`:CR.chestFull?'<br>🎁 Coffres pleins : ouvre-en un pour en gagner d’autres':''}`;

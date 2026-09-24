@@ -370,6 +370,13 @@
     .homebar .goal:hover{filter:brightness(1.15)}@keyframes goalIn{from{opacity:0;transform:translateY(6px)}}
     .coach.top{top:calc(84px + env(safe-area-inset-top,0px));bottom:auto}
     body.lk-coffres .homebar{justify-content:center}body.lk-coffres .homebar .play{flex:0 1 320px}
+    /* ===== Défi du jour ===== */
+    .meet.defi-card{border-color:#8fd3ff !important;background:linear-gradient(135deg,#123a5c,#0b2440) !important}.meet.defi-card b{color:#bfe6ff}
+    .defi-res{margin:0 0 10px;text-align:center;padding:10px 12px;border-radius:12px;background:#ffffff0d;border:1px solid #ffffff22}.defi-res.rec{border-color:#8dff9e;background:#8dff9e14}
+    .defi-res b{display:block;font:800 17px Georgia,serif;color:#ffe29a}.defi-res.rec b{color:#9dffab}.defi-res span{display:block;font-weight:800;margin-top:2px}.defi-res small{opacity:.75}
+    .ghost-gap{position:absolute;z-index:8;right:14px;top:112px;opacity:0;transform:translateY(-4px);transition:.25s;pointer-events:none;background:#0b2440dd;border:1px solid #8fd3ff;color:#dff2ff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:800}
+    .ghost-gap.show{opacity:1;transform:none}.ghost-gap.ahead{border-color:#8dff9e;color:#d8ffe0}
+    @media (max-width:600px){.ghost-gap{top:128px;right:8px;font-size:11.5px}}
   </style>
 </head>
 <body>
@@ -1021,7 +1028,10 @@ function raceAnalysis(rank){const RW=RS.window,r=RS.reaction,dep=r<RW*1.78,draft
  if(!dep)adv=['stalles','Travaille les sorties de stalles pour gagner en réactivité.'];else if(boxPct>.12)adv=['groupe','Ton cheval se fait enfermer : le galop en groupe améliore son intelligence de course.'];
  else if(RS.exhaustedM>=40||(RS.hadSprint&&h.stats.end<62))adv=['canter','Il manque d’endurance sur cette distance : fais-lui du canter long.'];else if(rank>1)adv=[h.stats.vit<=h.stats.acc?'galop':'fractionne',h.stats.vit<=h.stats.acc?'Il manque de vitesse de pointe : galop de vitesse à l’hippodrome.':'Son sprint manque de punch : fractionné à la carrière.'];
  return{lines,stars,adv}}
-function completeRace(){clearInterval(raceLoop);raceLoop=null;const rank=finishOrder.indexOf(0)+1,win=rank===1,A=raceAnalysis(rank);if(A.lines[2][0])career.bump('sprint');
+function completeRace(){clearInterval(raceLoop);raceLoop=null;
+ // Défi du jour : ni trophées, ni gains, ni fatigue — le module 37-defi affiche son propre bilan
+ if(RACE.defi){hooks.emit('defi:end');hooks.emit('race:end',finishOrder.indexOf(0)+1);return}
+const rank=finishOrder.indexOf(0)+1,win=rank===1,A=raceAnalysis(rank);if(A.lines[2][0])career.bump('sprint');
  const CR=career.afterRace(rank,RACE,A.stars),prize=Math.round(RACE.purse*[1,.46,.26,.17,.13,.1][rank-1]*(1+CR.streakBonus));state.gold+=prize;sync();const AR=stable.afterRace(stable.data.active,rank,6);
  sound.crowdLevel(1);setTimeout(()=>sound.crowdLevel(.2),2500);if(win){sound.fanfare();buzz([60,40,120])}else buzz(40);sound.say(`${raceNames[finishOrder[0]]} remporte le ${RACE.n} !`,true);
  $('#fbGain').innerHTML=`+${fmt(prize)} or${CR.streakBonus?` <small>(série ×${1+CR.streakBonus})</small>`:''} · ${CR.d>0?'+':''}${CR.d} trophées · +${AR.xp} XP${AR.up?` · NIVEAU ${stable.active().level} !`:''}${CR.promoted?` · PROMU EN LIGUE ${CR.promoted.n.toUpperCase()} !`:CR.relegated?` · Retour en ligue ${CR.relegated.n}`:''}${CR.chest?`<br>🎁 Coffre ${CR.chest.n} gagné !`:CR.chestFull?'<br>🎁 Coffres pleins : ouvre-en un pour en gagner d’autres':''}`;
@@ -1980,13 +1990,14 @@ const UNLOCKS=[
  {k:'missions',at:1,sel:['[data-panel=missions]'],n:'Missions du jour',txt:'Chaque jour, <b>3 missions</b> rapportent de l’or, du fourrage et des gemmes. Touche le parchemin.'},
  {k:'ecurie',at:2,sel:['.nav[data-view=chevaux]','.nav[data-view=ecurie]'],n:'Écurie et entraînement',txt:'Ton écurie est ouverte : <b>entraîne</b> tes chevaux, soigne-les, répartis leurs points de niveau.'},
  {k:'ligues',at:3,sel:['[data-panel=trophees]','[data-panel=saison]'],n:'Ligues et Route des étoiles',txt:'Tes trophées te font monter de <b>ligue</b> (de nouvelles courses s’ouvrent), tes étoiles de course font avancer la <b>Route des étoiles</b>.'},
+ {k:'defi',at:3,sel:['#panelBody [data-defi]'],n:'Défi du jour',txt:'Chaque jour, <b>la même course pour tous les joueurs</b>. Retente-la autant que tu veux : ton meilleur essai court à côté de toi, en fantôme.'},
  {k:'tournoi',at:5,sel:['.nav[data-view=events]','[data-panel=events]','[data-panel=palmares]'],n:'Tournoi royal',txt:'Chaque jour, un <b>tournoi</b> à élimination directe. Et chaque semaine, un cheval rare à gagner.'},
  {k:'boutique',at:7,sel:['[data-panel=boutique]','.resource .plus','#panelBody h4:has(+ .tack)','#panelBody .tack'],n:'Boutique et sellerie',txt:'La <b>boutique</b> accepte tes gemmes, et la <b>sellerie</b> permet d’équiper ton cheval selon le terrain.'}];
 const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
  const style=document.createElement('style');style.textContent=UNLOCKS.map(U=>U.sel.map(s=>`body.lk-${U.k} ${s}`).join(',')+'{display:none!important}').join('\n');document.head.appendChild(style);
  function apply(){const n=races();for(const U of UNLOCKS)document.body.classList.toggle('lk-'+U.k,n<U.at)}
  let pending=[];
- hooks.on('race:end',()=>{const n=races();pending.push(...UNLOCKS.filter(U=>U.at===n))});
+ hooks.on('race:end',()=>{if(RACE.defi)return;const n=races();pending.push(...UNLOCKS.filter(U=>U.at===n))});
  // les annonces attendent le retour au domaine (après la course, le podium et le récapitulatif)
  hooks.on('race:leave',()=>{if(!pending.length)return;const list=pending;pending=[];setTimeout(()=>{apply();list.forEach(U=>coach.tip('unlock-'+U.k,`<b>Nouveau : ${U.n} !</b><br>${U.txt}`,U.sel[0]));buzz([20,30,20]);sound.coin()},700)});
  // objectif suivant, toujours visible au-dessus du bouton COURIR
@@ -1998,11 +2009,12 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
   if(M.some(m=>!m.done&&m.p>=(MISSION_POOL.find(x=>x.k===m.k)||{goal:1}).goal))return['Récupère ta récompense de mission','missions'];
   if(!C.stats.wins)return['Gagne ta première course','courses'];
   const pts=n>=2&&stable.data.horses.find(x=>x.points>0);if(pts)return[`Répartis les points de niveau de ${pts.name}`,'ecurie'];
+  if(n>=3&&!defi.done)return['Relève le Défi du jour','defi'];
   if(n>=3){const L=career.league(),nx=LEAGUES[L+1];if(nx)return[`Ligue ${nx.n} : encore ${fmt(Math.max(0,nx.min-state.trophies))} trophées`,'trophees']}
   const R=rival.rec;if(R.w<=R.l)return[`Prends l’avantage sur Black Majesty (${R.w} – ${R.l})`,'courses'];
   return[n>=5?'Remporte le Tournoi royal du jour':'Enchaîne les victoires','courses']}
  function render(){const[t,a]=next();if(goal.dataset.a!==a||goal.textContent!=='🎯 '+t){goal.textContent='🎯 '+t;goal.dataset.a=a}}
- goal.onclick=()=>{const a=goal.dataset.a;if(a.startsWith('chest:'))return bar.querySelectorAll('.slots [data-slot]')[+a.slice(6)]?.click();if(a==='ecurie')return openStable();openPanel(a)};
+ goal.onclick=()=>{const a=goal.dataset.a;if(a.startsWith('chest:'))return bar.querySelectorAll('.slots [data-slot]')[+a.slice(6)]?.click();if(a==='ecurie')return openStable();if(a==='defi'){openCourses();return defi.select()}openPanel(a)};
  // la récompense quotidienne attend la fin de la première course (sinon, rien ne doit détourner du premier départ)
  hooks.on('race:leave',()=>{if(races()>0)setTimeout(()=>meta.login(),1600)});
  apply();render();setInterval(render,1500);hooks.on('race:leave',()=>setTimeout(render,50));
@@ -2039,6 +2051,59 @@ const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o
    return{ok:same,order:finishOrder.slice(),expected:r.result.order,times,expectedTimes:r.result.times}}
   finally{raceLoop=null;({progress,visualProgress,raceFinished,raceFinishTimes,finishOrder,rivalAI,raceTime,playerEnergy,playerFinal,playerLane,autoSpeed,raceSeed,raceRng}=keep);keep.lanes.forEach((v,i)=>rivalLanes[i]=v);Object.assign(RS,keep.RS);RACE=keep.RACE;currentField=keep.currentField;racePlayer=keep.racePlayer;state.strategy=keep.strategy;completeRace=keep.complete;sound.say=keep.say;try{delete navigator.vibrate}catch(e){}runRaceV2.said=keep.said;runRaceV2.tipd=keep.tipd;busy=false}}
  return{get list(){return load()},get busy(){return busy},verify,last:()=>load().slice(-1)[0]}})();
+/* --- 37-defi.js --- */
+/* ===== Défi du jour : la même course pour tous les joueurs, contre son propre fantôme =====
+   Graine et plateau tirés de la date (identiques sur tous les appareils : base du futur classement en ligne).
+   On la retente autant qu'on veut ; le meilleur essai du jour court à côté, en fantôme translucide.
+   Ni trophées, ni gains, ni fatigue : seulement un coffre à la première arrivée du jour et des gemmes par record battu. */
+const defi=(()=>{
+ const KEY='trr.defi',day=()=>new Date().toISOString().slice(0,10);
+ const hash=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%2147483647,7);
+ let D={};try{D=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+ function today(){if(D.day!==day())D={day:day(),best:null,tries:0,first:false,pbGems:0,ghost:null};return D}
+ // course du jour : graine, distance et terrain tirés de la date
+ function meeting(){const h=hash('defi-'+day()),base=MEETINGS.filter(m=>m.league<=1)[h%3];
+  return{...base,id:'defi',n:'Défi du jour',defi:true,fee:0,purse:0,seed:1+h%89999,ref:60+h%6}}
+ // plateau identique pour tous : force de référence fixe (pas celle du cheval du joueur), pas de rival personnel
+ function field(M=meeting()){const seed=M.seed,rv=stable.rivals(M.ref,5,seed),R=seeded(seed),used=[stable.silks.main],coats=LIVERY.COATS.map(c=>c.id).sort(()=>R()-.5),T=seeded((seed^0x9e3779b9)>>>0);
+  return{seed,rivals:rv.map((r,i)=>{const l=LIVERY.random(seed+i*131,used);used.push(l.main);l.coat=coats[i];return{...r,name:raceNames[i+1],livery:l,rating:Math.round(r.stats.vit*.24+r.stats.acc*.2+r.stats.end*.18+r.stats.dep*.1+r.stats.tac*.15+r.stats.tem*.13)-7,tac:pace.choose(r.stats,T)}})}}
+ // tout plateau construit pendant le défi (sélection d'un autre cheval, RECOURIR…) redevient celui du jour
+ hooks.on('field:built',F=>{if(RACE.defi)Object.assign(F,field())});
+ function select(){RACE=meeting();currentField=null;buildField();renderCourses()}
+ // carte dans l'écran des courses
+ hooks.on('courses:render',()=>{const g=$('#panelBody .meets');if(!g)return;const T=today(),M=meeting();
+  if(RACE.defi){const info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#bfe6ff">Défi du jour</b> · ${fmt(M.dist)} m · Terrain ${TERRAINS[M.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : seul ton meilleur temps compte${T.best?` (record : ${T.best.toFixed(2)} s)`:''}.`;$('#panelBody .taunt')?.remove()}
+  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${T.best.toFixed(2)} s`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
+ $('#panelBody').addEventListener('click',e=>{if(e.target.closest('[data-defi]'))select()});
+ // trajectoire de l'essai en cours (pour devenir le fantôme s'il bat le record)
+ let track=null,ghost=null,gv=0,gap=null;
+ hooks.on('race:start',()=>{track=RACE.defi?{p:[],l:[]}:null;gv=0;if(ghost)ghost.visible=false;gap?.classList.remove('show')});
+ hooks.on('race:tick',()=>{if(!track||raceFinished[0])return;track.p[raceTime]=+progress[0].toFixed(3);track.l[raceTime]=Math.round(playerLane);
+  const G=today().ghost;if(G&&gap){const gp=G.p[Math.min(raceTime,G.p.length-1)]??100,m=Math.round((gp-progress[0])*RACE.dist/100);gap.innerHTML=Math.abs(m)<2?'👻 Au coude à coude avec ton fantôme':m>0?`👻 Fantôme <b>${m} m</b> devant`:`👻 Tu as <b>${-m} m</b> d’avance`;gap.classList.add('show');gap.classList.toggle('ahead',m<=0)}});
+ hooks.on('race:header',()=>{if(!RACE.defi)return;const T=today();$('.race-head small').textContent+=T.best?` • Record ${T.best.toFixed(2)} s`:' • Premier essai'});
+ // fantôme : un cheval translucide qui rejoue le meilleur essai, sans gêner la course (hors simulation)
+ {const r0=raceFX.render;let last=0;raceFX.render=function(q){const G=RACE.defi&&today().ghost,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
+  if(G&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView){if(!ghost){ghost=new THREE.Sprite(new THREE.SpriteMaterial({map:q.horseTextures[0],transparent:true,opacity:.36,depthWrite:false,color:0xcfe6ff}));ghost.frustumCulled=false;q.scene.add(ghost)}
+   ghost.material.map=q.horseTextures[0];const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??100,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);
+   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(ln-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
+  else if(ghost)ghost.visible=false;return r0.call(this,q)}}
+ // bilan du défi
+ hooks.on('defi:end',()=>{const T=today(),rank=finishOrder.indexOf(0)+1,time=raceFinishTimes[0],old=T.best,first=!T.first;T.tries++;let gain=[];
+  const rec=old==null||time<old;if(rec){T.best=time;if(track){const n=track.p.length;for(let k=0;k<n;k++){if(track.p[k]==null){track.p[k]=track.p[k-1]??0;track.l[k]=track.l[k-1]??44}}track.p.push(101);T.ghost=track}}
+  if(first){T.first=true;const c=meta.addChest('argent');gain.push(c?'🎁 Coffre d’argent':'💎 +5 gemmes (coffres pleins)');if(!c){state.gems+=5;sync()}}
+  else if(rec&&T.pbGems<3){T.pbGems++;state.gems+=3;sync();gain.push('💎 +3 gemmes (nouveau record)')}
+  save();track=null;currentField=null;const A=raceAnalysis(rank),t0=raceFinishTimes[finishOrder[0]];
+  $('#finishRows').innerHTML=finishOrder.map((idx,pos)=>`<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${raceFinishTimes[idx].toFixed(2)} s</td><td>${pos?`+${(raceFinishTimes[idx]-t0).toFixed(2)} s`:'—'}</td></tr>`).join('');
+  $('#fbStars').innerHTML=`<div class="defi-res${rec?' rec':''}"><b>${rec?(old==null?'Premier temps du jour':'Nouveau record !'):'Pas de record cette fois'}</b><span>${time.toFixed(2)} s${old!=null?` · record précédent ${old.toFixed(2)} s (${time<old?'−':'+'}${Math.abs(time-old).toFixed(2)} s)`:''}</span><small>Essai n° ${T.tries} · ${rank}${rank===1?'er':'e'} sur 6</small></div>`+`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}`;
+  $('#fbGain').innerHTML=gain.join(' · ')||'Retente ta chance : seul ton meilleur temps compte.';
+  if(rec){sound.fanfare();buzz([60,40,120])}else buzz(40);
+  $('#raceComment').textContent=rec?'Nouveau record du jour !':'Défi terminé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=rec?'⏱️':'🎖️';$('#resultTitle').textContent=rec?'Record du jour !':`${rank}e place`;$('#resultText').textContent=`${HN()} boucle le Défi du jour en ${time.toFixed(2)} s.`});
+ // bouton sous le bilan : réessayer le défi
+ hooks.on('race:end',()=>{if(!RACE.defi)return;const b=$('#raceAgain');if(b&&!b.hidden&&b.dataset.mode==='again')b.innerHTML=`RÉESSAYER LE DÉFI<small>gratuit · bats ton temps</small>`});
+ // écart au fantôme, affiché en course
+ gap=document.createElement('div');gap.className='ghost-gap';$('#raceScreen').appendChild(gap);
+ return{meeting,field,select,today,get done(){return !!today().first}}})();
 </script>
 </body>
 </html>

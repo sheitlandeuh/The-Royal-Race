@@ -79,3 +79,10 @@
     .homebar .goal:hover{filter:brightness(1.15)}@keyframes goalIn{from{opacity:0;transform:translateY(6px)}}
     .coach.top{top:calc(84px + env(safe-area-inset-top,0px));bottom:auto}
     body.lk-coffres .homebar{justify-content:center}body.lk-coffres .homebar .play{flex:0 1 320px}
+    /* ===== Défi du jour ===== */
+    .meet.defi-card{border-color:#8fd3ff !important;background:linear-gradient(135deg,#123a5c,#0b2440) !important}.meet.defi-card b{color:#bfe6ff}
+    .defi-res{margin:0 0 10px;text-align:center;padding:10px 12px;border-radius:12px;background:#ffffff0d;border:1px solid #ffffff22}.defi-res.rec{border-color:#8dff9e;background:#8dff9e14}
+    .defi-res b{display:block;font:800 17px Georgia,serif;color:#ffe29a}.defi-res.rec b{color:#9dffab}.defi-res span{display:block;font-weight:800;margin-top:2px}.defi-res small{opacity:.75}
+    .ghost-gap{position:absolute;z-index:8;right:14px;top:112px;opacity:0;transform:translateY(-4px);transition:.25s;pointer-events:none;background:#0b2440dd;border:1px solid #8fd3ff;color:#dff2ff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:800}
+    .ghost-gap.show{opacity:1;transform:none}.ghost-gap.ahead{border-color:#8dff9e;color:#d8ffe0}
+    @media (max-width:600px){.ghost-gap{top:128px;right:8px;font-size:11.5px}}

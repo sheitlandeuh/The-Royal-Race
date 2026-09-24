@@ -6,6 +6,7 @@ const STATS=[
  {k:'dep',n:'Départ',d:'Fenêtre de réaction à la sortie des stalles'},
  {k:'tac',n:'Intelligence',d:'Gain d’aspiration et vitesse quand le cheval est enfermé'},
  {k:'tem',n:'Tempérament',d:'Régularité de la foulée et pénalité de faux départ'}];
+const TALENTS={finisseur:{n:'Finisseur',i:'🏁',d:'Sprint final 15 % plus puissant'},increvable:{n:'Increvable',i:'🌧️',d:'Dépense moins d’énergie, surtout sur terrain souple ou lourd'},fusee:{n:'Fusée',i:'🚀',d:'Départ plus facile à réussir et démarrage plus vif'},coeur:{n:'Cœur de champion',i:'❤️',d:'Accélère quand il est devancé dans la ligne droite'},tacticien:{n:'Tacticien',i:'🧠',d:'Profite mieux du sillage, moins gêné quand il est enfermé'},metronome:{n:'Métronome',i:'⏱️',d:'Foulée très régulière, légère économie d’énergie'}};
 const DISTS=[[1200,'Sprinter'],[1600,'Mile'],[2000,'Classique'],[2400,'Tenace']];
 const SESSIONS=[
  {id:'galop',n:'Galop de vitesse',b:'hippodrome',where:'Hippodrome',ico:'⚡',gain:{vit:2.3,acc:.4},fat:18,cost:{feed:400},txt:'Accélérations franches sur la ligne droite.'},
@@ -24,15 +25,15 @@ const INTENS=[{id:'leger',n:'Léger',g:.6,f:.55},{id:'normal',n:'Normal',g:1,f:1
 const XP_LEVEL=l=>Math.round(90*Math.pow(l,1.2));
 const rating=h=>Math.round(h.stats.vit*.24+h.stats.acc*.2+h.stats.end*.18+h.stats.dep*.1+h.stats.tac*.15+h.stats.tem*.13);
 const stable=(()=>{
- const mk=(id,name,coat,stats,caps,dist,level)=>({id,name,coat,breed:'Pur-sang',age:4,level,xp:0,points:0,stats,caps,dist,form:62,fatigue:8,moral:72,injury:0,races:0,wins:0,places:0,log:[]});
+ const mk=(id,name,coat,stats,caps,dist,level,talent)=>({id,name,coat,talent,breed:'Pur-sang',age:4,level,xp:0,points:0,stats,caps,dist,form:62,fatigue:8,moral:72,injury:0,races:0,wins:0,places:0,log:[]});
  const fresh=()=>({v:1,created:false,silks:{main:'#1f3f9f',second:'#c8982c',pattern:'losange',cap:'#1f3f9f'},active:'h1',res:null,lastT:Date.now(),
-  horses:[mk('h1','Royal Thunder','bai',{vit:72,acc:66,end:60,dep:58,tac:55,tem:62},{vit:94,acc:90,end:86,dep:85,tac:88,tem:84},1600,8),
-          mk('h2','Belle Étoile','gris',{vit:63,acc:57,end:76,dep:52,tac:66,tem:70},{vit:86,acc:82,end:95,dep:80,tac:90,tem:92},2000,7),
-          mk('h3','Prince d’Or','palomino',{vit:69,acc:73,end:50,dep:68,tac:52,tem:55},{vit:92,acc:95,end:74,dep:92,tac:80,tem:78},1200,6)]});
+  horses:[mk('h1','Royal Thunder','bai',{vit:72,acc:66,end:60,dep:58,tac:55,tem:62},{vit:94,acc:90,end:86,dep:85,tac:88,tem:84},1600,8,'finisseur'),
+          mk('h2','Belle Étoile','gris',{vit:63,acc:57,end:76,dep:52,tac:66,tem:70},{vit:86,acc:82,end:95,dep:80,tac:90,tem:92},2000,7,'increvable'),
+          mk('h3','Prince d’Or','palomino',{vit:69,acc:73,end:50,dep:68,tac:52,tem:55},{vit:92,acc:95,end:74,dep:92,tac:80,tem:78},1200,6,'fusee')]});
  let S=null;try{S=JSON.parse(localStorage.getItem('trr.stable')||'null')}catch(e){}
  if(S&&S.v===1&&S.horses.length>3&&!S.horses[3].id)S.horses.length=3;if(!S||S.v!==1){S=fresh();try{const old=JSON.parse(localStorage.getItem('trr.champion')||'null');if(old){S.created=true;S.silks={main:old.main,second:old.second,pattern:old.pattern,cap:old.cap};S.horses[0].name=old.name;S.horses[0].coat=old.coat}}catch(e){}}
  const save=()=>{S.res={gold:state.gold,feed:state.feed,gems:state.gems,trophies:state.trophies};try{localStorage.setItem('trr.stable',JSON.stringify(S))}catch(e){}};
- if(S.res)Object.assign(state,S.res);
+ if(S.res)Object.assign(state,S.res);S.horses.forEach(h=>{if(!h.talent)h.talent=h.rare?'coeur':{h1:'finisseur',h2:'increvable',h3:'fusee'}[h.id]||'metronome'});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  // récupération en temps réel : la fatigue baisse, la forme revient vers la moyenne
  function tick(){const now=Date.now(),hrs=Math.max(0,(now-S.lastT)/36e5);if(hrs<.001)return;S.lastT=now;for(const h of S.horses){h.fatigue=clamp(h.fatigue-9*hrs,0,100);h.moral=clamp(h.moral+(72-h.moral)*Math.min(1,hrs*.08),0,100);h.form=clamp(h.form+(58-h.form)*Math.min(1,hrs*.02),0,100);if(h.injury&&now>h.injury)h.injury=0}}
@@ -52,16 +53,17 @@ const stable=(()=>{
   const up=gainXP(h,Math.round(22*I.g));log(h,`${ses.n} (${I.n.toLowerCase()}) : `+Object.entries(delta).map(([k,d])=>`${STATS.find(s=>s.k===k).n} +${d.toFixed(1)}`).join(', '));save();return{delta,hurt,up,h}}
  function care(id,cId){tick();const h=byId(id),c=CARE.find(x=>x.id===cId);if(!canPay(c.cost))return{err:c.cost.gold?'Or insuffisant':'Fourrage insuffisant'};pay(c.cost);
   h.fatigue=clamp(h.fatigue+(c.fat||0),0,100);h.form=clamp(h.form+(c.form||0),0,100);h.moral=clamp(h.moral+(c.moral||0),0,100);if(c.heal)h.injury=0;log(h,c.n);save();return{h}}
+ function elixir(id){const h=byId(id);const up=gainXP(h,150);log(h,'Élixir d’XP : +150 XP');save();return up}
  function spend(id,k){const h=byId(id);if(h.points<1||h.stats[k]>=h.caps[k])return false;h.points--;h.stats[k]=Math.min(h.caps[k],h.stats[k]+1);save();return true}
  function afterRace(id,rank,field){const h=byId(id);h.races++;if(rank===1)h.wins++;if(rank<=3)h.places++;h.fatigue=clamp(h.fatigue+24,0,100);h.form=clamp(h.form+(rank===1?5:rank<=3?2:-2),0,100);h.moral=clamp(h.moral+(rank===1?10:rank<=3?4:-3),0,100);
   const xp=[140,105,85,65,55,45][rank-1]||40,up=gainXP(h,xp);log(h,`Course : ${rank}${rank===1?'er':'e'} sur ${field}`);save();return{xp,up}}
  // paramètres de course dérivés des statistiques (joueur et adversaires utilisent les mêmes formules)
  function racePerf(st,cond={},dist=1600,pref=1600,tactic='stalker'){const c=1+((cond.form??60)-60)*.0009-Math.max(0,(cond.fatigue??0)-40)*.0016+((cond.moral??65)-65)*.0003,fit=1-Math.min(.02,Math.max(0,pref-dist)/400*.008),fitD=1+Math.max(0,dist-pref)/400*.07;
-  const t={leader:{c:1.01,d:1.25,s:0},stalker:{c:1,d:1,s:0},finisher:{c:.984,d:.8,s:.04}}[tactic]||{c:1,d:1,s:0};
+  const t={leader:{c:1.01,d:1.25,s:0},stalker:{c:1,d:1,s:0},finisher:{c:.98,d:.86,s:.015}}[tactic]||{c:1,d:1,s:0};
   return{cruise:(.418+st.vit*.0007)*c*fit,sprint:.1+st.acc*.0011+t.s,sprintDrain:.62*(1.4-st.acc*.006),drain:.105*(1.55-st.end*.0085)*fitD,boxed:.27+st.tac*.0006,draft:.008+st.tac*.00012,noise:(100-st.tem)*.00008,window:180+(st.dep-50)*2.2,tactic:t}}
- function rivals(ref,n=5,seed=Date.now()){let x=seed%2147483646+1;const r=()=>(x=(x*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{const base=ref-7+r()*14,st={};for(const s of STATS)st[s.k]=clamp(base+(r()-.5)*22,35,99);return{stats:st,pref:DISTS[Math.floor(r()*4)][0]}})}
- function addHorse(o){if(S.horses.some(h=>h.name===o.name))return false;const h=mk('h'+(S.horses.length+1)+Date.now()%1000,o.name,o.coat,o.stats,o.caps,o.dist,o.level);h.rare=!!o.rare;S.horses.push(h);log(h,'Arrivée à l’écurie');save();return h}
- return{addHorse,get data(){return S},save,tick,active:()=>byId(S.active),byId,setActive(id){S.active=id;save()},train,care,spend,afterRace,preview,racePerf,rivals,rating,room,
+ function rivals(ref,n=5,seed=Date.now()){let x=seed%2147483646+1;const r=()=>(x=(x*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{const base=ref-7+r()*14,st={};for(const s of STATS)st[s.k]=clamp(base+(r()-.5)*22,35,99);return{stats:st,pref:DISTS[Math.floor(r()*4)][0],talent:Object.keys(TALENTS)[Math.floor(r()*6)]}})}
+ function addHorse(o){if(S.horses.some(h=>h.name===o.name))return false;const h=mk('h'+(S.horses.length+1)+Date.now()%1000,o.name,o.coat,o.stats,o.caps,o.dist,o.level,o.talent||'coeur');h.rare=!!o.rare;S.horses.push(h);log(h,'Arrivée à l’écurie');save();return h}
+ return{elixir,addHorse,get data(){return S},save,tick,active:()=>byId(S.active),byId,setActive(id){S.active=id;save()},train,care,spend,afterRace,preview,racePerf,rivals,rating,room,
   get silks(){return S.silks},set silks(v){S.silks=v},get created(){return S.created},set created(v){S.created=v}}})();
 setInterval(()=>{stable.tick();stable.save()},60e3);
 /* champion = couleurs du propriétaire + robe/nom du cheval actif (API utilisée par l’atelier et la course) */

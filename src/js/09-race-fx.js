@@ -92,7 +92,7 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   if(P.rt.width!==fx.size.x||P.rt.height!==fx.size.y)P.rt.setSize(fx.size.x,fx.size.y);
   const cam=q.camera;for(const b of fx.boards)b.rotation.y=Math.atan2(cam.position.x-b.position.x,cam.position.z-b.position.z);
   const D=fx.dust;for(let j=0;j<D.N;j++){if(D.life[j]<=0){D.pos[j*3+1]=-50;continue}D.life[j]-=dt;D.vel[j*3+1]-=16*dt;D.pos[j*3]+=D.vel[j*3]*dt;D.pos[j*3+1]=Math.max(.05,D.pos[j*3+1]+D.vel[j*3+1]*dt);D.pos[j*3+2]+=D.vel[j*3+2]*dt}D.pts.geometry.attributes.position.needsUpdate=true;
-  const running=q.startPhase==='running'&&!q.podiumActive&&!q.finishView,sprint=running&&raceTime<sprintUntil;if(running&&!raceFinished[0])sound.gallop(autoSpeed,dt);
+  const running=q.startPhase==='running'&&!q.podiumActive&&!q.finishView,sprint=running&&playerFinal&&playerEnergy>0;if(running&&!raceFinished[0])sound.gallop(autoSpeed,dt);
   fx.blur+=((sprint?1:running?.3:0)-fx.blur)*Math.min(1,dt*4);const fov=running?58+Math.max(0,autoSpeed-.42)*38+(sprint?5:0):62;fx.fov+=(fov-fx.fov)*Math.min(1,dt*3);
   if(Math.abs(cam.fov-fx.fov)>.01){cam.fov=fx.fov;cam.updateProjectionMatrix()}
   let bob=0;if(running){bob=Math.sin(fx.phase[0]/8*Math.PI*2)*.14;cam.position.y+=bob}

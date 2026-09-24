@@ -11,7 +11,7 @@ const MEETINGS=[
  {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];
 const MISSION_POOL=[{k:'train',n:'Entraîner un cheval',goal:3,r:{gold:1500}},{k:'race',n:'Disputer des courses',goal:2,r:{feed:1500}},{k:'top3',n:'Finir sur le podium',goal:1,r:{gold:2500}},
- {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Lancer 3 sprints en course',goal:3,r:{gold:1200}},{k:'perfect',n:'Réussir un départ parfait',goal:1,r:{gems:5}}];
+ {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Réussir un départ parfait',goal:1,r:{gems:5}}];
 let RACE={...MEETINGS[1]};
 const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{const d=new Date(),t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-n+3);const f=new Date(Date.UTC(t.getUTCFullYear(),0,4));return t.getUTCFullYear()+'-S'+(1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7))};
  let C={};try{C=JSON.parse(localStorage.getItem('trr.progress')||'{}')}catch(e){}
@@ -27,8 +27,8 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
  function claimMission(i){const m=C.missions[i],d=MISSION_POOL.find(x=>x.k===m.k);if(!m||m.done||m.p<d.goal)return;m.done=true;give(d.r);save();badges()}
  function badges(){const b=$('[data-panel=missions] .badge'),n=C.missions.filter(m=>!m.done).length;if(b){b.textContent=n;b.hidden=!n}const e=$('[data-panel=events] .badge');if(e){const ready=C.weekRaces>=5&&!C.weekClaimed;e.textContent=ready?'!':Math.max(0,5-C.weekRaces);e.hidden=C.weekClaimed}
   const lv=$('.level');if(lv)lv.textContent=stable.active().level;const c=$('.profile-card small');if(c)c.innerHTML=`🏆 <span id="trophies">${fmt(state.trophies)}</span> · Ligue ${LEAGUES[league()].n}`}
- function afterRace(rank,meeting){roll();const before=league(),d=TROPHY_DELTA[rank-1];state.trophies=Math.max(0,state.trophies+d);C.best=Math.max(C.best,state.trophies);C.weekRaces++;C.stats.races++;if(rank===1)C.stats.wins++;save();
-  bump('race');if(rank<=3)bump('top3');if(rank===1)bump('win');const after=league();sync();badges();return{d,promoted:after>before?LEAGUES[after]:null,relegated:after<before?LEAGUES[after]:null}}
+ function afterRace(rank,meeting,stars=0){roll();const before=league(),d=TROPHY_DELTA[rank-1];state.trophies=Math.max(0,state.trophies+d);C.best=Math.max(C.best,state.trophies);C.weekRaces++;C.stats.races++;if(rank===1)C.stats.wins++;save();
+  bump('race');if(rank<=3)bump('top3');if(rank===1)bump('win');const after=league();sync();badges();return{d,promoted:after>before?LEAGUES[after]:null,relegated:after<before?LEAGUES[after]:null,...meta.onRace(rank,stars)}}
  function claimLeague(i){if(C.claimed.includes(i)||C.best<LEAGUES[i].min)return;C.claimed.push(i);give(LEAGUES[i].reward);save();openTrophies()}
  function claimWeek(){if(C.weekRaces<5||C.weekClaimed)return;C.weekClaimed=true;save();const got=stable.addHorse({name:'Étoile du Roi',coat:'noir',stats:{vit:74,acc:70,end:72,dep:64,tac:66,tem:68},caps:{vit:97,acc:94,end:96,dep:90,tac:94,tem:92},dist:2000,level:9,rare:true});
   if(got){toast('Nouveau cheval rare : Étoile du Roi rejoint ton écurie !');sound.fanfare()}else give({gems:60});badges();openEvents()}
@@ -43,5 +43,5 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.claimM!=null){claimMission(+b.dataset.claimM);openMissions()}else if(b.dataset.claimL!=null)claimLeague(+b.dataset.claimL);else if(b.hasAttribute('data-claim-w'))claimWeek()});
  return{bump,afterRace,league,badges,openMissions,openTrophies,openEvents,tip:k=>{if(C.tips[k])return false;C.tips[k]=1;save();return true},get data(){return C},roll}})();
 /* ---------- programme des courses ---------- */
-function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain];return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b><small>${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(m.purse)}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
+function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m);return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<small>${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(m.purse)}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
 $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-meet]');if(!b)return;RACE={...MEETINGS.find(m=>m.id===b.dataset.meet)};buildField();renderCourses()});

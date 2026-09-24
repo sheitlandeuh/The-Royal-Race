@@ -33,14 +33,14 @@
       <div class="draft" id="draft">ASPIRATION <strong>+8%</strong></div>
     </div>
     <header class="race-head fp-head"><div><h2>Grand Prix du Domaine Royal</h2><small>Hippodrome Royal • 1 600 m • 6 joueurs</small></div><div class="position"><small>POSITION</small> <strong id="racePosition">4e</strong></div><div class="distance"><span id="meters">1 600</span> m</div><button class="race-close" id="quitRace">Quitter</button></header>
-    <div class="race-map"><i id="mapDot"></i><span>ARRIVÉE</span></div>
+    <div class="race-map"><em id="mapIdeal" title="Point de sprint idéal"></em><i id="mapDot"></i><span>ARRIVÉE</span></div>
     <div class="race-call" id="raceComment">Place-toi avant le départ…</div>
     <button class="look look-left" id="lookLeft" aria-label="Regarder à gauche">👁 ◀</button><button class="look look-right" id="lookRight" aria-label="Regarder à droite">▶ 👁</button>
     <div class="steer"><button id="moveLeft" aria-label="Se déplacer à gauche">◀<small>GAUCHE</small></button><div class="lane-meter"><span>POSITION SUR LA PISTE</span><i id="laneDot"></i></div><button id="moveRight" aria-label="Se déplacer à droite">▶<small>DROITE</small></button></div>
-    <div class="auto-gallop" id="autoGallop"><span>ROYAL THUNDER</span><b>Foulée libre</b><div class="energy-label">ENDURANCE <strong id="energyValue">100 %</strong></div><div class="energy-track"><i id="energyFill"></i></div></div>
+    <div class="auto-gallop" id="autoGallop"><span>ROYAL THUNDER</span><b>Foulée libre</b><div class="energy-label">ENDURANCE <strong id="energyValue">100 %</strong></div><div class="energy-track"><i id="energyFill"></i></div><div class="sprint-info" id="sprintInfo"></div></div>
     <button class="go-btn" id="goBtn" hidden>PARTEZ !</button>
     <button class="sprint-btn" id="sprintBtn" aria-label="Lancer le sprint final">SPRINT</button>
-    <div class="finish-board" id="finishBoard"><section class="finish-board-card"><h2>Classement officiel</h2><p>Tous les chevaux ont franchi le poteau</p><table><thead><tr><th>PL.</th><th>CHEVAL</th><th>TEMPS</th><th>ÉCART</th></tr></thead><tbody id="finishRows"></tbody></table><p class="fb-gain" id="fbGain"></p><button class="action green" id="showPodium">ACCÈS AU PODIUM</button></section></div>
+    <div class="finish-board" id="finishBoard"><section class="finish-board-card"><h2>Classement officiel</h2><p>Tous les chevaux ont franchi le poteau</p><table><thead><tr><th>PL.</th><th>CHEVAL</th><th>TEMPS</th><th>ÉCART</th></tr></thead><tbody id="finishRows"></tbody></table><div class="fb-stars" id="fbStars"></div><p class="fb-gain" id="fbGain"></p><button class="action green" id="showPodium">ACCÈS AU PODIUM</button></section></div>
     <div class="result" id="raceResult"><div class="result-card"><div class="cup" id="resultCup">🏆</div><h2 id="resultTitle">Victoire !</h2><p id="resultText">Royal Thunder remporte la course.</p><button class="action green" id="returnDomain">RETOUR AU DOMAINE</button></div></div>
   </section>
   <section class="studio" id="studio" aria-label="Atelier du champion"><div class="studio-card">

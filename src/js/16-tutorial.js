@@ -1,7 +1,7 @@
 /* ===== Tutoriel : conseils de l’entraîneur, affichés une seule fois ===== */
 const coach=(()=>{const el=document.createElement('div');el.className='coach';el.innerHTML='<div class="coach-face">🎩</div><div class="coach-body"><b>Maître Armand, entraîneur</b><p></p><button class="action green">COMPRIS</button></div>';el.hidden=true;$('#game').appendChild(el);
  let queue=[],ring=null;const hide=()=>{el.hidden=true;ring?.remove();ring=null;if(queue.length)setTimeout(next,250)};el.querySelector('button').onclick=hide;
- function next(){const[k,txt,sel]=queue.shift();el.querySelector('p').innerHTML=txt;el.hidden=false;const t=sel&&$(sel);if(t&&t.offsetParent){const r=t.getBoundingClientRect(),g=$('#game').getBoundingClientRect();ring=document.createElement('div');ring.className='coach-ring';Object.assign(ring.style,{left:r.left-g.left-6+'px',top:r.top-g.top-6+'px',width:r.width+12+'px',height:r.height+12+'px'});$('#game').appendChild(ring)}}
+ function next(){if($('#panel').classList.contains('open')&&!$('#raceScreen').classList.contains('open')||$('#studio').classList.contains('open'))return setTimeout(next,700);if(!queue.length)return;const[k,txt,sel]=queue.shift();el.querySelector('p').innerHTML=txt;el.hidden=false;const t=sel&&$(sel);if(t&&t.offsetParent){const r=t.getBoundingClientRect(),g=$('#game').getBoundingClientRect();ring=document.createElement('div');ring.className='coach-ring';Object.assign(ring.style,{left:r.left-g.left-6+'px',top:r.top-g.top-6+'px',width:r.width+12+'px',height:r.height+12+'px'});$('#game').appendChild(ring)}}
  function tip(k,txt,sel){if(!career.tip(k))return;queue.push([k,txt,sel]);if(el.hidden)next()}
  return{tip,hide}})();
 // premiers pas : après la création du champion

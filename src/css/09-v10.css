@@ -1,0 +1,25 @@
+    /* ===== v1.0 : sellerie, tournoi royal, palmarès ===== */
+    .tack{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;min-width:0}.rc-grid>*{min-width:0}
+    .tack button{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:9px 10px;border-radius:12px;background:#ffffff0a;border:1.5px solid #ffffff1f;color:#e9f1f7;cursor:pointer;font:inherit}
+    .tack button i{font-style:normal;font-size:20px}.tack button b{font-size:13px}.tack button small{font-size:11px;color:#aebfcc;line-height:1.3}
+    .tack button.on{border-color:#ffd24a;background:linear-gradient(160deg,#ffd24a22,#ffd24a08);box-shadow:0 0 0 1px #ffd24a55 inset}
+    .tack button.locked{opacity:.5}.tack .price{margin-top:2px;font-size:11px;font-weight:800;color:#ffe09a}.tack .suit{font-size:10px}
+    .tour{margin-bottom:16px;padding:14px;border-radius:16px;background:linear-gradient(150deg,#3a2a0c,#1b1406 70%);border:1.5px solid #d9a93c99;box-shadow:0 10px 30px #0006}
+    .tour-head{display:flex;gap:14px;align-items:center}.tour-head>div>b{font:800 20px Georgia,serif;color:#ffe2a0}.tour-head p b{color:#ffe2a0}.tour-head small{display:block;color:#e2c98e;font-weight:700;margin-top:2px}.tour-head p{margin:6px 0 0;font-size:13px;color:#eadfc4}
+    .cup-art{flex:none;width:64px;height:64px;display:grid;place-items:center;font-size:38px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff2c0,#d49b2a 55%,#6b4508);box-shadow:0 0 24px #ffc84a66}
+    .pips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}.pips span{padding:5px 10px;border-radius:999px;background:#00000040;border:1px solid #ffffff22;font-size:12px;font-weight:800;color:#b9a676}
+    .pips span.done{color:#9fe39f;border-color:#55c75666}.pips span.cur{color:#1b1406;background:#ffd24a;border-color:#ffd24a;animation:haloPulse 1.4s ease-in-out infinite}.pips i{font-style:normal;color:#d9a93c}
+    .tour-prizes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.tour-prizes div{display:flex;gap:8px;align-items:center;padding:8px;border-radius:12px;background:#00000033}.tour-prizes i{font-style:normal;font-size:24px}.tour-prizes small{font-size:11px;color:#eadfc4;line-height:1.35}
+    .tour-live{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px;border-radius:12px;background:#00000033}.tour-live canvas{width:64px;height:84px}.tour-live small{display:block;color:#d8c9a4}.tour-btns{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+    .meet.tourm{background:linear-gradient(150deg,#5a3f0e,#2a1d06);border-color:#ffd24a}
+    .tourmsg b{color:#ffd24a}#nextRound{margin-right:8px;background:linear-gradient(#f3c64a,#b0801a);color:#1b1406;border-color:#7a4d08}
+    .cabinet{display:grid;gap:10px;margin-bottom:6px}.shelf{min-height:64px;display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;padding:10px 14px 8px;border-radius:14px;background:linear-gradient(#2b1c10,#4a3220 85%,#6b4a2c);border-bottom:6px solid #7d5634;box-shadow:inset 0 10px 24px #0008}
+    .shelf i{font-style:normal;font-size:34px;filter:drop-shadow(0 4px 6px #000a)}.shelf small{color:#d8c3a0;align-self:center}.shelf b{color:#ffd24a;align-self:center}
+    .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.kpis div{text-align:center;padding:8px 4px;border-radius:12px;background:#ffffff0a;border:1px solid #ffffff14}.kpis b{display:block;font:900 18px ui-sans-serif,system-ui;color:#ffe09a}.kpis small{font-size:10px;color:#9fb3c2}
+    .achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+    .ach{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:14px;background:#ffffff08;border:1.5px solid #ffffff17}
+    .ach>i{font-style:normal;font-size:28px;filter:grayscale(1);opacity:.55}.ach.ok>i,.ach.got>i{filter:none;opacity:1}.ach b{font-size:14px}.ach small{display:block;font-size:11px;color:#9fb3c2}.ach .bar{margin:5px 0 2px;height:6px}
+    .ach.ok:not(.got){border-color:#55c756aa;background:#55c75614}.ach.got{opacity:.6}.ach .action{padding:6px 10px;font-size:12px}
+    @media (max-width:640px){.kpis{grid-template-columns:repeat(3,1fr)}.tour-prizes{grid-template-columns:1fr}.tour-btns{margin-left:0}.tack{grid-template-columns:repeat(2,minmax(0,1fr))}.tack button{overflow-wrap:anywhere}}
+    .nav.hot{position:relative}.nav.hot::after{content:'!';position:absolute;top:6px;right:10px;width:18px;height:18px;border-radius:50%;background:#e2402f;color:#fff;font:900 12px/18px ui-sans-serif,system-ui;text-align:center;box-shadow:0 0 0 2px #0b1f36;animation:haloPulse 1.4s ease-in-out infinite}
+    .st-pick.dim{opacity:.4;filter:grayscale(.6)}

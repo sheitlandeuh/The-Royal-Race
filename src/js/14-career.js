@@ -26,7 +26,7 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
  const rtxt=r=>[r.gold?`🪙 ${fmt(r.gold)}`:'',r.feed?`🌾 ${fmt(r.feed)}`:'',r.gems?`💎 ${r.gems}`:''].filter(Boolean).join(' · ');
  function claimMission(i){const m=C.missions[i],d=MISSION_POOL.find(x=>x.k===m.k);if(!m||m.done||m.p<d.goal)return;m.done=true;give(d.r);save();badges()}
  function badges(){const b=$('[data-panel=missions] .badge'),n=C.missions.filter(m=>!m.done).length;if(b){b.textContent=n;b.hidden=!n}const e=$('[data-panel=events] .badge');if(e){const ready=C.weekRaces>=5&&!C.weekClaimed;e.textContent=ready?'!':Math.max(0,5-C.weekRaces);e.hidden=C.weekClaimed}
-  const lv=$('.level');if(lv)lv.textContent=stable.active().level;const c=$('.profile-card small');if(c)c.innerHTML=`🏆 <span id="trophies">${fmt(state.trophies)}</span> · Ligue ${LEAGUES[league()].n}`}
+  try{tour.badge()}catch(e){}const lv=$('.level');if(lv)lv.textContent=stable.active().level;const c=$('.profile-card small');if(c)c.innerHTML=`🏆 <span id="trophies">${fmt(state.trophies)}</span> · Ligue ${LEAGUES[league()].n}`}
  function afterRace(rank,meeting,stars=0){roll();const before=league(),d=TROPHY_DELTA[rank-1];state.trophies=Math.max(0,state.trophies+d);C.best=Math.max(C.best,state.trophies);C.weekRaces++;C.stats.races++;if(rank===1)C.stats.wins++;save();
   bump('race');if(rank<=3)bump('top3');if(rank===1)bump('win');const after=league();sync();badges();return{d,promoted:after>before?LEAGUES[after]:null,relegated:after<before?LEAGUES[after]:null,...meta.onRace(rank,stars)}}
  function claimLeague(i){if(C.claimed.includes(i)||C.best<LEAGUES[i].min)return;C.claimed.push(i);give(LEAGUES[i].reward);save();openTrophies()}
@@ -44,4 +44,4 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
  return{bump,afterRace,league,badges,openMissions,openTrophies,openEvents,tip:k=>{if(C.tips[k])return false;C.tips[k]=1;save();return true},get data(){return C},roll}})();
 /* ---------- programme des courses ---------- */
 function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m);return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<small>${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(m.purse)}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
-$('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-meet]');if(!b)return;RACE={...MEETINGS.find(m=>m.id===b.dataset.meet)};buildField();renderCourses()});
+$('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-meet]');if(!b)return;if(b.dataset.meet==='tour'){RACE=tour.meeting();stable.setActive(tour.horse);champion.emit()}else RACE={...MEETINGS.find(m=>m.id===b.dataset.meet)};buildField();renderCourses()});

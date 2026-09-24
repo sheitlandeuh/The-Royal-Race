@@ -74,3 +74,8 @@
     .pt-box section{width:min(520px,100%);max-height:90%;overflow:auto;background:#0d2238;border:2px solid #e5bb5a;border-radius:16px;padding:16px;color:#e8eef4;font-size:13px}
     .pt-box h3{margin:0 0 10px;font:800 17px Georgia,serif;color:#ffe29a}.pt-box table{width:100%;border-collapse:collapse}.pt-box td{padding:5px 4px;border-bottom:1px solid #ffffff14;vertical-align:top}.pt-box td:last-child{text-align:right}
     .pt-box div{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.pt-box button{border:0;border-radius:10px;padding:8px 12px;font:800 12px system-ui;background:#2a5a86;color:#fff;cursor:pointer}
+    /* ===== Objectif suivant ===== */
+    .homebar .goal{position:absolute;left:0;right:0;margin:0 auto;bottom:calc(100% + 8px);width:max-content;max-width:100%;border:1px solid #f1c75a;border-radius:999px;padding:6px 14px;background:linear-gradient(#0d2a47f0,#071a2df0);color:#ffe7a8;font:800 12.5px system-ui,sans-serif;box-shadow:0 6px 16px #0007;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:goalIn .5s ease}
+    .homebar .goal:hover{filter:brightness(1.15)}@keyframes goalIn{from{opacity:0;transform:translateY(6px)}}
+    .coach.top{top:calc(84px + env(safe-area-inset-top,0px));bottom:auto}
+    body.lk-coffres .homebar{justify-content:center}body.lk-coffres .homebar .play{flex:0 1 320px}

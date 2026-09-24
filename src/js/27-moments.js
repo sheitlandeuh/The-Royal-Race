@@ -13,7 +13,9 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_
  const lane=i=>i?rivalLanes[i-1]:playerLane,rankNow=()=>raceFinished[0]?finishOrder.indexOf(0)+1:progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i===0)+1;
  // le programme des temps forts est tiré au départ : chacun a sa chance et son point de déclenchement (en % de course)
  function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0),tem=stable.active().stats.tem;M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
-  plan:{tire:r()<.35+(70-tem)*.015?10+r()*24:null,breche:r()<.7?24+r()*36:null,attaque:r()<.8?42+r()*24:null}};card.hidden=true;news.classList.remove('show')}
+  plan:{tire:r()<.35+(70-tem)*.015?10+r()*24:null,breche:r()<.7?24+r()*36:null,attaque:r()<.8?42+r()*24:null}};
+  // toute première course : un seul temps fort, simple et expliqué (le cheval tire sur les rênes)
+  if(!(career.data.stats?.races>0))M.plan={tire:16,breche:null,attaque:null};card.hidden=true;news.classList.remove('show')}
  function fx(i){const f=M&&M.fx[i];return f&&raceTime<f.until?f:{speed:0,drain:1}}
  // quel temps fort peut surgir maintenant ?
  function pick(){const ph=progress[0],h=stable.active(),due=(k,max)=>M.plan[k]!=null&&ph>=M.plan[k]&&ph<max;

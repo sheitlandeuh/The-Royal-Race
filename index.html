@@ -365,6 +365,11 @@
     .pt-box section{width:min(520px,100%);max-height:90%;overflow:auto;background:#0d2238;border:2px solid #e5bb5a;border-radius:16px;padding:16px;color:#e8eef4;font-size:13px}
     .pt-box h3{margin:0 0 10px;font:800 17px Georgia,serif;color:#ffe29a}.pt-box table{width:100%;border-collapse:collapse}.pt-box td{padding:5px 4px;border-bottom:1px solid #ffffff14;vertical-align:top}.pt-box td:last-child{text-align:right}
     .pt-box div{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.pt-box button{border:0;border-radius:10px;padding:8px 12px;font:800 12px system-ui;background:#2a5a86;color:#fff;cursor:pointer}
+    /* ===== Objectif suivant ===== */
+    .homebar .goal{position:absolute;left:0;right:0;margin:0 auto;bottom:calc(100% + 8px);width:max-content;max-width:100%;border:1px solid #f1c75a;border-radius:999px;padding:6px 14px;background:linear-gradient(#0d2a47f0,#071a2df0);color:#ffe7a8;font:800 12.5px system-ui,sans-serif;box-shadow:0 6px 16px #0007;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:goalIn .5s ease}
+    .homebar .goal:hover{filter:brightness(1.15)}@keyframes goalIn{from{opacity:0;transform:translateY(6px)}}
+    .coach.top{top:calc(84px + env(safe-area-inset-top,0px));bottom:auto}
+    body.lk-coffres .homebar{justify-content:center}body.lk-coffres .homebar .play{flex:0 1 320px}
   </style>
 </head>
 <body>
@@ -1233,14 +1238,14 @@ const buzz=p=>{try{navigator.vibrate?.(p)}catch(e){}};
 const coach=(()=>{const el=document.createElement('div');el.className='coach';el.innerHTML='<div class="coach-face">🎩</div><div class="coach-body"><b>Maître Armand, entraîneur</b><p></p><button class="action green">COMPRIS</button></div>';el.hidden=true;$('#game').appendChild(el);
  // une seule attente à la fois : deux conseils demandés pendant qu'un panneau est ouvert ne doivent pas s'afficher l'un sur l'autre
  let queue=[],ring=null,wait=0;const later=ms=>{if(!wait)wait=setTimeout(next,ms)};const hide=()=>{el.hidden=true;ring?.remove();ring=null;if(queue.length)later(250)};el.querySelector('button').onclick=hide;
- function next(){wait=0;if(!el.hidden||!queue.length)return;if($('#panel').classList.contains('open')&&!$('#raceScreen').classList.contains('open')||$('#studio').classList.contains('open'))return later(700);const[k,txt,sel]=queue.shift();el.querySelector('p').innerHTML=txt;el.hidden=false;hooks.emit('tip',k);const t=sel&&$(sel);if(t&&t.offsetParent){const r=t.getBoundingClientRect(),g=$('#game').getBoundingClientRect();ring=document.createElement('div');ring.className='coach-ring';Object.assign(ring.style,{left:r.left-g.left-6+'px',top:r.top-g.top-6+'px',width:r.width+12+'px',height:r.height+12+'px'});$('#game').appendChild(ring)}}
+ function next(){wait=0;if(!el.hidden||!queue.length)return;if($('#panel').classList.contains('open')&&!$('#raceScreen').classList.contains('open')||$('#studio').classList.contains('open'))return later(700);const[k,txt,sel]=queue.shift();el.querySelector('p').innerHTML=txt;el.hidden=false;hooks.emit('tip',k);const t=sel&&$(sel);el.classList.remove('top');if(t&&t.offsetParent){const r=t.getBoundingClientRect(),g=$('#game').getBoundingClientRect();// cible dans le bas de l'écran : la bulle passe en haut pour ne pas la cacher
+  if(r.top-g.top>g.height*.55&&!$('#raceScreen').classList.contains('open'))el.classList.add('top');ring=document.createElement('div');ring.className='coach-ring';Object.assign(ring.style,{left:r.left-g.left-6+'px',top:r.top-g.top-6+'px',width:r.width+12+'px',height:r.height+12+'px'});$('#game').appendChild(ring)}}
  function tip(k,txt,sel){if(!career.tip(k))return;queue.push([k,txt,sel]);next()}
  // en course, un conseil affiché met la simulation en pause (le joueur lit sans être pénalisé)
  return{tip,hide,get open(){return !el.hidden}}})();
 // premiers pas : après la création du champion
-champion.on(()=>{setTimeout(()=>{coach.tip('welcome',`Bienvenue au domaine ! Ton champion <b>${escapeHTML(HN())}</b> t’attend à l’écurie. Chaque cheval a 6 statistiques : entraîne-les pour gagner des courses.`,'.nav[data-view=chevaux]');
- coach.tip('missions','Chaque jour, 3 missions rapportent de l’or, du fourrage et des gemmes. Elles se renouvellent à minuit.','[data-panel=missions]')},600)});
-if(champion.exists())setTimeout(()=>coach.tip('missions','Nouveau : 3 missions quotidiennes, des ligues et le Derby du Royaume chaque semaine. Touche le parchemin pour commencer.','[data-panel=missions]'),1800);
+champion.on(()=>{setTimeout(()=>{coach.tip('welcome',`Bienvenue au domaine ! <b>${escapeHTML(HN())}</b> est prêt pour sa première course. Touche <b>COURIR</b> : le reste du domaine s’ouvrira au fil de tes courses.`,'#playBtn')},600)});
+if(champion.exists()&&career.data.stats?.races>=1)setTimeout(()=>coach.tip('missions','Nouveau : 3 missions quotidiennes, des ligues et le Derby du Royaume chaque semaine. Touche le parchemin pour commencer.','[data-panel=missions]'),1800);
 career.badges();{const s1=sync;sync=function(){s1();career.badges()}}
 apply();
 /* --- 17-meta.js --- */
@@ -1284,7 +1289,7 @@ const meta=(()=>{const C=career.data;C.chests=C.chests||[null,null,null,null];C.
   const n=C.chests.filter(c=>c&&c.ends&&now>=c.ends).length;bar.classList.toggle('has-ready',!!n)}
  setInterval(render,20e3);champion.on(render);
  return{onRace,render,suit,addChest,login,get elixirs(){return C.elixirs},useElixir(){if(C.elixirs<1)return false;C.elixirs--;save();return true},get streak(){return C.streak}}})();
-meta.render();meta.login();{const s2=sync;sync=function(){s2();meta.render()}}
+meta.render();if(career.data.stats?.races>0)meta.login();{const s2=sync;sync=function(){s2();meta.render()}}
 /* --- 18-season.js --- */
 /* ===== Route des étoiles : pass de saison gratuit (28 jours), alimenté par les étoiles gagnées en course ===== */
 const SEASON_TIERS=Array.from({length:20},(_,i)=>{const t=i+1;return t===20?{pattern:'soleil',label:'Motif « Soleil royal »'}:t%5===0?{chest:t===15?'royal':'or'}:t%4===0?{elixir:1}:t%3===0?{gems:5+t}:t%2===0?{feed:1500+t*150}:{gold:2000+t*250}});
@@ -1593,7 +1598,9 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_
  const lane=i=>i?rivalLanes[i-1]:playerLane,rankNow=()=>raceFinished[0]?finishOrder.indexOf(0)+1:progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i===0)+1;
  // le programme des temps forts est tiré au départ : chacun a sa chance et son point de déclenchement (en % de course)
  function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0),tem=stable.active().stats.tem;M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
-  plan:{tire:r()<.35+(70-tem)*.015?10+r()*24:null,breche:r()<.7?24+r()*36:null,attaque:r()<.8?42+r()*24:null}};card.hidden=true;news.classList.remove('show')}
+  plan:{tire:r()<.35+(70-tem)*.015?10+r()*24:null,breche:r()<.7?24+r()*36:null,attaque:r()<.8?42+r()*24:null}};
+  // toute première course : un seul temps fort, simple et expliqué (le cheval tire sur les rênes)
+  if(!(career.data.stats?.races>0))M.plan={tire:16,breche:null,attaque:null};card.hidden=true;news.classList.remove('show')}
  function fx(i){const f=M&&M.fx[i];return f&&raceTime<f.until?f:{speed:0,drain:1}}
  // quel temps fort peut surgir maintenant ?
  function pick(){const ph=progress[0],h=stable.active(),due=(k,max)=>M.plan[k]!=null&&ph>=M.plan[k]&&ph<max;
@@ -1965,6 +1972,42 @@ const playtest=(()=>{const q=new URLSearchParams(location.search);if(!q.has('tes
   if(b.dataset.pt==='close')box.hidden=true});
  log('session',{version:'0.15',nouvellePartie:!champion.exists()});
  return{on:true,log,summary}})();
+/* --- 35-onboarding.js --- */
+/* ===== Premières minutes : les systèmes se débloquent un par un, un objectif est toujours visible =====
+   Un nouveau joueur ne voit d'abord que le domaine et la course. Chaque déblocage est annoncé par Maître Armand.
+   Les joueurs déjà avancés (7 courses ou plus) voient tout, comme avant. */
+const UNLOCKS=[
+ {k:'coffres',at:1,sel:['.homebar .slots'],n:'Coffres',txt:'Chaque podium rapporte un <b>coffre</b>. Touche-le pour lancer son ouverture : plus il est précieux, plus il est long à ouvrir.'},
+ {k:'missions',at:1,sel:['[data-panel=missions]'],n:'Missions du jour',txt:'Chaque jour, <b>3 missions</b> rapportent de l’or, du fourrage et des gemmes. Touche le parchemin.'},
+ {k:'ecurie',at:2,sel:['.nav[data-view=chevaux]','.nav[data-view=ecurie]'],n:'Écurie et entraînement',txt:'Ton écurie est ouverte : <b>entraîne</b> tes chevaux, soigne-les, répartis leurs points de niveau.'},
+ {k:'ligues',at:3,sel:['[data-panel=trophees]','[data-panel=saison]'],n:'Ligues et Route des étoiles',txt:'Tes trophées te font monter de <b>ligue</b> (de nouvelles courses s’ouvrent), tes étoiles de course font avancer la <b>Route des étoiles</b>.'},
+ {k:'tournoi',at:5,sel:['.nav[data-view=events]','[data-panel=events]','[data-panel=palmares]'],n:'Tournoi royal',txt:'Chaque jour, un <b>tournoi</b> à élimination directe. Et chaque semaine, un cheval rare à gagner.'},
+ {k:'boutique',at:7,sel:['[data-panel=boutique]','#panelBody h4:has(+ .tack)','#panelBody .tack'],n:'Boutique et sellerie',txt:'La <b>boutique</b> accepte tes gemmes, et la <b>sellerie</b> permet d’équiper ton cheval selon le terrain.'}];
+const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
+ const style=document.createElement('style');style.textContent=UNLOCKS.map(U=>U.sel.map(s=>`body.lk-${U.k} ${s}`).join(',')+'{display:none!important}').join('\n');document.head.appendChild(style);
+ function apply(){const n=races();for(const U of UNLOCKS)document.body.classList.toggle('lk-'+U.k,n<U.at)}
+ let pending=[];
+ hooks.on('race:end',()=>{const n=races();pending.push(...UNLOCKS.filter(U=>U.at===n))});
+ // les annonces attendent le retour au domaine (après la course, le podium et le récapitulatif)
+ hooks.on('race:leave',()=>{if(!pending.length)return;const list=pending;pending=[];setTimeout(()=>{apply();list.forEach(U=>coach.tip('unlock-'+U.k,`<b>Nouveau : ${U.n} !</b><br>${U.txt}`,U.sel[0]));buzz([20,30,20]);sound.coin()},700)});
+ // objectif suivant, toujours visible au-dessus du bouton COURIR
+ const bar=$('.homebar'),goal=document.createElement('button');goal.className='goal';bar.appendChild(goal);
+ function next(){const C=career.data,h=stable.active(),n=races(),M=C.missions||[],ready=(C.chests||[]).findIndex(c=>c&&c.ends&&Date.now()>=c.ends);
+  if(!n)return['Lance ta première course','courses'];
+  if(h.injury||h.fatigue>=90)return[`${h.name} doit se reposer : engage un autre cheval`,'courses'];
+  if(ready>=0)return['Ouvre ton coffre','chest:'+ready];
+  if(M.some(m=>!m.done&&m.p>=(MISSION_POOL.find(x=>x.k===m.k)||{goal:1}).goal))return['Récupère ta récompense de mission','missions'];
+  if(!C.stats.wins)return['Gagne ta première course','courses'];
+  const pts=n>=2&&stable.data.horses.find(x=>x.points>0);if(pts)return[`Répartis les points de niveau de ${pts.name}`,'ecurie'];
+  if(n>=3){const L=career.league(),nx=LEAGUES[L+1];if(nx)return[`Ligue ${nx.n} : encore ${fmt(Math.max(0,nx.min-state.trophies))} trophées`,'trophees']}
+  const R=rival.rec;if(R.w<=R.l)return[`Prends l’avantage sur Black Majesty (${R.w} – ${R.l})`,'courses'];
+  return[n>=5?'Remporte le Tournoi royal du jour':'Enchaîne les victoires','courses']}
+ function render(){const[t,a]=next();if(goal.dataset.a!==a||goal.textContent!=='🎯 '+t){goal.textContent='🎯 '+t;goal.dataset.a=a}}
+ goal.onclick=()=>{const a=goal.dataset.a;if(a.startsWith('chest:'))return bar.querySelectorAll('.slots [data-slot]')[+a.slice(6)]?.click();if(a==='ecurie')return openStable();openPanel(a)};
+ // la récompense quotidienne attend la fin de la première course (sinon, rien ne doit détourner du premier départ)
+ hooks.on('race:leave',()=>{if(races()>0)setTimeout(()=>meta.login(),1600)});
+ apply();render();setInterval(render,1500);hooks.on('race:leave',()=>setTimeout(render,50));
+ return{apply,next}})();
 </script>
 </body>
 </html>

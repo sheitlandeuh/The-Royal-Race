@@ -38,4 +38,4 @@ const meta=(()=>{const C=career.data;C.chests=C.chests||[null,null,null,null];C.
   const n=C.chests.filter(c=>c&&c.ends&&now>=c.ends).length;bar.classList.toggle('has-ready',!!n)}
  setInterval(render,20e3);champion.on(render);
  return{onRace,render,suit,addChest,login,get elixirs(){return C.elixirs},useElixir(){if(C.elixirs<1)return false;C.elixirs--;save();return true},get streak(){return C.streak}}})();
-meta.render();meta.login();{const s2=sync;sync=function(){s2();meta.render()}}
+meta.render();if(career.data.stats?.races>0)meta.login();{const s2=sync;sync=function(){s2();meta.render()}}

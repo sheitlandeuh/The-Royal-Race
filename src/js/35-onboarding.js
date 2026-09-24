@@ -7,7 +7,7 @@ const UNLOCKS=[
  {k:'ecurie',at:2,sel:['.nav[data-view=chevaux]','.nav[data-view=ecurie]'],n:'Écurie et entraînement',txt:'Ton écurie est ouverte : <b>entraîne</b> tes chevaux, soigne-les, répartis leurs points de niveau.'},
  {k:'ligues',at:3,sel:['[data-panel=trophees]','[data-panel=saison]'],n:'Ligues et Route des étoiles',txt:'Tes trophées te font monter de <b>ligue</b> (de nouvelles courses s’ouvrent), tes étoiles de course font avancer la <b>Route des étoiles</b>.'},
  {k:'tournoi',at:5,sel:['.nav[data-view=events]','[data-panel=events]','[data-panel=palmares]'],n:'Tournoi royal',txt:'Chaque jour, un <b>tournoi</b> à élimination directe. Et chaque semaine, un cheval rare à gagner.'},
- {k:'boutique',at:7,sel:['[data-panel=boutique]','#panelBody h4:has(+ .tack)','#panelBody .tack'],n:'Boutique et sellerie',txt:'La <b>boutique</b> accepte tes gemmes, et la <b>sellerie</b> permet d’équiper ton cheval selon le terrain.'}];
+ {k:'boutique',at:7,sel:['[data-panel=boutique]','.resource .plus','#panelBody h4:has(+ .tack)','#panelBody .tack'],n:'Boutique et sellerie',txt:'La <b>boutique</b> accepte tes gemmes, et la <b>sellerie</b> permet d’équiper ton cheval selon le terrain.'}];
 const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
  const style=document.createElement('style');style.textContent=UNLOCKS.map(U=>U.sel.map(s=>`body.lk-${U.k} ${s}`).join(',')+'{display:none!important}').join('\n');document.head.appendChild(style);
  function apply(){const n=races();for(const U of UNLOCKS)document.body.classList.toggle('lk-'+U.k,n<U.at)}

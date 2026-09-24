@@ -289,6 +289,76 @@
     .shop-h{margin:16px 0 8px;font-size:12px;letter-spacing:.14em;color:#e5c56a}
     .savecode{width:100%;min-height:74px;margin-top:6px;border-radius:10px;border:1px solid #ffffff2a;background:#061525;color:#cfe3f2;font:12px/1.35 ui-monospace,monospace;padding:8px;resize:vertical;word-break:break-all}
     @media (max-width:640px){.wares{grid-template-columns:repeat(2,minmax(0,1fr))}.wares.top{grid-template-columns:1fr}.ware>i{font-size:28px}}
+    /* ===== Temps forts (décisions en course) + Recourir ===== */
+    .moment{position:absolute;z-index:9;left:50%;top:clamp(150px,38%,320px);transform:translateX(-50%);width:min(460px,calc(100% - 24px));padding:12px 14px 14px;border-radius:18px;background:linear-gradient(#0d2a47f2,#071a2df2);border:2px solid #e5bb5a;box-shadow:0 14px 40px #0009,0 0 0 1px #0006 inset;text-align:center;animation:moIn .22s cubic-bezier(.2,1.4,.4,1)}
+    .moment[hidden]{display:none}
+    .moment[data-k=attaque]{border-color:#ff8a5c}.moment[data-k=breche]{border-color:#8dff9e}
+    .mo-title{display:block;font:800 clamp(17px,2.4vw,21px) Georgia,serif;color:#ffe29a;letter-spacing:.2px}
+    .moment p{margin:4px 0 9px;font-size:13px;line-height:1.35;color:#d9e4ee}
+    .mo-time{height:5px;border-radius:9px;background:#ffffff1f;overflow:hidden;margin-bottom:10px}.mo-time i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#f3c64a,#ff8a5c);transform-origin:left;transition:transform .1s linear}
+    @keyframes moIn{from{opacity:0;transform:translateX(-50%) scale(.85)}}
+    .mo-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .mo-btns button{min-height:52px;border-radius:14px;border:2px solid #ffffff30;background:linear-gradient(#2a5a86,#173a5a);color:#fff;font:800 15px system-ui,sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;padding:6px 8px;touch-action:manipulation}
+    .mo-btns button[data-mo=a]{background:linear-gradient(#4cb44f,#237a2e);border-color:#a6f0a0}
+    .mo-btns button:active{transform:scale(.96)}
+    .mo-btns kbd{font:700 11px system-ui;background:#0005;border-radius:6px;padding:2px 6px;opacity:.8}
+    @media (hover:none){.mo-btns kbd{display:none}}
+    .mo-news{position:absolute;z-index:8;left:50%;top:170px;transform:translateX(-50%) translateY(-6px);opacity:0;transition:.25s;pointer-events:none;background:#3b1d0edd;border:1px solid #ffb37a;color:#ffe3c9;border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:800;white-space:nowrap;max-width:88%;overflow:hidden;text-overflow:ellipsis}
+    .mo-news.show{opacity:1;transform:translateX(-50%)}
+    .mo-sum{margin:10px 0 2px;text-align:left;background:#ffffff0d;border:1px solid #ffffff1c;border-radius:12px;padding:8px 12px;font-size:12.5px}
+    .mo-sum b{color:#ffe29a}.mo-sum ul{margin:4px 0 0;padding-left:18px}.mo-sum li{margin:2px 0}
+    .mo-sum em{font-style:normal;font-weight:800;margin-left:4px}.mo-sum em.up{color:#8dff9e}.mo-sum em.down{color:#ff8a8a}
+    #raceAgain{margin-top:10px;display:flex;flex-direction:column;align-items:center;margin-left:auto;margin-right:auto;background:linear-gradient(#f3c64a,#b98116);color:#2a1a04}
+    #raceAgain small{font-size:11px;font-weight:700;opacity:.8}#raceAgain[hidden]{display:none}
+    @media (max-height:500px){.moment{top:60px;padding:7px 12px 9px}.mo-title{font-size:16px}.moment p{font-size:11.5px;margin:2px 0 6px}.mo-time{margin-bottom:7px}.mo-btns button{min-height:42px}.mo-news{top:128px}}
+    /* téléphone en paysage : jauge en bas à gauche, commandes à sa droite, sprint à droite */
+    @media (max-height:500px) and (orientation:landscape){
+      #raceScreen .auto-gallop{left:10px;right:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .steer{left:max(296px,calc(env(safe-area-inset-left,0px) + 296px));right:auto;transform:none;width:auto;bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .steer button{width:64px}
+      #raceScreen .lane-meter{width:130px}
+    }
+    /* téléphone en portrait : commandes de course sur une seule rangée en bas (gauche/droite + sprint), jauge au-dessus — plus rien ne se chevauche */
+    @media (max-width:600px) and (orientation:portrait){
+      #raceScreen .steer{left:10px;right:auto;transform:none;bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .lane-meter{width:88px}
+      #raceScreen .sprint-btn{right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .auto-gallop{left:10px;right:auto;bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+    }
+    /* ===== v0.14 : rythme de course, météo, mini-carte, photo-finish ===== */
+    .tac-chip{display:inline-block;margin-top:3px;font:800 10.5px system-ui,sans-serif;padding:2px 7px;border-radius:999px;background:#ffffff14;border:1px solid #ffffff2a;color:#d9e4ee;white-space:nowrap}
+    .tac-chip.t-leader{background:#ff8a5c26;border-color:#ff8a5c88;color:#ffc4a8}.tac-chip.t-finisher{background:#8dff9e1f;border-color:#8dff9e77;color:#c4ffcc}.tac-chip.t-stalker{background:#6fb7ff1f;border-color:#6fb7ff77;color:#c6e2ff}
+    #panelBody .pace{display:block;grid-column:1/-1;margin:0 0 10px;padding:9px 12px;border-radius:12px;background:#ffffff0b;border:1px solid #ffffff22;border-left:4px solid #6fb7ff}
+    #panelBody .pace b{display:block;font:800 11.5px system-ui,sans-serif;letter-spacing:.08em;color:#ffe29a}.pace p{margin:3px 0 0;font-size:12.5px;line-height:1.4;color:#d5e1ea}
+    #panelBody .pace-rapide,#panelBody .pace-duel{border-left-color:#ff8a5c}#panelBody .pace-seul{border-left-color:#8dff9e}#panelBody .pace-lent{border-left-color:#c9d3dc}
+    .meet small .amb{font-style:normal}
+    .race-map b.rdot{position:absolute;top:50%;width:8px;height:8px;border-radius:50%;border:1.5px solid #fffc;transform:translate(-50%,-50%);transition:left .15s;box-shadow:0 1px 3px #0008}
+    .race-map b.rdot.nem{border-color:#f3c64a;width:10px;height:10px}.race-map i{z-index:2}
+    .pf-banner{position:absolute;z-index:6;left:50%;top:24%;transform:translate(-50%,-50%) scale(.8);opacity:0;pointer-events:none;font:900 clamp(26px,6vw,56px) Georgia,serif;letter-spacing:.06em;color:#fff4d0;text-shadow:0 4px 18px #000,0 0 30px #f3c64a99;transition:.35s}
+    .pf-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    .race-screen.slowmo #race3d{filter:saturate(.8) contrast(1.12) brightness(1.03)}
+    .lbox{position:absolute;z-index:5;left:0;right:0;height:0;background:#000;transition:height .4s;pointer-events:none}.lbox.top{top:0}.lbox.bot{bottom:0}
+    .race-screen.slowmo .lbox{height:9%}
+    .pf-note{margin:0 0 8px;text-align:center;font:800 14px Georgia,serif;color:#ffd58a}.pf-note.win{color:#9dffab}
+    /* ===== Heure du domaine ===== */
+    .map-tod{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2s,background 2s}
+    .map-lamps{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2s}
+    .map-lamps i{position:absolute;width:calc(9% * var(--s));aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,#ffd27acc,#ffb44a55 45%,#ffb44a00);mix-blend-mode:screen;animation:lampFlicker 3.2s ease-in-out var(--d) infinite alternate}
+    @keyframes lampFlicker{to{opacity:.8;transform:translate(-50%,-50%) scale(.94)}}
+    body[data-tod=matin] .map-tod{opacity:1;mix-blend-mode:soft-light;background:linear-gradient(110deg,#ffb48acc,#ffd9b000 60%),linear-gradient(#c9b6ff40,#c9b6ff00 50%)}
+    body[data-tod=soir] .map-tod{opacity:.78;mix-blend-mode:multiply;background:linear-gradient(115deg,#ffc27acc,#f08a4ab3 55%,#6a4a8acc)}
+    body[data-tod=soir] .map-lamps{opacity:.55}
+    body[data-tod=nuit] .map-tod{opacity:1;mix-blend-mode:multiply;background:radial-gradient(60% 50% at 50% 40%,#5a6ea8,#27345e 70%,#141c38)}
+    body[data-tod=nuit] .map-lamps{opacity:1}
+    body[data-tod=nuit] .map-shade{opacity:.15}
+    body[data-tod=nuit] .ambient{filter:brightness(.42) saturate(.6) sepia(.25) hue-rotate(185deg)}
+    body[data-tod=soir] .ambient{filter:sepia(.25) saturate(1.1) brightness(.92)}
+    @media (prefers-reduced-motion:reduce){.map-lamps i{animation:none}}
+    /* ===== Domaine en rendu WebGL ===== */
+    #villageGL{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block}
+    .gl-on .map-base,.gl-on .map-shade,.gl-on .map-light,.gl-on .map-tod,.gl-on .map-lamps{visibility:hidden}
+    #world:not(.gl-on) #villageGL{visibility:hidden}
+    #villageGlow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
   </style>
 </head>
 <body>
@@ -434,7 +504,7 @@ const village=(()=>{
   try{villageLife.draw(ctx,now,dt,toScreen,MW*cam.z/3344,vw,vh)}catch(e){}}
  layout();requestAnimationFrame(tick);
  function onSelect(){}
- return{select,deselect,layout,get selected(){return selected},setTimer(id,text){const t=els[id].timer;t.innerHTML=`🔨 <b>${text}</b>`;t.classList.toggle('show',selected!==id)},clearTimer(id){els[id].timer.classList.remove('show')},set onSelect(f){onSelect=f}};
+ return{select,deselect,layout,get selected(){return selected},get view(){return{x:cam.x,y:cam.y,w:MW*cam.z,h:MH*cam.z,vw,vh,z:cam.z}},setTimer(id,text){const t=els[id].timer;t.innerHTML=`🔨 <b>${text}</b>`;t.classList.toggle('show',selected!==id)},clearTimer(id){els[id].timer.classList.remove('show')},set onSelect(f){onSelect=f}};
 })();
 function clockText(){const h=String(Math.floor(seconds/3600)).padStart(2,'0'),m=String(Math.floor(seconds%3600/60)).padStart(2,'0'),x=String(seconds%60).padStart(2,'0');return `${h}:${m}:${x}`}
 function selectBuilding(id){const b=BUILDINGS[id];state.building=b.name;state.buildingId=id;$('#selIcon').textContent=b.icon;$('#selTitle').textContent=b.name;$('#selDesc').textContent=b.lvl?`Niveau ${b.lvl} · ${b.desc}`:b.desc;const up=$('#upgradeBtn');up.style.display='';if(b.race){up.innerHTML='COURIR<br>🏁';up.disabled=false}else{up.innerHTML=`${b.lvl?'AMÉLIORER':'CONSTRUIRE'}<br>🪙 ${fmt(b.cost)}`;up.disabled=!!state.upgrading}$('#infoBtn').textContent=TRAIN_AT_LABEL[id]||'INFOS';$('#selection').classList.add('open')}
@@ -467,7 +537,7 @@ function createRoyalFinishArch(scene){const finish=trackPose(RACE_ORIGIN,0),grou
 function createPodium(scene){const group=new THREE.Group(),navy=new THREE.MeshStandardMaterial({color:0x102d4b,metalness:.28,roughness:.55}),gold=new THREE.MeshStandardMaterial({color:0xe2b447,metalness:.65,roughness:.28}),slots=[{x:-6,h:2.2,n:'2'},{x:0,h:3.3,n:'1'},{x:6,h:1.5,n:'3'}];for(const slot of slots){const block=new THREE.Mesh(new THREE.BoxGeometry(5.2,slot.h,4.6),navy);block.position.set(slot.x,slot.h/2,0);block.castShadow=block.receiveShadow=true;group.add(block);const trim=new THREE.Mesh(new THREE.BoxGeometry(5.45,.24,4.85),gold);trim.position.set(slot.x,slot.h+.12,0);group.add(trim);const number=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(slot.n,120,120),transparent:true}));number.position.set(slot.x,slot.h*.55,2.38);number.scale.set(1.7,1.7,1);group.add(number)}const carpet=new THREE.Mesh(new THREE.CylinderGeometry(15,15,.18,64),new THREE.MeshStandardMaterial({color:0x7d1f2c,roughness:.8}));carpet.position.y=.02;group.add(carpet);group.visible=false;scene.add(group);return group}
 function enhancePodium(group){const navy=new THREE.MeshStandardMaterial({color:0x071a2d,metalness:.35,roughness:.38}),gold=new THREE.MeshStandardMaterial({color:0xe9bb49,metalness:.72,roughness:.24}),back=new THREE.Mesh(new THREE.BoxGeometry(26,10,.65),navy);back.position.set(0,5,-4);group.add(back);for(const x of[-12.6,12.6]){const column=new THREE.Mesh(new THREE.CylinderGeometry(.45,.7,10,12),gold);column.position.set(x,5,-3.6);group.add(column)}const top=new THREE.Mesh(new THREE.BoxGeometry(27,.45,1.1),gold);top.position.set(0,10,-3.6);group.add(top);const title=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel('PODIUM ROYAL',520,110),transparent:true}));title.position.set(0,8.3,-3.2);title.scale.set(15,3.2,1);group.add(title);for(let i=0;i<4;i++){const stair=new THREE.Mesh(new THREE.BoxGeometry(20-i*2,.32+i*.04,1.15),i%2?gold:navy);stair.position.set(0,.18+i*.18,4.2-i*.85);group.add(stair)}for(const x of[-9,9]){const light=new THREE.SpotLight(0xffd77b,2.3,45,.42,.45,1.2);light.position.set(x,12,8);light.target.position.set(x*.35,3,0);group.add(light,light.target)}const confettiGeo=new THREE.BoxGeometry(.1,.32,.04),confetti=new THREE.InstancedMesh(confettiGeo,new THREE.MeshBasicMaterial({color:0xffffff}),150),colors=[0xf4c64e,0xffffff,0xb92c32,0x1769aa],m=new THREE.Matrix4();for(let i=0;i<150;i++){m.compose(new THREE.Vector3((Math.random()-.5)*25,2+Math.random()*10,(Math.random()-.5)*8),new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.random()*3,Math.random()*3,Math.random()*3)),new THREE.Vector3(1,1,1));confetti.setMatrixAt(i,m);confetti.setColorAt(i,new THREE.Color(colors[i%4]))}confetti.instanceMatrix.needsUpdate=true;if(confetti.instanceColor)confetti.instanceColor.needsUpdate=true;group.add(confetti)}
 function createStartingStalls(scene){const root=new THREE.Group(),steel=new THREE.MeshStandardMaterial({color:0xd7dddd,metalness:.78,roughness:.25}),navy=new THREE.MeshStandardMaterial({color:0x102d4b,metalness:.3,roughness:.42}),doors=[],laneValues=[12,28,44,56,72,88];for(let i=0;i<6;i++){const p=trackPose(RACE_ORIGIN,(laneValues[i]-50)*.38),stall=new THREE.Group();stall.position.copy(p.p);stall.rotation.y=Math.atan2(p.f.x,p.f.z);for(const x of[-2.65,2.65])for(const z of[-3.5,0,3.5]){const post=new THREE.Mesh(new THREE.BoxGeometry(.25,8.4,.25),steel);post.position.set(x,4.2,z);stall.add(post)}for(const x of[-2.65,2.65])for(const y of[1.1,2.5,4,5.5,7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,7.2),steel);rail.position.set(x,y,0);stall.add(rail)}const roof=new THREE.Mesh(new THREE.BoxGeometry(5.7,.42,7.6),navy);roof.position.y=8.45;stall.add(roof);const number=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(String(i+1),120,120),transparent:true}));number.position.set(0,7.35,3.75);number.scale.set(1.4,1.4,1);stall.add(number);const gate=new THREE.Group();gate.position.set(0,0,3.58);for(let x=-2.35;x<=2.36;x+=.67){const bar=new THREE.Mesh(new THREE.BoxGeometry(.14,6.8,.14),steel);bar.position.set(x,3.4,0);gate.add(bar)}for(const y of[.2,3.4,6.7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(5.1,.18,.18),steel);rail.position.set(0,y,0);gate.add(rail)}stall.add(gate);doors.push(gate);root.add(stall)}root.userData.doors=doors;scene.add(root);return root}
-function renderRaceIntro(q,now){const elapsed=now-q.introStart,overlay=$('#startSequence'),count=$('#startCount'),hint=$('#startHint');overlay.classList.add('show');overlay.classList.remove('waiting');const par=elapsed>=2200&&elapsed<4200&&raceFX.parade(q,now,(elapsed-2200)/2000);overlay.classList.toggle('parade',!!par);if(par){count.textContent=HN();count.style.fontSize='clamp(30px,6vw,64px)';hint.textContent='AU ROND DE PRÉSENTATION'}else if(elapsed<4200){const t=RACE_ORIGIN+.06+Math.min(1,elapsed/2200)*.82,p=trackPose(t,-105),look=trackPose(t+.075,0).p;q.camera.position.set(p.p.x,48+Math.sin(elapsed*.0015)*8,p.p.z);q.camera.lookAt(look.x,0,look.z);count.textContent='THE ROYAL RACE';count.style.fontSize='clamp(34px,7vw,82px)';hint.textContent='SURVOL DE L’HIPPODROME'}else{const player=trackPose(RACE_ORIGIN,(playerLane-50)*.38),desired=player.p.clone().addScaledVector(player.f,-30);desired.y=10.5,q.camera.position.lerp(desired,.055);const aim=player.p.clone().addScaledVector(player.f,12);aim.y=3;q.camera.lookAt(aim);count.style.fontSize='';const c=elapsed<5200?'':elapsed<6200?'3':elapsed<7200?'2':elapsed<8200?'1':'GO';count.textContent=c||'EN STALLES';hint.textContent=elapsed<5200?'MISE EN PLACE':elapsed<8200?'PRÉPARE-TOI':'PARTEZ !';if(elapsed>=5200&&$('#goBtn').hidden){$('#goBtn').hidden=false;coach.tip('start','Au <b>GO</b>, touche <b>PARTEZ !</b> le plus vite possible. Trop tôt = pénalité, trop tard = départ lent.','#goBtn')}if(elapsed>=8200&&q.startPhase!=='waiting'){sound.bell();q.startPhase='waiting';q.goTime=now;overlay.classList.add('waiting')}}raceFX.render(q);return true}
+function renderRaceIntro(q,now){if(q.lastIntro&&coach.open&&q.startPhase==='cinematic'&&now-q.introStart>=5200)q.introStart+=now-q.lastIntro;q.lastIntro=now;const elapsed=now-q.introStart,overlay=$('#startSequence'),count=$('#startCount'),hint=$('#startHint');overlay.classList.add('show');overlay.classList.remove('waiting');const par=elapsed>=2200&&elapsed<4200&&raceFX.parade(q,now,(elapsed-2200)/2000);overlay.classList.toggle('parade',!!par);if(par){count.textContent=HN();count.style.fontSize='clamp(30px,6vw,64px)';hint.textContent='AU ROND DE PRÉSENTATION'}else if(elapsed<4200){const t=RACE_ORIGIN+.06+Math.min(1,elapsed/2200)*.82,p=trackPose(t,-105),look=trackPose(t+.075,0).p;q.camera.position.set(p.p.x,48+Math.sin(elapsed*.0015)*8,p.p.z);q.camera.lookAt(look.x,0,look.z);count.textContent='THE ROYAL RACE';count.style.fontSize='clamp(34px,7vw,82px)';hint.textContent='SURVOL DE L’HIPPODROME'}else{const player=trackPose(RACE_ORIGIN,(playerLane-50)*.38),desired=player.p.clone().addScaledVector(player.f,-30);desired.y=10.5,q.camera.position.lerp(desired,.055);const aim=player.p.clone().addScaledVector(player.f,12);aim.y=3;q.camera.lookAt(aim);count.style.fontSize='';const c=elapsed<5200?'':elapsed<6200?'3':elapsed<7200?'2':elapsed<8200?'1':'GO';count.textContent=c||'EN STALLES';hint.textContent=elapsed<5200?'MISE EN PLACE':elapsed<8200?'PRÉPARE-TOI':'PARTEZ !';if(elapsed>=5200&&$('#goBtn').hidden){$('#goBtn').hidden=false;coach.tip('start','Au <b>GO</b>, touche <b>PARTEZ !</b> le plus vite possible. Trop tôt = pénalité, trop tard = départ lent.','#goBtn')}if(elapsed>=8200&&q.startPhase!=='waiting'){sound.bell();q.startPhase='waiting';q.goTime=now;overlay.classList.add('waiting')}}raceFX.render(q);return true}
 function launchFromStalls(){const q=threeRace;if(!q||q.startPhase==='running')return;const now=performance.now();if(q.startPhase!=='waiting'){q.falseStartPenalty=Math.round(300+(racePlayer?racePlayer.noise/.00008*8:150));$('#startCount').textContent='TROP TÔT';$('#startHint').textContent='PÉNALITÉ +0,45 S';return}const reaction=now-q.goTime+(q.falseStartPenalty||0),RW=racePlayer?racePlayer.window:180;$('#goBtn').hidden=true;q.startPhase='running';q.stalls.userData.doors.forEach(door=>{door.rotation.x=-Math.PI/2;door.position.y=.15});sound.gates();sound.say('Et c’est parti !',true);buzz(30);if(reaction<RW)career.bump('perfect');RS.reaction=reaction;RS.window=RW;startBoostUntil=now+(reaction<RW?2800:reaction<RW*1.78?1800:0);autoSpeed=reaction<RW?.59:reaction<RW*1.78?.52:reaction<RW*2.9?.44:.35;raceStartClock=now;initRivalAI();$('#startCount').textContent=reaction<RW?'PARFAIT !':reaction<RW*1.78?'EXCELLENT !':reaction<RW*2.9?'BON DÉPART':'DÉPART LENT';$('#startHint').textContent=`RÉACTION : ${Math.round(reaction)} MS`;setTimeout(()=>{$('#startSequence').classList.remove('show');if(raceLoop)$('#sprintBtn').disabled=false},850);$('#raceComment').textContent=reaction<RW*1.78?'Tu jaillis parfaitement des stalles !':'La course est lancée';clearInterval(raceLoop);raceLoop=setInterval(runRaceV2,100)}
 /* --- 06-livery.js --- */
 /* ===== Livrées : robe du cheval, casaque, toque — recoloration réaliste des sprites (course + podium) ===== */
@@ -783,12 +853,12 @@ float rfxF(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*rfxN(p);p*=2.03;a*=
  const load=(url,cb)=>{const t=new THREE.TextureLoader().load(url,cb);t.colorSpace=THREE.SRGBColorSpace;return t};
  function radialTex(inner='rgba(0,0,0,.85)',size=128){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d'),g=x.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);g.addColorStop(0,inner);g.addColorStop(.55,inner.replace(/[\d.]+\)$/,'0.35)'));g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,size,size);return new THREE.CanvasTexture(c)}
  function blob(scene,w,l,op){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,l).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:fx.shadowTex,transparent:true,opacity:op,depthWrite:false,color:0x000000,polygonOffset:true,polygonOffsetFactor:-2}));m.renderOrder=1;scene.add(m);return m}
- function sky(scene,sunDir){const mat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,depthTest:false,fog:false,uniforms:{uSun:{value:sunDir}},
+ function sky(scene,sunDir){const mat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,depthTest:false,fog:false,uniforms:{uSun:{value:sunDir},uZen:{value:new THREE.Vector3(.035,.14,.46)},uMid:{value:new THREE.Vector3(.08,.28,.68)},uHor:{value:new THREE.Vector3(.42,.6,.78)},uSunC:{value:new THREE.Vector3(1,.86,.62)},uSunK:{value:1}},
    vertexShader:'varying vec3 vD;void main(){vD=normalize(position);vec4 p=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_Position=p.xyww;}',
-   fragmentShader:'uniform vec3 uSun;varying vec3 vD;void main(){float h=clamp(vD.y,0.,1.);vec3 zen=vec3(.035,.14,.46),mid=vec3(.08,.28,.68),hor=vec3(.42,.6,.78);vec3 c=mix(hor,mid,smoothstep(0.,.3,h));c=mix(c,zen,smoothstep(.3,1.,h));float s=max(dot(vD,uSun),0.);c+=vec3(1.,.86,.62)*(pow(s,900.)*14.+pow(s,24.)*.28+pow(s,4.)*.06);gl_FragColor=vec4(c,1.);}'});
+   fragmentShader:'uniform vec3 uSun,uZen,uMid,uHor,uSunC;uniform float uSunK;varying vec3 vD;void main(){float h=clamp(vD.y,0.,1.);vec3 c=mix(uHor,uMid,smoothstep(0.,.3,h));c=mix(c,uZen,smoothstep(.3,1.,h));float s=max(dot(vD,uSun),0.);c+=uSunC*(pow(s,900.)*14.+pow(s,24.)*.28+pow(s,4.)*.06)*uSunK;gl_FragColor=vec4(c,1.);}'});fx.skyMat=mat;
   const m=new THREE.Mesh(new THREE.SphereGeometry(1500,32,16),mat);m.renderOrder=-10;m.frustumCulled=false;scene.add(m)}
  function horizon(scene){const R=900,Hc=R*2*Math.PI/3*486/1912;const t=load('assets/race/horizon.webp');t.wrapS=THREE.RepeatWrapping;t.repeat.set(-3,1);t.anisotropy=8;
-  const m=new THREE.Mesh(new THREE.CylinderGeometry(R,R,Hc,128,1,true),new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide,transparent:true,depthWrite:false,fog:false,color:0xf2f2f2}));m.position.y=Hc/2-10;m.renderOrder=-5;scene.add(m)}
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(R,R,Hc,128,1,true),new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide,transparent:true,depthWrite:false,fog:false,color:0xf2f2f2}));m.position.y=Hc/2-10;m.renderOrder=-5;scene.add(m);fx.horizonMat=m.material}
  function turfMaterial(renderer,track){const t=load('assets/race/grass.webp');t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=renderer.capabilities.getMaxAnisotropy();
   const rep=track?new THREE.Vector2(4.2,6.1):new THREE.Vector2(220,220);t.repeat.copy(rep);
   const mat=new THREE.MeshStandardMaterial({map:t,roughness:1,color:track?0xf4ffe6:0xe8f0dc});
@@ -870,27 +940,27 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   let bob=0;if(running){bob=Math.sin(fx.phase[0]/8*Math.PI*2)*.14;cam.position.y+=bob}
   if(!QUALITY[settings.level()].post){r.render(q.scene,cam);cam.position.y-=bob;return}r.setRenderTarget(P.rt);r.render(q.scene,cam);r.setRenderTarget(null);cam.position.y-=bob;
   P.mat.uniforms.uRes.value.copy(fx.size);P.mat.uniforms.uTime.value=now*.001;P.mat.uniforms.uBlur.value=fx.blur;r.render(P.scene,P.cam)}
- return{build,horse,podium,parade,render,ground,liveries,get _fx(){return fx}};
+ return{build,horse,podium,parade,render,ground,liveries,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
 })();
 /* --- 10-race.js --- */
-function initThreeRace(){if(threeRace||!window.THREE)return false;const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xc4d6de,300,1000);const camera=new THREE.PerspectiveCamera(64,1,.08,1800),renderer=new THREE.WebGLRenderer({canvas:race3d,antialias:true,powerPreference:'high-performance',precision:'highp'});renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;scene.add(new THREE.HemisphereLight(0xdcebff,0x3a4a26,1.3));const sun=new THREE.DirectionalLight(0xfff0d2,3.3);sun.position.set(-260,360,180);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-500;sun.shadow.camera.right=500;sun.shadow.camera.top=500;sun.shadow.camera.bottom=-500;sun.shadow.camera.far=1100;scene.add(sun);
+function initThreeRace(){if(threeRace||!window.THREE)return false;const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xc4d6de,300,1000);const camera=new THREE.PerspectiveCamera(64,1,.08,1800),renderer=new THREE.WebGLRenderer({canvas:race3d,antialias:true,powerPreference:'high-performance',precision:'highp'});renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;const hemi=new THREE.HemisphereLight(0xdcebff,0x3a4a26,1.3);scene.add(hemi);const sun=new THREE.DirectionalLight(0xfff0d2,3.3);sun.position.set(-260,360,180);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-500;sun.shadow.camera.right=500;sun.shadow.camera.top=500;sun.shadow.camera.bottom=-500;sun.shadow.camera.far=1100;scene.add(sun);
  raceFX.ground(scene,renderer);
  const railMat=new THREE.MeshStandardMaterial({color:0xf7f5e8,roughness:.55}),goldMat=new THREE.MeshStandardMaterial({color:0xd2a23b,roughness:.55}),navyMat=new THREE.MeshStandardMaterial({color:0x102d4b,roughness:.65});function rail(offset){for(let i=0;i<160;i++){const a=trackPose(i/160,offset),b=trackPose((i+1)/160,offset),mid=a.p.clone().add(b.p).multiplyScalar(.5),len=a.p.distanceTo(b.p);const bar=new THREE.Mesh(new THREE.BoxGeometry(.38,.34,len+.25),railMat);bar.position.set(mid.x,1.15,mid.z);bar.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),b.p.clone().sub(a.p).normalize());scene.add(bar);if(i%4===0){const post=new THREE.Mesh(new THREE.BoxGeometry(.48,1.5,.48),railMat);post.position.copy(a.p);post.position.y=.7;scene.add(post)}}}rail(-20);rail(20);
  const markers=[];for(let m=100;m<1600;m+=100){const t=RACE_ORIGIN+m/1600,p=trackPose(t,-22),s=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(String(1600-m)),transparent:true}));markers.push([m/1600,s]);s.position.copy(p.p);s.position.y=4.15;s.scale.set(8.8,3.8,1);scene.add(s);const pole=new THREE.Mesh(new THREE.BoxGeometry(.3,4.2,.3),railMat);pole.position.copy(p.p);pole.position.y=2;scene.add(pole)}
  createRoyalFinishArch(scene);
  const bollardMat=new THREE.MeshStandardMaterial({color:0xf2ead8,roughness:.72});for(let i=0;i<48;i++){const p=trackPose(i/48,33),post=new THREE.Mesh(new THREE.CylinderGeometry(.15,.18,.72,8),bollardMat);post.position.copy(p.p);post.position.y=.34;scene.add(post)}
- const podium=createPodium(scene);enhancePodium(podium);const stalls=createStartingStalls(scene),loader=new THREE.TextureLoader(),horses=[],horseTextures=[],podiumTextures=[],silks=[];for(let i=0;i<6;i++){const configure=loaded=>{loaded.anisotropy=renderer.capabilities.getMaxAnisotropy();loaded.minFilter=THREE.LinearMipmapLinearFilter;loaded.magFilter=THREE.LinearFilter;loaded.needsUpdate=true},raceTex=new THREE.Texture(),frontTex=new THREE.Texture();const mat=new THREE.SpriteMaterial({map:raceTex,transparent:true,alphaTest:.025,color:0xffffff,depthWrite:false}),sprite=new THREE.Sprite(mat);sprite.scale.set(i?7.2:7.9,i?10.2:11.2,1);sprite.frustumCulled=false;scene.add(sprite);horses.push(sprite);horseTextures.push(raceTex);podiumTextures.push(frontTex);const kit=new THREE.Object3D();kit.visible=false;scene.add(kit);silks.push(kit)}threeRace={scene,camera,renderer,horses,horseTextures,podiumTextures,silks,podium,stalls,startPhase:'idle',introStart:0,goTime:0,falseStartPenalty:0,podiumActive:false,podiumOrder:[],lastW:0,lastH:0,camPos:null,camTarget:null,markers};raceFX.build(threeRace);$('#raceScreen').classList.add('webgl-active');return true}
+ const podium=createPodium(scene);enhancePodium(podium);const stalls=createStartingStalls(scene),loader=new THREE.TextureLoader(),horses=[],horseTextures=[],podiumTextures=[],silks=[];for(let i=0;i<6;i++){const configure=loaded=>{loaded.anisotropy=renderer.capabilities.getMaxAnisotropy();loaded.minFilter=THREE.LinearMipmapLinearFilter;loaded.magFilter=THREE.LinearFilter;loaded.needsUpdate=true},raceTex=new THREE.Texture(),frontTex=new THREE.Texture();const mat=new THREE.SpriteMaterial({map:raceTex,transparent:true,alphaTest:.025,color:0xffffff,depthWrite:false}),sprite=new THREE.Sprite(mat);sprite.scale.set(i?7.2:7.9,i?10.2:11.2,1);sprite.frustumCulled=false;scene.add(sprite);horses.push(sprite);horseTextures.push(raceTex);podiumTextures.push(frontTex);const kit=new THREE.Object3D();kit.visible=false;scene.add(kit);silks.push(kit)}threeRace={sun,hemi,scene,camera,renderer,horses,horseTextures,podiumTextures,silks,podium,stalls,startPhase:'idle',introStart:0,goTime:0,falseStartPenalty:0,podiumActive:false,podiumOrder:[],lastW:0,lastH:0,camPos:null,camTarget:null,markers};raceFX.build(threeRace);$('#raceScreen').classList.add('webgl-active');return true}
 function renderPodiumScene(q,now){const slots=[{x:0,h:3.3},{x:-6,h:2.2},{x:6,h:1.5}];q.podium.visible=true;for(let i=0;i<q.horses.length;i++){const slotIndex=q.podiumOrder.indexOf(i),visible=slotIndex>=0;q.horses[i].visible=visible;q.silks[i].visible=false;if(visible){const slot=slots[slotIndex],bounce=Math.sin(now*.003+i)*.025;q.horses[i].material.map=q.podiumTextures[i];raceFX.podium(q,i);q.horses[i].position.set(slot.x,slot.h+4.3+bounce,0);q.horses[i].scale.set(4.3,8.6,1)}}const desired=new THREE.Vector3(0,11.5,29),target=new THREE.Vector3(0,5,0);if(!q.camPos){q.camPos=desired.clone();q.camTarget=target.clone()}q.camPos.lerp(desired,.045);q.camTarget.lerp(target,.055);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);q.podium.rotation.y=Math.sin(now*.00035)*.025;raceFX.render(q);return true}
 function renderThreeRace(now,w,h){const q=threeRace;if(!q||w<2||h<2)return false;if(w!==q.lastW||h!==q.lastH){q.lastW=w;q.lastH=h;q.renderer.setSize(w,h,false);q.camera.aspect=w/h;q.camera.updateProjectionMatrix()}if(q.podiumActive)return renderPodiumScene(q,now);const source=visualProgress.length?visualProgress:progress;for(let i=0;i<q.horses.length;i++){const lane=i===0?(playerLane-50)*.38:(rivalLanes[i-1]-50)*.38,p=trackPose(RACE_ORIGIN+(source[i]||0)/100-(q.startPhase==='running'?0:.003),lane),speed=i?(rivalAI[i-1]?.speed||rivalBase[i-1]):autoSpeed,stride=now*(.0165+speed*.004)+i*1.7,beat=Math.sin(stride*Math.PI*.5),lift=Math.abs(Math.sin(stride*Math.PI));raceFX.horse(q,i,p,speed,now)}if(q.startPhase!=='running')return renderRaceIntro(q,now);if(q.stalls.visible&&source[0]>1.8)q.stalls.visible=false;if(q.finishView){const finish=trackPose(RACE_ORIGIN,0),desired=finish.p.clone().addScaledVector(finish.n,58);desired.y=13;const aim=finish.p.clone().addScaledVector(finish.f,-3);aim.y=4;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}q.camPos.lerp(desired,.09);q.camTarget.lerp(aim,.1);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
  const player=trackPose(RACE_ORIGIN+(source[0]||0)/100,(playerLane-50)*.38),side=lookDir*8,desired=player.p.clone().addScaledVector(player.f,-26).addScaledVector(player.n,side);desired.y=10.5;const aim=player.p.clone().addScaledVector(player.f,62).addScaledVector(player.n,side*.65);aim.y=3.6;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}{const k=Math.min(60,(now-(q.lastCam||now))/16.7);q.lastCam=now;q.camPos.lerp(desired,1-Math.pow(.85,k));q.camTarget.lerp(aim,1-Math.pow(.83,k))}q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
 function renderScene(now=0){if(!$('#raceScreen').classList.contains('open'))return;const world=$('#povWorld'),w=world.clientWidth,h=world.clientHeight,dt=Math.min(34,now-lastScene||16.67);lastScene=now;if(!visualProgress.length)visualProgress=progress.slice();for(let i=0;i<progress.length;i++)visualProgress[i]+=(progress[i]-visualProgress[i])*Math.min(1,dt*.018);if(threeRace)renderThreeRace(now,w,h);sceneFrame=requestAnimationFrame(renderScene)}
 function courseTurn(p){const bell=(a,b,x)=>{if(x<=a||x>=b)return 0;return Math.sin((x-a)/(b-a)*Math.PI)};return bell(.015,.265,p)+bell(.515,.765,p)}
-function startRace(){if(!window.THREE)return toast('Le moteur 3D n’a pas pu se charger. Recharge la page.');const RH=stable.active();if(RH.injury)return toast(`${RH.name} est blessé`);if(RH.fatigue>=90)return toast(`${RH.name} est trop fatigué pour courir`);if(!currentField)buildField();if(state.feed<RACE.fee)return toast('Fourrage insuffisant');racePlayer=gear.apply(terrainPerf(stable.racePerf(RH.stats,RH,RACE.dist,RH.dist,state.strategy),RH.stats,RH.talent));playerFinal=false;resetRaceStats();$('#mapIdeal').style.opacity=1;$('#sprintBtn').dataset.st='';$('#sprintBtn').innerHTML='SPRINT<small>plus tard</small>';$('#sprintInfo').textContent='';$('#goBtn').hidden=true;state.feed-=RACE.fee;sync();raceSeed=currentField.seed;raceRng=seeded(raceSeed);raceHeader();$('#panel').classList.remove('open');$('#raceScreen').classList.add('open');initThreeRace();if(threeRace){applyRaceQuality(threeRace);raceFX.liveries(threeRace);threeRace.markers.forEach(([f,s])=>{s.material.map?.dispose();s.material.map=makeLabel(String(Math.round(RACE.dist*(1-f)/100)*100));s.material.needsUpdate=true})}sound.music(false);sound.crowdStart();sound.crowdLevel(.1);playerLane=44;[12,28,56,72,88].forEach((v,i)=>rivalLanes[i]=v);if(threeRace){threeRace.camPos=null;threeRace.camTarget=null;threeRace.finishView=false;threeRace.podiumActive=false;threeRace.podium.visible=false;threeRace.stalls.visible=true;threeRace.stalls.userData.doors.forEach(d=>{d.rotation.x=0;d.position.set(0,0,3.58)});threeRace.startPhase='cinematic';threeRace.introStart=performance.now();threeRace.goTime=0;threeRace.falseStartPenalty=0;threeRace.horses.forEach((h,i)=>{h.visible=true;h.material.map=threeRace.horseTextures[i];h.material.needsUpdate=true});threeRace.silks.forEach(s=>s.visible=false)}$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('waiting');progress=[0,0,0,0,0,0];visualProgress=progress.slice();raceFinished=Array(6).fill(false);raceFinishTimes=Array(6).fill(0);finishOrder=[];rivalAI=[];raceTime=0;raceStartClock=0;autoSpeed=.42;startBoostUntil=0;playerEnergy=100;updateEnergy();$('#sprintBtn').disabled=true;$('#sprintBtn').classList.remove('active');lookDir=0;updateLane();cancelAnimationFrame(sceneFrame);lastScene=0;sceneFrame=requestAnimationFrame(renderScene);$('#raceComment').textContent='Présentation de l’hippodrome…';clearInterval(raceLoop);raceLoop=null}
+function startRace(){if(!window.THREE)return toast('Le moteur 3D n’a pas pu se charger. Recharge la page.');const RH=stable.active();if(RH.injury)return toast(`${RH.name} est blessé`);if(RH.fatigue>=90)return toast(`${RH.name} est trop fatigué pour courir`);if(!currentField)buildField();if(state.feed<RACE.fee)return toast('Fourrage insuffisant');racePlayer=gear.apply(terrainPerf(stable.racePerf(RH.stats,RH,RACE.dist,RH.dist,state.strategy),RH.stats,RH.talent));playerFinal=false;resetRaceStats();$('#mapIdeal').style.opacity=1;$('#sprintBtn').dataset.st='';$('#sprintBtn').innerHTML='SPRINT<small>plus tard</small>';$('#sprintInfo').textContent='';$('#goBtn').hidden=true;state.feed-=RACE.fee;sync();raceSeed=currentField.seed;raceRng=seeded(raceSeed);raceHeader();$('#panel').classList.remove('open');$('#raceScreen').classList.add('open');initThreeRace();if(threeRace){applyRaceQuality(threeRace);raceFX.liveries(threeRace);threeRace.markers.forEach(([f,s])=>{s.material.map?.dispose();s.material.map=makeLabel(String(Math.round(RACE.dist*(1-f)/100)*100));s.material.needsUpdate=true})}sound.music(false);sound.crowdStart();sound.crowdLevel(.1);playerLane=44;[12,28,56,72,88].forEach((v,i)=>rivalLanes[i]=v);if(threeRace){threeRace.camPos=null;threeRace.camTarget=null;threeRace.finishView=false;threeRace.podiumActive=false;threeRace.podium.visible=false;threeRace.stalls.visible=true;threeRace.stalls.userData.doors.forEach(d=>{d.rotation.x=0;d.position.set(0,0,3.58)});threeRace.startPhase='cinematic';threeRace.introStart=performance.now();threeRace.lastIntro=0;threeRace.goTime=0;threeRace.falseStartPenalty=0;threeRace.horses.forEach((h,i)=>{h.visible=true;h.material.map=threeRace.horseTextures[i];h.material.needsUpdate=true});threeRace.silks.forEach(s=>s.visible=false)}$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('waiting');progress=[0,0,0,0,0,0];visualProgress=progress.slice();raceFinished=Array(6).fill(false);raceFinishTimes=Array(6).fill(0);finishOrder=[];rivalAI=[];raceTime=0;raceStartClock=0;autoSpeed=.42;startBoostUntil=0;playerEnergy=100;updateEnergy();$('#sprintBtn').disabled=true;$('#sprintBtn').classList.remove('active');lookDir=0;updateLane();cancelAnimationFrame(sceneFrame);lastScene=0;sceneFrame=requestAnimationFrame(renderScene);$('#raceComment').textContent='Présentation de l’hippodrome…';clearInterval(raceLoop);raceLoop=null}
 function clampRace(value,min,max){return Math.max(min,Math.min(max,value))}
 function updateEnergy(){const amount=Math.round(playerEnergy);$('#energyValue').textContent=amount+' %';$('#energyFill').style.width=amount+'%';$('#energyFill').style.filter=amount<25?'hue-rotate(-40deg) saturate(1.8)':''}
 function nearbyHorses(index){const own=progress[index],lane=index? rivalLanes[index-1]:playerLane;return progress.map((p,j)=>({p,j,l:j?rivalLanes[j-1]:playerLane,gap:p-own})).filter(x=>x.j!==index&&!raceFinished[x.j]&&x.gap>0&&x.gap<5).sort((a,b)=>a.gap-b.gap)}
 function drafting(index){const lane=index?rivalLanes[index-1]:playerLane;return nearbyHorses(index).find(h=>h.gap>.5&&Math.abs(h.l-lane)<12)}
-function markFinish(index){if(raceFinished[index]||progress[index]<100)return;raceFinished[index]=true;raceFinishTimes[index]=(raceTime-(progress[index]-100)/Math.max(.05,(index?rivalAI[index-1].speed:autoSpeed)*raceScaleNow()))*.2;finishOrder.push(index);progress[index]=101.35+finishOrder.length*.08;if(index===0){RS.sprintLeft=playerFinal?playerEnergy:null;if(threeRace){threeRace.finishView=true;threeRace.camPos=null;threeRace.camTarget=null}$('#sprintBtn').disabled=true;$('#draft').classList.remove('show');$('#raceComment').textContent='Poteau franchi — caméra arrivée jusqu’au dernier cheval';$('#autoGallop b').textContent='Course terminée'}}
+function markFinish(index){if(raceFinished[index]||progress[index]<100)return;raceFinished[index]=true;raceFinishTimes[index]=(raceTime-(progress[index]-100)/Math.max(.05,(index?rivalAI[index-1].speed:autoSpeed)*raceScaleNow()))*.2;{const prev=finishOrder.length?raceFinishTimes[finishOrder[finishOrder.length-1]]:0;if(raceFinishTimes[index]<=prev)raceFinishTimes[index]=prev+.01}finishOrder.push(index);progress[index]=101.35+finishOrder.length*.08;if(index===0){RS.sprintLeft=playerFinal?playerEnergy:null;if(threeRace){threeRace.finishView=true;threeRace.camPos=null;threeRace.camTarget=null}$('#sprintBtn').disabled=true;$('#draft').classList.remove('show');$('#raceComment').textContent='Poteau franchi — caméra arrivée jusqu’au dernier cheval';$('#autoGallop b').textContent='Course terminée'}}
 function updateLane(){playerLane=Math.max(7,Math.min(93,playerLane));$('#laneDot').style.left=playerLane+'%'}
 function steer(dir){playerLane+=dir*10;updateLane();$('#raceComment').textContent=dir<0?'Tu te rapproches de la corde':'Tu prends l’extérieur'}
 function look(dir){lookDir=dir;$('#lookLabel').textContent=dir<0?'Regard à gauche':'Regard à droite';$('#lookLabel').classList.add('show');$('#lookLeft').classList.toggle('active',dir<0);$('#lookRight').classList.toggle('active',dir>0);setTimeout(()=>{lookDir=0;$('#lookLeft').classList.remove('active');$('#lookRight').classList.remove('active');$('#lookLabel').classList.remove('show')},800)}
@@ -906,12 +976,12 @@ function initRivalAI(){const F=currentField||buildField();rivalAI=F.rivals.map((
 function sprintReach(P,energy,cruise){const perTick=(cruise+P.sprint)*raceScaleNow();return energy/Math.max(.01,P.sprintDrain)*perTick*RACE.dist/100}
 function remainingM(p){return Math.max(0,RACE.dist*(100-p)/100)}
 const RS={};function resetRaceStats(){Object.assign(RS,{ticks:0,draft:0,rail:0,boxed:0,reaction:0,window:180,sprintAtM:null,idealAtM:null,sprintLeft:null,exhaustedM:0,hadSprint:false})}
-function runRaceV2(){raceTime++;const phase=progress[0],turn=courseTurn(Math.min(1,phase/100)),raceScale=raceScaleNow();sound.crowdLevel(Math.max(0,(Math.max(...progress)-60)/40));
+function runRaceV2(){if(coach.open)return;raceTime++;moments.tick();const phase=progress[0],turn=courseTurn(Math.min(1,phase/100)),raceScale=raceScaleNow();sound.crowdLevel(Math.max(0,(Math.max(...progress)-60)/40));
  if(phase>20&&phase<40&&!runRaceV2.tipd){runRaceV2.tipd=1;coach.tip('draft','Place-toi juste derrière un adversaire (◀ ▶) : dans son <b>sillage</b>, ton cheval dépense deux fois moins d’énergie.','.steer')}
- if(!raceFinished[0]){playerLane=clampRace(playerLane+turn*.12,7,93);updateLane();const P=racePlayer,ahead=nearbyHorses(0)[0],boxed=!!ahead&&ahead.gap<1.4&&Math.abs(ahead.l-playerLane)<11,inDraft=!!drafting(0),wide=turn*Math.max(0,playerLane-18)/75,sprinting=playerFinal&&playerEnergy>0;
+ if(!raceFinished[0]){playerLane=clampRace(playerLane+turn*.12,7,93);updateLane();const P=racePlayer,ahead=nearbyHorses(0)[0],boxed=!!ahead&&ahead.gap<1.4&&Math.abs(ahead.l-playerLane)<11,inDraft=!!drafting(0),wide=turn*Math.max(0,playerLane-18)/75,sprinting=playerFinal&&playerEnergy>0,MF=moments.fx(0);
   const cr=P.cruise*(phase<55?P.tactic.c:1)*(P.talent==='fusee'&&phase<15?1.02:1)*(P.talent==='coeur'&&phase>75&&progress.some((p,j)=>j&&p>phase)?1.03:1);
-  playerEnergy=clampRace(playerEnergy-(sprinting?P.sprintDrain*(inDraft?.8:1):P.drain*(inDraft?.5:1)*(phase<55?P.tactic.d:1))-wide*.03,0,100);updateEnergy();
-  const tired=playerEnergy<=0?.84:playerEnergy<15?.9:playerEnergy<30?.96:1,target=(boxed?P.boxed:sprinting?cr+P.sprint:phase>72?cr+.045:cr)*(1-wide*.105)*tired+(inDraft?P.draft:0)+(raceRng()-.5)*P.noise*6;autoSpeed+=(target-autoSpeed)*.13;progress[0]+=autoSpeed*raceScale;
+  playerEnergy=clampRace(playerEnergy-(sprinting?P.sprintDrain*(inDraft?.8:1):P.drain*(inDraft?.5:1)*(phase<55?P.tactic.d:1)*MF.drain)-wide*.03,0,100);updateEnergy();
+  const tired=playerEnergy<=0?.84:playerEnergy<15?.9:playerEnergy<30?.96:1,target=(boxed?P.boxed:sprinting?cr+P.sprint:phase>72?cr+.045:cr)*(1-wide*.105)*tired+(inDraft?P.draft:0)+MF.speed+(raceRng()-.5)*P.noise*6;autoSpeed+=(target-autoSpeed)*.13;progress[0]+=autoSpeed*raceScale;
   RS.ticks++;if(inDraft)RS.draft++;if(playerLane<24)RS.rail++;if(boxed)RS.boxed++;if(playerFinal&&playerEnergy<=0)RS.exhaustedM+=autoSpeed*raceScale*RACE.dist/100;
   // jauge de sprint : TROP TÔT / MAINTENANT / EN RETARD
   const rem=remainingM(progress[0]),reach=sprintReach(P,playerEnergy,cr),btn=$('#sprintBtn');
@@ -921,13 +991,13 @@ function runRaceV2(){raceTime++;const phase=progress[0],turn=courseTurn(Math.min
   $('#draft').classList.toggle('show',inDraft);$('#autoGallop').classList.toggle('blocked',boxed);$('#autoGallop b').textContent=boxed?'Foulée coupée':sprinting?'Sprint final':playerFinal?'Épuisé':inDraft?'À l’abri du vent':playerEnergy<20?'Endurance faible':'Foulée libre';
   if(boxed)$('#raceComment').textContent='Bloqué : décale-toi pour relancer';else if(inDraft)$('#raceComment').textContent='Dans le sillage : tu économises ton endurance';else if(sprinting)$('#raceComment').textContent=HN()+' accélère !';else if(turn>.35&&playerLane>35)$('#raceComment').textContent='Rapproche-toi de la corde';else if(phase>70&&!playerFinal)$('#raceComment').textContent='Surveille le bouton SPRINT : il passe au vert au bon moment';
   if(phase>75&&!runRaceV2.said){runRaceV2.said=1;sound.say('Dernière ligne droite !')}}
- for(let i=0;i<5;i++){const idx=i+1,ai=rivalAI[i];if(raceFinished[idx])continue;const own=progress[idx],lane=rivalLanes[i],near=nearbyHorses(idx),ahead=near.find(h=>Math.abs(h.l-lane)<12),ropeBusy=progress.some((p,j)=>j!==idx&&!raceFinished[j]&&Math.abs(p-own)<2.5&&(j? rivalLanes[j-1]:playerLane)<24),P=ai.P,early=own<55;
+ for(let i=0;i<5;i++){const idx=i+1,ai=rivalAI[i];if(raceFinished[idx])continue;const own=progress[idx],lane=rivalLanes[i],near=nearbyHorses(idx),ahead=near.find(h=>Math.abs(h.l-lane)<12),ropeBusy=progress.some((p,j)=>j!==idx&&!raceFinished[j]&&Math.abs(p-own)<2.5&&(j? rivalLanes[j-1]:playerLane)<24),P=ai.P,early=own<55,MF=moments.fx(idx);
   if(raceTime>=ai.nextDecision){if(ahead&&ahead.gap<1.3&&ai.energy>23&&raceRng()<.68)ai.targetLane=clampRace(lane+(lane<70?17:-17),9,80);else if(ahead&&ahead.gap<4&&ai.energy<64)ai.targetLane=clampRace(ahead.l+raceRng()*5-2.5,9,80);else ai.targetLane=ropeBusy?28+raceRng()*9:10+raceRng()*9;ai.nextDecision=raceTime+10+Math.floor(raceRng()*20)}
   if(ahead&&ahead.gap<.85&&Math.abs(ai.targetLane-lane)<11)ai.targetLane=clampRace(lane+(lane<70?17:-17),9,85);const step=clampRace((ai.targetLane-lane)*.12,-.85,.85);rivalLanes[i]=clampRace(lane+step,8,90);
   const shelter=!!drafting(idx),curve=courseTurn(Math.min(1,own/100)),wide=curve*Math.max(0,rivalLanes[i]-19)/75,cr=P.cruise*(early?P.tactic.c:1)*(P.talent==='fusee'&&own<15?1.02:1)*(P.talent==='coeur'&&own>75&&progress.some((p,j)=>j!==idx&&p>own)?1.03:1);
   if(!ai.final&&own>40&&sprintReach(P,ai.energy,cr)>=remainingM(own)*(1+ai.err))ai.final=true;const attacking=ai.final&&ai.energy>0;
-  ai.energy=clampRace(ai.energy-(attacking?P.sprintDrain*(shelter?.8:1):P.drain*(shelter?.5:1)*(early?P.tactic.d:1))-wide*.03,0,100);
-  const tired=ai.energy<=0?.84:ai.energy<15?.9:ai.energy<30?.96:1,target=(attacking?cr+P.sprint:own>72?cr+.045:cr)*(1-wide*.125)*tired+(shelter?P.draft:0)+(raceRng()-.5)*P.noise*6;ai.speed+=(target-ai.speed)*.16;progress[idx]+=ai.speed*raceScale}
+  ai.energy=clampRace(ai.energy-(attacking?P.sprintDrain*(shelter?.8:1):P.drain*(shelter?.5:1)*(early?P.tactic.d:1)*MF.drain)-wide*.03,0,100);
+  const tired=ai.energy<=0?.84:ai.energy<15?.9:ai.energy<30?.96:1,target=(attacking?cr+P.sprint:own>72?cr+.045:cr)*(1-wide*.125)*tired+(shelter?P.draft:0)+MF.speed+(raceRng()-.5)*P.noise*6;ai.speed+=(target-ai.speed)*.16;progress[idx]+=ai.speed*raceScale}
  for(let i=0;i<6;i++)markFinish(i);const ranked=progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p),rank=raceFinished[0]?finishOrder.indexOf(0)+1:ranked.findIndex(x=>x.i===0)+1;$('#racePosition').textContent=rank+(rank===1?'er':'e');$('#meters').textContent=fmt(Math.max(0,Math.round(RACE.dist*(1-Math.min(100,progress[0])/100))));$('#mapDot').style.left=Math.min(100,progress[0])+'%';if(finishOrder.length===6)completeRace()}
 function sprint(){if(playerFinal||!raceLoop||raceFinished[0]||playerEnergy<3)return;playerFinal=true;RS.hadSprint=true;RS.sprintAtM=remainingM(progress[0]);buzz(25);sound.say('Il lance son sprint !');$('#sprintBtn').classList.add('active');$('#sprintBtn').disabled=true;$('#sprintBtn').innerHTML='SPRINT<small>en cours</small>';$('#mapIdeal').style.opacity=0}
 /* analyse de course : 3 étoiles (départ, placement, sprint) + un conseil d'entraînement */
@@ -1089,7 +1159,7 @@ const MEETINGS=[
  {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];
 const MISSION_POOL=[{k:'train',n:'Entraîner un cheval',goal:3,r:{gold:1500}},{k:'race',n:'Disputer des courses',goal:2,r:{feed:1500}},{k:'top3',n:'Finir sur le podium',goal:1,r:{gold:2500}},
- {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Réussir un départ parfait',goal:1,r:{gems:5}}];
+ {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Réussir un départ parfait',goal:1,r:{gems:5}},{k:'moment',n:'Gagner 3 places sur des temps forts',goal:3,r:{gold:2500}}];
 let RACE={...MEETINGS[1]};
 const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{const d=new Date(),t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-n+3);const f=new Date(Date.UTC(t.getUTCFullYear(),0,4));return t.getUTCFullYear()+'-S'+(1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7))};
  let C={};try{C=JSON.parse(localStorage.getItem('trr.progress')||'{}')}catch(e){}
@@ -1153,10 +1223,12 @@ const buzz=p=>{try{navigator.vibrate?.(p)}catch(e){}};
 /* --- 16-tutorial.js --- */
 /* ===== Tutoriel : conseils de l’entraîneur, affichés une seule fois ===== */
 const coach=(()=>{const el=document.createElement('div');el.className='coach';el.innerHTML='<div class="coach-face">🎩</div><div class="coach-body"><b>Maître Armand, entraîneur</b><p></p><button class="action green">COMPRIS</button></div>';el.hidden=true;$('#game').appendChild(el);
- let queue=[],ring=null;const hide=()=>{el.hidden=true;ring?.remove();ring=null;if(queue.length)setTimeout(next,250)};el.querySelector('button').onclick=hide;
- function next(){if($('#panel').classList.contains('open')&&!$('#raceScreen').classList.contains('open')||$('#studio').classList.contains('open'))return setTimeout(next,700);if(!queue.length)return;const[k,txt,sel]=queue.shift();el.querySelector('p').innerHTML=txt;el.hidden=false;const t=sel&&$(sel);if(t&&t.offsetParent){const r=t.getBoundingClientRect(),g=$('#game').getBoundingClientRect();ring=document.createElement('div');ring.className='coach-ring';Object.assign(ring.style,{left:r.left-g.left-6+'px',top:r.top-g.top-6+'px',width:r.width+12+'px',height:r.height+12+'px'});$('#game').appendChild(ring)}}
- function tip(k,txt,sel){if(!career.tip(k))return;queue.push([k,txt,sel]);if(el.hidden)next()}
- return{tip,hide}})();
+ // une seule attente à la fois : deux conseils demandés pendant qu'un panneau est ouvert ne doivent pas s'afficher l'un sur l'autre
+ let queue=[],ring=null,wait=0;const later=ms=>{if(!wait)wait=setTimeout(next,ms)};const hide=()=>{el.hidden=true;ring?.remove();ring=null;if(queue.length)later(250)};el.querySelector('button').onclick=hide;
+ function next(){wait=0;if(!el.hidden||!queue.length)return;if($('#panel').classList.contains('open')&&!$('#raceScreen').classList.contains('open')||$('#studio').classList.contains('open'))return later(700);const[k,txt,sel]=queue.shift();el.querySelector('p').innerHTML=txt;el.hidden=false;const t=sel&&$(sel);if(t&&t.offsetParent){const r=t.getBoundingClientRect(),g=$('#game').getBoundingClientRect();ring=document.createElement('div');ring.className='coach-ring';Object.assign(ring.style,{left:r.left-g.left-6+'px',top:r.top-g.top-6+'px',width:r.width+12+'px',height:r.height+12+'px'});$('#game').appendChild(ring)}}
+ function tip(k,txt,sel){if(!career.tip(k))return;queue.push([k,txt,sel]);next()}
+ // en course, un conseil affiché met la simulation en pause (le joueur lit sans être pénalisé)
+ return{tip,hide,get open(){return !el.hidden}}})();
 // premiers pas : après la création du champion
 champion.on(()=>{setTimeout(()=>{coach.tip('welcome',`Bienvenue au domaine ! Ton champion <b>${escapeHTML(HN())}</b> t’attend à l’écurie. Chaque cheval a 6 statistiques : entraîne-les pour gagner des courses.`,'.nav[data-view=chevaux]');
  coach.tip('missions','Chaque jour, 3 missions rapportent de l’or, du fourrage et des gemmes. Elles se renouvellent à minuit.','[data-panel=missions]')},600)});
@@ -1380,6 +1452,7 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
 /* --- 24-village-life.js --- */
 /* ===== Vie du domaine : des chevaux montés galopent sur la piste du village.
    Leurs images sont rendues une seule fois à partir du modèle 3D (8 orientations × 8 temps de galop), éclairées comme la peinture. ===== */
+const FREE_COATS=['bai','alezan','gris','noir'];
 const villageLife=(()=>{
  // ligne médiane de la piste du village (détectée sur la peinture, coordonnées carte 0..1)
  const RING=[[0.3958,0.2283],[0.3891,0.179],[0.418,0.1482],[0.4553,0.1405],[0.484,0.1428],[0.5038,0.147],[0.5175,0.1507],[0.5278,0.1535],[0.5367,0.1563],[0.5443,0.1581],[0.5522,0.1581],[0.5588,0.1634],[0.5647,0.1746],[0.5722,0.1813],[0.5835,0.1847],[0.6034,0.1868],[0.6279,0.197],[0.6567,0.2217],[0.6775,0.2594],[0.6831,0.2991],[0.6622,0.329],[0.6321,0.3422],[0.6061,0.3447],[0.5858,0.342],[0.5704,0.3366],[0.5584,0.3311],[0.5488,0.3268],[0.5408,0.3245],[0.5332,0.3207],[0.5257,0.317],[0.518,0.313],[0.5092,0.3087],[0.4986,0.3034],[0.4842,0.2967],[0.4634,0.2863],[0.4309,0.2649]],CEN=[.5422,.2463],FW=96,FH=76,DIRS=8,FR=8,PITCH=.72,P=RING.map(([u,v])=>[u*3344,v*1882]),LEN=[0];
@@ -1388,7 +1461,8 @@ const villageLife=(()=>{
  let sheets=null,busy=false,runners=[];
  // rendu progressif (une orientation à la fois, pendant les temps morts) pour ne jamais figer l'interface
  function render(){if(busy||sheets||!window.THREE)return;if(settings.level()==='basse'){sheets=[];return}busy=true;
-  let r,sc,cam,cv,out=[],jobs=[];const livs=[champion.get(),VALMONT.livery,{coat:'gris',main:'#1f5fbf',second:'#ffffff',pattern:'croix',cap:'#ffffff'},{coat:'bai',main:'#f2c230',second:'#1d6b3a',pattern:'bretelles',cap:'#1d6b3a'}];
+  let r,sc,cam,cv,out=[],jobs=[];const livs=[champion.get(),VALMONT.livery,{coat:'gris',main:'#1f5fbf',second:'#ffffff',pattern:'croix',cap:'#ffffff'},{coat:'bai',main:'#f2c230',second:'#1d6b3a',pattern:'bretelles',cap:'#1d6b3a'},
+   ...FREE_COATS.map(coat=>({coat,main:'#000',second:'#000',pattern:'uni',cap:'#000',free:true}))];
   try{cv=document.createElement('canvas');cv.width=FW;cv.height=FH;r=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true,preserveDrawingBuffer:true});r.setClearColor(0,0);r.outputColorSpace=THREE.SRGBColorSpace;r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.15;
    sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xfff4e0,0x4a5a30,1.5));const sun=new THREE.DirectionalLight(0xfff0d0,3.2);sun.position.set(-3,5,2);sc.add(sun);
    cam=new THREE.OrthographicCamera(-1.55,1.55,1.23,-1.23,.1,20);cam.position.set(0,Math.sin(PITCH)*8,Math.cos(PITCH)*8);cam.lookAt(0,1.05,0);
@@ -1396,21 +1470,45 @@ const villageLife=(()=>{
   let cur=-1,h=null,x=null;const idle=f=>(window.requestIdleCallback?requestIdleCallback(f,{timeout:400}):setTimeout(f,30));
   const step=()=>{try{const job=jobs.shift();if(!job){if(h){sc.remove(h);HORSE3D.dispose(h)}r.dispose();r.forceContextLoss?.();sheets=out;busy=false;
      runners=[0,1,2,3].map(i=>({s:i,th:i*TOT*.23+80,sp:.07+i*.004,lane:1.02-i*.012,f:Math.random()*8}));return}
-    const[k,d]=job;if(k!==cur){if(h){sc.remove(h);HORSE3D.dispose(h)}cur=k;h=HORSE3D.build(livs[k],{number:1});sc.add(h);const S=document.createElement('canvas');S.width=FW*FR;S.height=FH*DIRS;out[k]=S;x=S.getContext('2d')}
-    h.rotation.y=d/DIRS*Math.PI*2;for(let f=0;f<FR;f++){HORSE3D.pose(h,f/FR,1);r.render(sc,cam);x.drawImage(cv,f*FW,d*FH)}idle(step)}catch(e){console.warn('village horses',e);sheets=[];busy=false}};
+    const[k,d]=job;if(k!==cur){if(h){sc.remove(h);HORSE3D.dispose(h)}cur=k;h=HORSE3D.build(livs[k],{number:1});sc.add(h);const S=document.createElement('canvas');S.width=FW*(FR+2);S.height=FH*DIRS;out[k]=S;x=S.getContext('2d');
+     // cheval en liberté : sans jockey, sans selle ni rênes
+     if(livs[k].free){const U=h.userData;U.jk.visible=false;U.reins.forEach(o=>{o.visible=false});U.body.children[1].visible=false;U.body.children[2].visible=false}}
+    h.rotation.y=d/DIRS*Math.PI*2;const free=livs[k].free;for(let f=0;f<FR+2;f++){if(f<FR)HORSE3D.pose(h,f/FR,free?.32:1);else HORSE3D.pose(h,f===FR?0:.3,.04);r.render(sc,cam);x.drawImage(cv,f*FW,d*FH)}idle(step)}catch(e){console.warn('village horses',e);sheets=[];busy=false}};
   idle(step)}
+ // carrière : deux cavaliers au petit galop sur la piste de sable (ellipse inclinée comme la peinture)
+ const ARENA={cx:.175,cy:.326,rx:.066,ry:.033,rot:-.2},riders=[{s:2,a:0},{s:3,a:Math.PI}];
+ const onArena=a=>{const c=Math.cos(a),n=Math.sin(a),R=ARENA;return[R.cx+R.rx*c*Math.cos(R.rot)-R.ry*n*Math.sin(R.rot),R.cy+R.rx*c*Math.sin(R.rot)+R.ry*n*Math.cos(R.rot)]};
+ // prés : chevaux en liberté qui marchent, s'arrêtent, repartent (champs vides de la peinture, coordonnées carte)
+ const FIELDS=[[.29,.58,.385,.66],[.552,.612,.655,.695],[.655,.762,.765,.84],[.275,.376,.37,.428]];
+ const herd=[[0,4],[0,6],[1,5],[1,7],[2,4],[3,6]].map(([f,s],i)=>{const F=FIELDS[f],u=F[0]+(F[2]-F[0])*((i*.37)%1),v=F[1]+(F[3]-F[1])*((i*.61)%1);return{f,s,u,v,tu:u,tv:v,walk:false,until:2000+i*1700,fr:i,d:i%8}});
+ // carrosse royal : deux chevaux attelés montent et descendent l'allée centrale
+ const COACH={u:.4832,v0:.64,v1:1.03,v:.66,dir:1,wait:0};
+ function coachDraw(ctx,x,y,sc,down){const k=sc*1.3,w=34*k,l=48*k,yy=y-l/2;
+  ctx.globalAlpha=.25;ctx.fillStyle='#1d2410';ctx.beginPath();ctx.ellipse(x+3*k,yy+l*.55,w*.7,l*.35,0,0,6.283);ctx.fill();ctx.globalAlpha=1;
+  ctx.fillStyle='#1b1410';for(const[dx,dy]of[[-.62,.18],[.62,.18],[-.62,.82],[.62,.82]]){ctx.beginPath();ctx.ellipse(x+dx*w,yy+dy*l,3.2*k,6.5*k,0,0,6.283);ctx.fill()}
+  const g=ctx.createLinearGradient(x-w/2,0,x+w/2,0);g.addColorStop(0,'#0c1f3c');g.addColorStop(.5,'#23467e');g.addColorStop(1,'#0c1f3c');ctx.fillStyle=g;ctx.strokeStyle='#e2b44c';ctx.lineWidth=Math.max(1,1.6*k);
+  ctx.beginPath();ctx.roundRect(x-w/2,yy,w,l,5*k);ctx.fill();ctx.stroke();ctx.fillStyle='#2f5a9c';ctx.beginPath();ctx.roundRect(x-w*.36,yy+l*.14,w*.72,l*.72,4*k);ctx.fill();
+  ctx.fillStyle='#f3c64a';ctx.beginPath();ctx.arc(x,yy+l*.5,2.6*k,0,6.283);ctx.fill();for(const dx of[-.5,.5]){ctx.fillStyle='#ffe7a0';ctx.beginPath();ctx.arc(x+dx*w,yy+(down?l:0),1.8*k,0,6.283);ctx.fill()}}
+ const dirOf=(du,dv)=>{const yaw=Math.atan2(-dv*1882/Math.sin(PITCH),du*3344);return((Math.round(yaw/(Math.PI*2)*DIRS)%DIRS)+DIRS)%DIRS};
  // appelé par la boucle d'animation du village
  function draw(ctx,now,dt,toScreen,sc,vw,vh){if(!sheets){if(now>6000)render();return}if(!sheets.length)return;
-  const order=runners.map(R=>{R.th=(R.th+R.sp*dt)%TOT;R.f+=dt*.016;return R}).sort((a,b)=>pt(a.th,a.lane)[1]-pt(b.th,b.lane)[1]);
-  for(const R of order){const[u,v]=pt(R.th,R.lane),[u2,v2]=pt(R.th+6,R.lane);if(v>.298&&u>.452&&u<.515)continue;
-   const[x,y]=toScreen(u,v);if(x<-60||y<-60||x>vw+60||y>vh+60)continue;
-   // direction à l'écran -> direction au sol (vue plongeante) -> image la plus proche
-   const dx=(u2-u)*3344,dy=(v2-v)*1882/Math.sin(PITCH),yaw=Math.atan2(-dy,dx),d=((Math.round(yaw/(Math.PI*2)*DIRS)%DIRS)+DIRS)%DIRS,fr=Math.floor(R.f)%FR,
-    w=FW*sc*.62,h=FH*sc*.62;
+  const list=[];
+  for(const R of runners){R.th=(R.th+R.sp*dt)%TOT;R.f+=dt*.016;const[u,v]=pt(R.th,R.lane),[u2,v2]=pt(R.th+6,R.lane);if(v>.298&&u>.452&&u<.515)continue;list.push({u,v,s:R.s,k:.62,fr:Math.floor(R.f)%FR,d:dirOf(u2-u,v2-v)})}
+  for(const R of riders){R.a=(R.a+dt*.00032)%(Math.PI*2);R.f=(R.f||0)+dt*.011;const[u,v]=onArena(R.a),[u2,v2]=onArena(R.a+.03);list.push({u,v,s:R.s,k:1.2,fr:Math.floor(R.f)%FR,d:dirOf(u2-u,v2-v)})}
+  if(sheets.length>7)for(const H of herd){const F=FIELDS[H.f];
+   if(H.walk){const du=H.tu-H.u,dv=H.tv-H.v,L=Math.hypot(du*1.78,dv),st=dt*.0000042;if(L<st*1.5){H.walk=false;H.until=now+3500+Math.random()*7000}else{H.u+=du/L*st;H.v+=dv/L*st;H.d=dirOf(du,dv);H.fr+=dt*.006}}
+   else if(now>H.until){H.walk=true;H.tu=F[0]+Math.random()*(F[2]-F[0]);H.tv=F[1]+Math.random()*(F[3]-F[1])}
+   list.push({u:H.u,v:H.v,s:H.s,k:1.25,fr:H.walk?Math.floor(H.fr)%FR:FR+(Math.floor(now/1600+H.s)%2),d:H.d})}
+  if(sheets.length>7){const C=COACH;if(C.wait>0)C.wait-=dt;else{C.v+=C.dir*dt*.0000105;if(C.v>C.v1||C.v<C.v0){C.dir*=-1;C.v=Math.max(C.v0,Math.min(C.v1,C.v));C.wait=C.dir>0?6000:18000}}
+   if(C.wait<=0||C.v<C.v1){const down=C.dir>0,d=dirOf(0,C.dir),fr=C.wait>0?FR:Math.floor(now*.006)%FR;
+    list.push({u:C.u-.0062,v:C.v,s:4,k:1.1,fr,d},{u:C.u+.0062,v:C.v+.0004,s:6,k:1.1,fr:(fr+3)%FR,d},{u:C.u,v:C.v+(down?-.03:.012),fn:(ctx,x,y)=>coachDraw(ctx,x,y,sc,down)})}}
+  list.sort((a,b)=>a.v-b.v);
+  // taille : chevaux de la piste (lointaine) plus petits ; carrière et prés à l'échelle des chevaux peints
+  for(const S of list){const[x,y]=toScreen(S.u,S.v),w=FW*sc*(S.k||1),h=FH*sc*(S.k||1);if(x<-60||y<-60||x>vw+60||y>vh+60)continue;if(S.fn){S.fn(ctx,x,y);continue}
    ctx.globalAlpha=.22;ctx.fillStyle='#1d2410';ctx.beginPath();ctx.ellipse(x+3*sc,y+1.5*sc,w*.3,h*.08,0,0,6.283);ctx.fill();
-   ctx.globalAlpha=1;ctx.drawImage(sheets[R.s],fr*FW,d*FH,FW,FH,x-w/2,y-h*.8,w,h)}ctx.globalAlpha=1}
+   ctx.globalAlpha=1;ctx.drawImage(sheets[S.s],S.fr*FW,S.d*FH,FW,FH,x-w/2,y-h*.8,w,h)}ctx.globalAlpha=1}
  champion.on?.(()=>{sheets=null});
- return{draw,get ready(){return!!(sheets&&sheets.length)}}})();
+ return{draw,get ready(){return!!(sheets&&sheets.length)},get coach(){return COACH}}})();
 /* --- 25-shop.js --- */
 /* ===== Boutique royale : on échange les gemmes gagnées en jeu contre de l'or, du fourrage, des coffres, des élixirs.
    Un cadeau gratuit par jour et une offre du jour à prix réduit donnent une raison de passer chaque jour. Aucun achat réel. ===== */
@@ -1471,6 +1569,346 @@ $('#race3d')?.addEventListener('webglcontextlost',e=>{e.preventDefault();if($('#
 $('#race3d')?.addEventListener('webglcontextrestored',()=>{try{threeRace&&threeRace.renderer.setSize(1,1,false);threeRace.lastW=0}catch(e){}});
 // 6) jeu installable et jouable hors ligne (sur un vrai hébergement https)
 if('serviceWorker' in navigator&&/^https:|^http:\/\/localhost/.test(location.href)&&window.top===window){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+/* --- 27-moments.js --- */
+/* ===== Temps forts : jusqu’à 3 décisions tactiques par course, à prendre en 4 secondes ===== */
+/* Déterministe : tirage sur un flux dérivé de la graine (le flux des adversaires reste inchangé) + choix du joueur enregistrés au pas près (M.log) */
+const MOMENT_TYPES={
+ tire:{a:'Le reprendre',b:'Le laisser aller',t:h=>`${h} tire sur les rênes !`,d:()=>`Il veut accélérer tout de suite. ${RACE.dist<=1200?'Sur une course courte, il peut se le permettre.':'Sur cette distance, chaque effort se paiera dans la ligne droite.'}`},
+ breche:{a:'Plonger',b:'Rester',t:(h,r,m)=>m.lane<20?'Brèche à la corde !':'Ouverture à l’extérieur !',d:()=>'Un trou s’ouvre : tu peux t’y glisser pour courir libre. Plus ton cheval est intelligent, plus il a de chances de passer.'},
+ attaque:{a:'Suivre',b:'Laisser filer',t:(h,r)=>`${r} attaque de loin !`,d:m=>`Le suivre coûte de l’énergie ; le laisser filer, c’est parier qu’il s’usera. Énergie : toi ${Math.round(playerEnergy)} % · lui ≈ ${Math.round(rivalAI[m.r-1].energy/10)*10} %`}};
+/* effets (vitesse ajoutée, multiplicateur de dépense d'énergie, durée en pas de 100 ms) — réglés au bot d'équilibrage */
+const MOMENT_FX={tireA:{speed:-.025,drain:.4,n:30},tireB:{speed:.055,drain:1.9,n:30},gapOk:{speed:.04,drain:.7,n:25},gapKo:{speed:-.07,drain:1,n:15},attack:{speed:.07,drain:2.8,n:45},follow:{speed:.065,drain:1.7}};
+const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_FX[k].n||0)});const DUR=40,ord=n=>n+(n===1?'er':'e');
+ const card=document.createElement('div');card.className='moment';card.hidden=true;card.innerHTML='<b class="mo-title"></b><p></p><div class="mo-time"><i></i></div><div class="mo-btns"><button data-mo="a"><kbd>1</kbd><span></span></button><button data-mo="b"><kbd>2</kbd><span></span></button></div>';
+ const news=document.createElement('div');news.className='mo-news';$('#raceScreen').append(card,news);
+ const say=t=>{news.textContent=t;news.classList.add('show');clearTimeout(news._t);news._t=setTimeout(()=>news.classList.remove('show'),2600)};
+ const lane=i=>i?rivalLanes[i-1]:playerLane,rankNow=()=>raceFinished[0]?finishOrder.indexOf(0)+1:progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i===0)+1;
+ // le programme des temps forts est tiré au départ : chacun a sa chance et son point de déclenchement (en % de course)
+ function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0),tem=stable.active().stats.tem;M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
+  plan:{tire:r()<.35+(70-tem)*.015?10+r()*24:null,breche:r()<.7?24+r()*36:null,attaque:r()<.8?42+r()*24:null}};card.hidden=true;news.classList.remove('show')}
+ function fx(i){const f=M&&M.fx[i];return f&&raceTime<f.until?f:{speed:0,drain:1}}
+ // quel temps fort peut surgir maintenant ?
+ function pick(){const ph=progress[0],h=stable.active(),due=(k,max)=>M.plan[k]!=null&&ph>=M.plan[k]&&ph<max;
+  if(due('tire',40))return{k:'tire'};
+  // ouverture : seulement si le joueur est enfermé derrière un cheval ou loin de la corde, et qu'un couloir libre existe
+  if(due('breche',72)){const a=nearbyHorses(0)[0],stuck=a&&a.gap<2&&Math.abs(a.l-playerLane)<11;const free=[12,30,48].find(L=>Math.abs(L-playerLane)>=10&&!progress.some((p,j)=>j&&!raceFinished[j]&&Math.abs(lane(j)-L)<9&&p-ph>-1.2&&p-ph<3.5));if((stuck||playerLane>30)&&free!=null)return{k:'breche',lane:free,p:Math.min(.95,.5+h.stats.tac*.0055)}}
+  if(due('attaque',74)){const c=rivalAI.map((ai,i)=>({ai,i:i+1,g:progress[i+1]-ph})).filter(x=>!raceFinished[x.i]&&!x.ai.final&&x.ai.energy>45&&x.g>-3&&x.g<4).sort((a,b)=>Math.abs(a.g)-Math.abs(b.g))[0];if(c)return{k:'attaque',r:c.i}}
+  return null}
+ function open(m){const T=MOMENT_TYPES[m.k],name=m.r?raceNames[m.r]:'';M.plan[m.k]=null;M.cur={...m,start:raceTime,end:raceTime+DUR,rank0:rankNow()};
+  // l'attaque adverse a lieu quoi que fasse le joueur : il accélère, mais s'use deux fois plus vite
+  if(m.k==='attaque')M.fx[m.r]=F('attack',raceTime);
+  card.querySelector('.mo-title').textContent=T.t(HN(),name,m);card.querySelector('p').textContent=T.d(m);card.querySelector('[data-mo=a] span').textContent=T.a+(m.p?` · ${Math.round(m.p*100)} %`:'');card.querySelector('[data-mo=b] span').textContent=T.b;
+  card.dataset.k=m.k;card.hidden=false;card.querySelector('.mo-time i').style.transform='scaleX(1)';buzz(20);sound.say(T.t(HN(),name,m));setTimeout(()=>M&&M.cur&&coach.tip('moment',`<b>Temps fort !</b> Tu as 4 secondes pour choisir${matchMedia('(hover:none)').matches?'':' (touches <b>1</b> / <b>2</b> au clavier)'}. Sans réponse, c’est le choix de droite qui s’applique. Regarde ton endurance et la place devant toi.`,'.moment'),300)}
+ function resolve(ch){const c=M.cur,t=raceTime;M.cur=null;card.hidden=true;let ok=true;
+  if(c.k==='tire')M.fx[0]=F(ch==='a'?'tireA':'tireB',t);
+  if(c.k==='breche'&&ch==='a'){ok=M.rng()<c.p;if(ok){playerLane=c.lane;updateLane();M.fx[0]=F('gapOk',t)}else M.fx[0]=F('gapKo',t)}
+  // suivre = hausser le rythme avec lui ; on ne se rabat dans son sillage que s'il est sur une trajectoire proche (sinon on irait perdre du terrain à l'extérieur)
+  if(c.k==='attaque'&&ch==='a'){if(Math.abs(lane(c.r)-playerLane)<20){playerLane=clampRace(lane(c.r),7,93);updateLane()}M.fx[0]={...MOMENT_FX.follow,until:c.start+MOMENT_FX.attack.n}}
+  const e={k:c.k,ch,ok,r:c.r,t,rank0:c.rank0,dPos:null};M.log.push(e);M.watch=e;
+  say(c.k==='breche'&&ch==='a'?(ok?(c.lane<20?'Tu te glisses à la corde !':'Tu trouves l’ouverture !'):'La brèche se referme : tu perds ton élan'):c.k==='attaque'?(ch==='a'?`Tu suis ${raceNames[c.r]}`:`Tu laisses filer ${raceNames[c.r]}`):ch==='a'?`${HN()} se relâche`:`${HN()} accélère`)}
+ function tick(){if(!M||!rivalAI.length)return;
+  if(M.watch&&raceTime>=M.watch.t+50){const d=M.watch.dPos=M.watch.rank0-rankNow();if(d>0)career.bump('moment',d);M.watch=null}
+  if(M.cur){if(M.pending||raceTime>=M.cur.end||raceFinished[0]){resolve(M.pending||'b');M.pending=null}else card.querySelector('.mo-time i').style.transform=`scaleX(${(M.cur.end-raceTime)/DUR})`}
+  else if(!raceFinished[0]&&!playerFinal&&raceTime>=M.next){const m=pick();if(m){open(m);M.next=raceTime+DUR+55}else M.next=raceTime+3}
+  // lecture de course : qui lance son sprint, qui craque devant toi
+  rivalAI.forEach((ai,i)=>{const j=i+1,g=progress[j]-progress[0];if(raceFinished[j]||raceFinished[0])return;
+   if(ai.final&&!M.said['f'+j]&&g>-4&&g<8){M.said['f'+j]=1;say(`${raceNames[j]} lance son sprint`)}
+   else if(ai.energy<=0&&!M.said['e'+j]&&g>-2&&g<8){M.said['e'+j]=1;say(`${raceNames[j]} est à bout de souffle !`)}})}
+ function choose(ch){if(M&&M.cur&&!M.pending)M.pending=ch}
+ card.addEventListener('click',e=>{const b=e.target.closest('[data-mo]');if(b)choose(b.dataset.mo)});
+ document.addEventListener('keydown',e=>{if(!M||!M.cur)return;if(e.code==='Digit1'||e.code==='Numpad1')choose('a');if(e.code==='Digit2'||e.code==='Numpad2')choose('b')});
+ // bilan affiché sous l'analyse de course
+ function summary(){if(!M||!M.log.length)return '';const L=M.log.map(e=>{const n=e.r?raceNames[e.r]:'',fin=e.r?finishOrder.indexOf(e.r)+1:0,me=finishOrder.indexOf(0)+1,
+   txt=e.k==='tire'?(e.ch==='a'?'Cheval repris : énergie économisée':'Cheval laissé libre : plus vite, mais plus d’énergie brûlée'):e.k==='breche'?(e.ch==='b'?'Ouverture ignorée':e.ok?'Ouverture prise : tu cours libre':'Ouverture tentée : elle s’est refermée'):`${e.ch==='a'?'Attaque de':'Tu as laissé filer'} ${escapeHTML(n)}${e.ch==='a'?' suivie':''} — il finit ${ord(fin)}${fin>me?', derrière toi':''}`;
+   const d=e.dPos==null?'':e.dPos>0?` <em class="up">+${e.dPos} place${e.dPos>1?'s':''}</em>`:e.dPos<0?` <em class="down">${e.dPos} place${e.dPos<-1?'s':''}</em>`:'';return `<li>${txt}${d}</li>`}).join('');
+  return `<div class="mo-sum"><b>⚡ Temps forts</b><ul>${L}</ul></div>`}
+ return{reset,fx,tick,choose,summary,get cur(){return M&&M.cur},get log(){return M?M.log:[]},get active(){return !!(M&&M.cur)}}})();
+{const i0=initRivalAI;initRivalAI=function(){i0();moments.reset()}}
+{const c0=completeRace;completeRace=function(){c0();$('#fbStars').insertAdjacentHTML('beforeend',moments.summary());replay.show()}}
+/* ===== Recourir : relancer la même course en un geste (nouveau plateau), ou changer de cheval s'il est fatigué ===== */
+const replay=(()=>{const b=document.createElement('button');b.className='action';b.id='raceAgain';$('#returnDomain').after(b);
+ function show(){const h=stable.active();if(RACE.tour){b.hidden=true;return}b.hidden=false;const tired=h.injury||h.fatigue>=90;b.dataset.mode=tired?'swap':'again';b.innerHTML=tired?`CHANGER DE CHEVAL<small>${escapeHTML(h.name)} doit se reposer</small>`:`RECOURIR<small>🌾 ${fmt(RACE.fee)} · ${escapeHTML(h.name)}</small>`}
+ b.onclick=()=>{leaveRace();if(b.dataset.mode==='swap')return openCourses();currentField=null;buildField();startRace()};
+ return{show}})();
+/* --- 28-pace.js --- */
+/* ===== Rythme de course : la tactique de chaque adversaire est connue avant le départ =====
+   Un seul cheval aux avant-postes mène sans être contesté et s'économise ; dès qu'ils sont deux ou plus,
+   ils se disputent la tête et s'usent. Lire le plateau et choisir sa tactique en conséquence devient un vrai choix. */
+const PACE_FX={
+ leader:{base:{c:1.025,d:.944},lent:{d:.75},seul:{d:.75},rapide:{},duel:.2},
+ stalker:{base:{},lent:{c:.99},seul:{d:.9},rapide:{}},
+ finisher:{base:{s:-.005},lent:{c:.985},seul:{c:.985},rapide:{d:.9}}};
+const pace=(()=>{
+ const TAC=Object.fromEntries(TACTICS.map(([id,n])=>[id,n])),ICO={leader:'⚡',stalker:'🎯',finisher:'🏁'};
+ // la tactique d'un adversaire découle de son profil (départ + vitesse → devant ; accélération → derrière), avec une part de hasard
+ function choose(st,R){const w={leader:Math.max(.15,1+(st.dep-60)*.045+(st.vit-st.end)*.025),stalker:Math.max(.15,1.15+(st.tac-60)*.03),finisher:Math.max(.15,1+(st.acc-60)*.045+(st.end-st.vit)*.025)};
+  let x=R()*(w.leader+w.stalker+w.finisher);for(const k of['leader','stalker','finisher']){if((x-=w[k])<=0)return k}return'finisher'}
+ const rivalLeaders=()=>currentField?currentField.rivals.filter(r=>r.tac==='leader'):[];
+ const leaders=(me=state.strategy)=>rivalLeaders().length+(me==='leader'?1:0);
+ // effet du rythme sur chaque tactique (c : vitesse en début de course, d : dépense d'énergie en début de course, s : puissance du sprint)
+ // n = nombre de chevaux aux avant-postes (joueur compris). Réglé au bot : la bonne tactique dépend du plateau.
+ function fx(tac,me=state.strategy){const n=leaders(me),F=PACE_FX[tac],k=n===0?'lent':n===1?'seul':'rapide',B=F.base,K=F[k],o={c:(B.c||1)*(K.c||1),d:(B.d||1)*(K.d||1),s:(B.s||0)+(K.s||0)};if(tac==='leader'&&n>=2)o.d*=1+F.duel*(n-1);return o}
+ function adjust(P,tac,me){const f=fx(tac,me);return{...P,sprint:P.sprint+f.s,tactic:{...P.tactic,c:P.tactic.c*f.c,d:P.tactic.d*f.d}}}
+ const mul=(tac,me)=>fx(tac,me).d;
+ function info(){const R=rivalLeaders(),me=state.strategy==='leader',n=R.length+(me?1:0),names=R.map(r=>escapeHTML(r.name)).join(', ');
+  const k=n===0?'lent':n===1?'seul':n===2?'duel':'rapide',label={lent:'Lent',seul:'Tranquille',duel:'Disputé',rapide:'Rapide'}[k];
+  const txt=n===0?'Personne ne veut mener : un cheval aux avant-postes aurait le champ libre, et les attentistes auraient du mal à refaire leur retard.'
+   :n===1&&me?`Tu seras seul en tête : ton cheval mène sans être contesté et dépense ${Math.round((1-mul('leader'))*100)} % d’énergie en moins en début de course.`
+   :n===1?`Un seul animateur, ${names} : il aura le champ libre. Le suivre « dans les dos », dans son sillage, est idéal ; le rejoindre en tête lancerait un duel.`
+   :`${n} chevaux${me?', toi compris,':''} vont se disputer la tête${R.length&&!me?` (${names})`:''} : ils dépenseront ${Math.round((mul('leader')-1)*100)} % d’énergie en plus en début de course. Avantage aux attentistes.`;
+  return{k,label,txt,n}}
+ const chip=t=>t?`<span class="tac-chip t-${t}">${ICO[t]} ${TAC[t]}</span>`:'';
+ return{choose,mul,fx,adjust,info,chip,leaders}})();
+/* le plateau reçoit ses tactiques dès sa création (flux dérivé de la graine : même plateau = mêmes tactiques) */
+{const b0=buildField;buildField=function(fixed){const F=b0(fixed),R=seeded((F.seed^0x9e3779b9)>>>0);F.rivals.forEach(r=>{r.tac=pace.choose(r.stats,R)});return F}}
+/* en course, les adversaires suivent la tactique annoncée, et le rythme modifie l'effort des animateurs */
+{const i0=initRivalAI;initRivalAI=function(){i0();const F=currentField;rivalAI.forEach((ai,i)=>{const r=F&&F.rivals[i];if(r&&r.tac&&ai.tac!==r.tac){const P=terrainPerf(stable.racePerf(r.stats,{form:61,fatigue:10,moral:65},RACE.dist,r.pref,r.tac),r.stats,r.talent);const off=t=>t==='leader'?-.06:t==='finisher'?.04:0;ai.err=(ai.err||0)-off(ai.tac)+off(r.tac);ai.P=P;ai.speed=P.cruise;ai.tac=r.tac}
+  ai.P=pace.adjust(ai.P,ai.tac)})}}
+{const s0=startRace;startRace=function(){const before=racePlayer;s0.apply(this,arguments);if(racePlayer&&racePlayer!==before)racePlayer=pace.adjust(racePlayer,state.strategy)}}
+/* écran des courses : tactique de chaque partant + rythme prévu */
+{const r0=renderCourses;renderCourses=function(){r0.apply(this,arguments);const F=currentField;if(!F)return;
+  $$('#panelBody .runners tr').forEach((tr,i)=>{const td=tr.children[1];if(td)td.insertAdjacentHTML('beforeend',' '+pace.chip(i?F.rivals[i-1].tac:state.strategy))});
+  const I=pace.info(),box=`<div class="pace pace-${I.k}"><b>RYTHME PRÉVU : ${I.label.toUpperCase()}</b><p>${I.txt}</p></div>`;$('#panelBody .tactics')?.insertAdjacentHTML('beforebegin',box);
+  if($('#panelBody .pace'))coach.tip('pace','Regarde la <b>tactique des adversaires</b> : s’ils sont plusieurs à vouloir mener, la course sera rapide et ils s’useront. Choisis ta tactique en conséquence.','#panelBody .pace')}}
+/* --- 29-ambiance.js --- */
+/* ===== Ambiances de course : la météo suit le terrain (souple = ciel couvert, lourd = pluie), les grandes courses se courent au coucher du soleil ===== */
+const AMBIANCES={
+ jour:{n:'Plein soleil',i:'☀️',zen:[.035,.14,.46],mid:[.08,.28,.68],hor:[.42,.6,.78],sunC:[1,.86,.62],sunK:1,sun:[0xfff0d2,3.3,-260,360,180],hemi:[0xdcebff,0x3a4a26,1.3],fog:[0xc4d6de,300,1000],tint:0xffffff,board:0xdedede,horizon:0xf2f2f2,exp:1},
+ couchant:{n:'Coucher de soleil',i:'🌇',zen:[.05,.09,.26],mid:[.32,.26,.4],hor:[1,.56,.3],sunC:[1,.55,.25],sunK:1.8,sun:[0xffa860,3.4,-430,150,250],hemi:[0xffc79a,0x4a3418,1.3],fog:[0xe0a070,300,1100],tint:0xffd6ae,board:0xe0b48c,horizon:0xffbf8c,exp:1.1},
+ couvert:{n:'Ciel couvert',i:'🌥️',zen:[.24,.29,.35],mid:[.4,.45,.51],hor:[.6,.64,.68],sunC:[1,1,1],sunK:.04,sun:[0xe4ebf2,1.25,-160,420,120],hemi:[0xcdd6df,0x323a31,1.45],fog:[0x8a949c,240,950],tint:0xd2d8de,board:0xaab1b7,horizon:0xa4adb5,exp:.9},
+ pluie:{n:'Sous la pluie',i:'🌧️',zen:[.13,.16,.2],mid:[.25,.29,.33],hor:[.42,.46,.5],sunC:[1,1,1],sunK:0,sun:[0xcfd8e2,.75,-160,420,120],hemi:[0xa8b4c0,0x26302a,1.25],fog:[0x5a636b,160,760],tint:0xb2bac2,board:0x8a939a,horizon:0x6f7a84,exp:.84,rain:true}};
+MEETINGS.forEach(m=>{if(m.id==='m5'||m.id==='m6')m.amb='couchant'});
+const ambiance=(()=>{let rain=null,cur=null;
+ // terrain bon : plein soleil, ou coucher de soleil quand c'est le soir chez le joueur (heure du domaine)
+ const key=(m=RACE)=>m.amb||(m.terrain==='lourd'?'pluie':m.terrain==='souple'?'couvert':document.body.dataset.tod==='soir'?'couchant':'jour');
+ function makeRain(q){const N=1400,pos=new Float32Array(N*6),g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const L=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xc8d4e0,transparent:true,opacity:.42,depthWrite:false,fog:false}));L.frustumCulled=false;L.renderOrder=5;q.scene.add(L);
+  const drops=Array.from({length:N},()=>({x:(Math.random()-.5)*90,y:Math.random()*40,z:(Math.random()-.5)*90,v:30+Math.random()*14}));return{L,pos,drops,g}}
+ function stepRain(q,dt){const fx=raceFX._fx;// le décor photo se charge après coup : on le teinte dès qu'il arrive
+  if(cur&&fx&&fx.boards.length&&fx.boards[fx.boards.length-1].material.color.getHex()!==cur.board)fx.boards.forEach(b=>b.material.color.set(cur.board));
+  if(!rain||!rain.L.visible)return;const c=q.camera.position,P=rain.pos;rain.L.position.set(c.x,0,c.z);
+  rain.drops.forEach((d,i)=>{d.y-=d.v*dt;if(d.y<0){d.y+=40;d.x=(Math.random()-.5)*90;d.z=(Math.random()-.5)*90}const o=i*6;P[o]=d.x;P[o+1]=d.y+c.y-14;P[o+2]=d.z;P[o+3]=d.x+.18;P[o+4]=d.y+c.y-14+1.3;P[o+5]=d.z+.1});rain.g.attributes.position.needsUpdate=true}
+ function apply(q,k=key()){const A=AMBIANCES[k],fx=raceFX._fx;if(!q||!A)return;const v=a=>new THREE.Vector3(...a);
+  q.sun.color.set(A.sun[0]);q.sun.intensity=A.sun[1];q.sun.position.set(A.sun[2],A.sun[3],A.sun[4]);q.hemi.color.set(A.hemi[0]);q.hemi.groundColor.set(A.hemi[1]);q.hemi.intensity=A.hemi[2];
+  q.scene.fog.color.set(A.fog[0]);q.scene.fog.near=A.fog[1];q.scene.fog.far=A.fog[2];
+  if(fx){const U=fx.skyMat&&fx.skyMat.uniforms;if(U){U.uZen.value=v(A.zen);U.uMid.value=v(A.mid);U.uHor.value=v(A.hor);U.uSunC.value=v(A.sunC);U.uSunK.value=A.sunK;U.uSun.value=v(A.sun.slice(2)).normalize()}
+   fx.horizonMat&&fx.horizonMat.color.set(A.horizon);fx.boards.forEach(b=>b.material.color.set(A.board));raceFX.exposure=A.exp}
+  // les chevaux peints (vus de dos) ne sont pas éclairés par la scène : on les teinte comme la lumière du jour
+  q.horses.forEach(h=>h.material.color.set(A.tint));cur=A;
+  if(A.rain&&!rain)rain=makeRain(q);if(rain)rain.L.visible=!!A.rain;$('#raceScreen').dataset.amb=k}
+ return{key,apply,step:stepRain,info:(m=RACE)=>AMBIANCES[key(m)]}})();
+{const s0=startRace;startRace=function(){s0.apply(this,arguments);if(threeRace&&$('#raceScreen').classList.contains('open'))ambiance.apply(threeRace)}}
+{const r0=raceFX.render;let last=0;raceFX.render=function(q){const now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;ambiance.step(q,dt);return r0.call(this,q)}}
+{const h0=raceHeader;raceHeader=function(){h0();const A=ambiance.info();$('.race-head small').textContent+=` • ${A.i} ${A.n}`}}
+/* écran des courses : la météo du jour sur chaque carte */
+{const r0=renderCourses;renderCourses=function(){r0.apply(this,arguments);$$('#panelBody .meet[data-meet]').forEach(b=>{const m=b.dataset.meet==='tour'?RACE.tour&&RACE:MEETINGS.find(x=>x.id===b.dataset.meet);const s=b.querySelector('small');if(m&&s){const A=ambiance.info(m);s.insertAdjacentHTML('afterbegin',`<i class="amb" title="${A.n}">${A.i}</i> `)}})}}
+/* --- 30-photo.js --- */
+/* ===== Lecture de course (tous les partants sur la mini-carte) et arrivée serrée au ralenti (photo-finish) ===== */
+const photo=(()=>{const map=$('.race-map'),dots=Array.from({length:5},()=>{const b=document.createElement('b');b.className='rdot';map.appendChild(b);return b});
+ const banner=document.createElement('div');banner.className='pf-banner';banner.textContent='ARRIVÉE SERRÉE !';$('#povWorld').append(banner);$('#povWorld').insertAdjacentHTML('beforeend','<i class="lbox top"></i><i class="lbox bot"></i>');
+ let slow=false,restore=0;
+ function colors(){const F=currentField;dots.forEach((d,i)=>{const r=F&&F.rivals[i];d.style.background=r?r.livery.main:'#999';d.classList.toggle('nem',!!(r&&r.nemesis));d.title=r?r.name:''})}
+ function map2(){dots.forEach((d,i)=>{d.style.left=Math.min(100,progress[i+1]||0)+'%'})}
+ function reset(){slow=false;clearTimeout(restore);restore=0;$('#raceScreen').classList.remove('slowmo');banner.classList.remove('show');colors();map2()}
+ // arrivée serrée dans les 3 premiers : la simulation passe au ralenti (même nombre de pas, donc même résultat)
+ function check(){map2();if(!(raceLoop>0))return;
+  if(!slow&&!raceFinished[0]&&progress[0]>97.6){const rank=progress.filter((p,j)=>j&&p>progress[0]).length+1,close=progress.some((p,j)=>j&&!raceFinished[j]&&Math.abs(p-progress[0])<.35);
+   if(close&&rank<=3){slow=true;clearInterval(raceLoop);raceLoop=setInterval(runRaceV2,320);$('#raceScreen').classList.add('slowmo');banner.classList.add('show');buzz([20,40,20]);sound.say('Arrivée serrée !',true)}}
+  if(slow&&raceFinished[0]&&!restore)restore=setTimeout(()=>{$('#raceScreen').classList.remove('slowmo');banner.classList.remove('show');if(raceLoop>0){clearInterval(raceLoop);raceLoop=setInterval(runRaceV2,100)}},1400)}
+ // écart à l'arrivée, dans le vocabulaire des courses
+ const margin=g=>g<.03?'un nez':g<.08?'une courte tête':g<.15?'une tête':g<.3?'une encolure':g<.6?'une demi-longueur':null;
+ function verdict(){const me=finishOrder.indexOf(0);if(me<0)return'';const t=i=>raceFinishTimes[finishOrder[i]];
+  if(me===0&&finishOrder.length>1){const m=margin(t(1)-t(0));const g=t(1)-t(0);return m?`<p class="pf-note win">${g<.15?'📸 Photo-finish : victoire':'🏁 Victoire'} d’${m} devant ${escapeHTML(raceNames[finishOrder[1]])}</p>`:''}
+  const g=t(me)-t(me-1),m=margin(g);return m?`<p class="pf-note">${g<.15?'📸 Photo-finish : battu':'Battu'} d’${m} par ${escapeHTML(raceNames[finishOrder[me-1]])}</p>`:''}
+ return{reset,check,verdict,get slow(){return slow}}})();
+{const r0=runRaceV2;runRaceV2=function(){r0();photo.check()}}
+{const s0=startRace;startRace=function(){s0.apply(this,arguments);photo.reset()}}
+{const c0=completeRace;completeRace=function(){c0();$('#fbStars').insertAdjacentHTML('afterbegin',photo.verdict())}}
+/* --- 31-heure.js --- */
+/* ===== Heure du domaine : la lumière du village suit l'heure réelle du joueur (matin, jour, soir, nuit) ===== */
+const heure=(()=>{const map=$('#map'),tod=document.createElement('div');tod.className='map-tod';map.appendChild(tod);
+ const lamps=document.createElement('div');lamps.className='map-lamps';map.appendChild(lamps);
+ // lanternes aux bâtiments : allumées le soir et la nuit
+ lamps.innerHTML=Object.entries(VILLAGE.buildings).map(([k,b],i)=>`<i style="left:${(b.cx*100).toFixed(2)}%;top:${(b.cy*100).toFixed(2)}%;--d:${(i*.37%1.6).toFixed(2)}s;--s:${k==='hippodrome'?1.3:k==='haras'?1.35:1}"></i>`).join('');
+ const phaseAt=h=>h>=6&&h<10?'matin':h>=10&&h<17.5?'jour':h>=17.5&&h<21?'soir':'nuit';
+ // ?heure=nuit dans l'adresse : pour vérifier le rendu sans attendre (outil de développement)
+ const forced=new URLSearchParams(location.search).get('heure');
+ function apply(){const d=new Date(),p=PHASES.includes(forced)?forced:phaseAt(d.getHours()+d.getMinutes()/60);if(document.body.dataset.tod!==p)document.body.dataset.tod=p}
+ const PHASES=['matin','jour','soir','nuit'];apply();setInterval(apply,5*60e3);
+ return{get phase(){return document.body.dataset.tod},apply}})();
+/* --- 32-village-gl.js --- */
+/* ===== Domaine en rendu UHD (WebGL2) =====
+   La peinture n'est plus affichée telle quelle : un shader la redessine à la résolution exacte de l'écran, quel que soit le zoom
+   (interpolation Catmull-Rom + netteté + grain peint synthétique), et l'anime : vent dans les arbres, eau qui coule et scintille,
+   ailes du moulin qui tournent, ombres de nuages, rais de soleil, lumière du matin / du soir / de la nuit avec fenêtres éclairées.
+   Des masques (végétation, eau, lumières) sont calculés une fois à partir des couleurs de la peinture.
+   Repli automatique sur l'image simple si WebGL2 manque, si la qualité est « basse » ou si le contexte est perdu. */
+const villageGL=(()=>{
+ const world=$('#world'),cv=document.createElement('canvas');cv.id='villageGL';cv.setAttribute('aria-hidden','true');world.prepend(cv);
+ // moulin : moyeu (coordonnées carte), rayon des ailes en pixels de la peinture, écrasement horizontal dû à la perspective
+ const MILL={u:.8485,v:.6376,R:174,sx:.78};
+ const TOD={jour:[1,0,0,0],matin:[0,1,0,0],soir:[0,0,1,0],nuit:[0,0,0,1]};
+ let gl=null,P=null,U={},tex=null,msk=null,ready=false,lost=false,w=[1,0,0,0],skip=0;
+ const VS=`#version 300 es
+uniform vec2 uView;out vec2 vPos;
+void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(p*2.-1.,0.,1.);vPos=vec2(p.x,1.-p.y)*uView;}`;
+ const FS=`#version 300 es
+precision highp float;
+uniform sampler2D uTex,uMask;uniform vec4 uCam,uMill,uW;uniform vec2 uView,uTexSize;uniform float uTime,uMag;
+in vec2 vPos;out vec4 o;
+float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),u.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),u.x),u.y);}
+float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*n2(p);p=p*2.03+17.1;a*=.5;}return s;}
+// Catmull-Rom en 9 lectures (filtrage bilinéaire exploité) : agrandissement net, sans flou
+vec3 catrom(vec2 uv){vec2 sp=uv*uTexSize,tp=floor(sp-.5)+.5,f=sp-tp;
+ vec2 w0=f*(-.5+f*(1.-.5*f)),w1=1.+f*f*(-2.5+1.5*f),w2=f*(.5+f*(2.-1.5*f)),w3=f*f*(-.5+.5*f),w12=w1+w2;
+ vec2 t0=(tp-1.)/uTexSize,t3=(tp+2.)/uTexSize,t12=(tp+w2/w12)/uTexSize;
+ vec3 r=texture(uTex,vec2(t0.x,t0.y)).rgb*w0.x*w0.y+texture(uTex,vec2(t12.x,t0.y)).rgb*w12.x*w0.y+texture(uTex,vec2(t3.x,t0.y)).rgb*w3.x*w0.y
+  +texture(uTex,vec2(t0.x,t12.y)).rgb*w0.x*w12.y+texture(uTex,vec2(t12.x,t12.y)).rgb*w12.x*w12.y+texture(uTex,vec2(t3.x,t12.y)).rgb*w3.x*w12.y
+  +texture(uTex,vec2(t0.x,t3.y)).rgb*w0.x*w3.y+texture(uTex,vec2(t12.x,t3.y)).rgb*w12.x*w3.y+texture(uTex,vec2(t3.x,t3.y)).rgb*w3.x*w3.y;
+ return clamp(r,0.,1.);}
+float armD(float a){return abs(mod(a,1.5707963)-.7853982);}
+void main(){
+ vec2 uv=clamp((vPos-uCam.xy)/uCam.zw,vec2(0.),vec2(1.));float t=uTime;
+ vec4 m=texture(uMask,uv);
+ // vent : les frondaisons oscillent, par rafales qui traversent le domaine
+ float gust=.45+.55*smoothstep(-.4,1.,sin(uv.x*7.-uv.y*4.+t*.8));
+ vec2 suv=uv;if(m.r>.01)suv+=(vec2(n2(uv*60.+vec2(t*.8,0.)),n2(uv*60.+vec2(9.,t*.7)))-.5)*m.r*gust*2.6/uTexSize;
+ // eau : le courant déforme la peinture
+ if(m.g>.01)suv+=(vec2(fbm(uv*vec2(80.,120.)+vec2(t*.5,t*.18)),fbm(uv*vec2(100.,70.)-vec2(t*.22,t*.4)))-.5)*m.g*10./uTexSize;
+ // moulin : les ailes peintes tournent ; là où elles étaient, on reprend le décor situé entre deux ailes
+ vec2 d=(uv-uMill.xy)*uTexSize;vec2 q=vec2(d.x/uMill.w,d.y);float r=length(q);
+ if(r<uMill.z&&r>6.){float a=atan(q.y,q.x),hw=mix(4.,15.,smoothstep(.2,.32,r/uMill.z));
+  float th=t*.55;if(r*sin(armD(a-th))<hw){float c=cos(th),s=sin(th);vec2 q2=vec2(c*q.x+s*q.y,-s*q.x+c*q.y);suv=uMill.xy+vec2(q2.x*uMill.w,q2.y)/uTexSize;}
+  else if(r*sin(armD(a))<hw+3.){// on recouvre l'aile peinte par le reflet de la bande de décor juste à côté
+   float al=floor(a/1.5707963)*1.5707963+.7853982;vec2 ax=vec2(cos(al),sin(al)),nx=vec2(-ax.y,ax.x);float pd=dot(q,nx),W=hw+3.;
+   vec2 q2=dot(q,ax)*ax+sign(pd+1e-4)*(2.*W-abs(pd)+2.)*nx;suv=uMill.xy+vec2(q2.x*uMill.w,q2.y)/uTexSize;}}
+ // lecture : nette quand on zoome, filtrée quand on dézoome
+ vec3 c=uMag>1.02?catrom(suv):texture(uTex,suv).rgb;
+ vec3 soft=textureLod(uTex,suv,uMag>1.02?1.:1.+log2(1./uMag)).rgb;
+ c=clamp(c+(c-soft)*.5,0.,1.);
+ // grain peint : du détail là où la peinture n'en a plus (fort zoom)
+ float dk=smoothstep(1.2,2.6,uMag);if(dk>0.){float g=fbm(suv*uTexSize*.85)-.5;c*=1.+g*.1*dk;}
+ // eau : teinte, reflets du ciel, étincelles de soleil
+ c=mix(c,c*vec3(.86,1.,1.1)+vec3(0.,.02,.05),m.g*.35);
+ float glim=0.;if(m.g>.01){glim=pow(n2(uv*vec2(1150.,1800.)+vec2(t*1.4,-t*.9)),16.)*m.g;c+=smoothstep(.6,.72,fbm(uv*vec2(170.,250.)+vec2(t*.55,t*.22)))*m.g*.1;}
+ // ombres de nuages qui glissent
+ vec2 cp=uv*vec2(2.4,1.4)+vec2(t*.007,t*.003);float cl=smoothstep(.5,.8,n2(cp)*.62+n2(cp*2.1+5.)*.38);
+ c*=1.-cl*.2*(1.-uW.w);
+ // halo des hautes lumières
+ vec3 bl=textureLod(uTex,uv,4.).rgb;c+=max(bl-.7,0.)*.4*(1.-uW.w);
+ float l=dot(c,vec3(.299,.587,.114));
+ // rais de soleil venus du coin haut gauche
+ vec2 sp=vPos/uView.y,rp=vec2((sp.x*.75+sp.y*.66)*5.,t*.035);float ray=smoothstep(.5,.85,n2(rp)*.6+n2(rp*2.3+3.)*.4)*(1.-clamp(sp.y,0.,1.)*.7);
+ // quatre éclairages, mélangés selon l'heure (uW = jour, matin, soir, nuit)
+ vec3 day=mix(vec3(l),c,1.1)*1.02+vec3(1.,.9,.7)*ray*.07+glim*1.5;
+ vec3 morn=c*vec3(1.07,.97,.93)+vec3(.04,.012,.035)*(1.-l)+vec3(1.,.8,.75)*ray*.1+glim;
+ float e=m.b,glow=textureLod(uMask,uv,4.5).b;
+ vec3 eve=mix(c*vec3(1.16,.9,.66),vec3(.3,.17,.33)*l*1.4,smoothstep(.45,.05,l)*.45)+vec3(1.,.62,.3)*ray*.12+c*e*.35+vec3(1.,.66,.3)*glow*.18+glim*.8;
+ vec3 night=c*vec3(.2,.27,.5)+vec3(.006,.012,.035)+c*vec3(1.4,1.,.55)*e*1.6+vec3(1.,.66,.3)*glow*.7+glim*vec3(.4,.5,.8)*.5;
+ vec3 g=day*uW.x+morn*uW.y+eve*uW.z+night*uW.w;
+ // profondeur de champ : haut et bas de l'écran légèrement flous (effet maquette)
+ float sy=vPos.y/uView.y,ts=smoothstep(.18,0.,sy)*.8+smoothstep(.86,1.05,sy)*.5;
+ if(ts>0.){vec3 bb=textureLod(uTex,uv,2.2).rgb;g=mix(g,g/max(c,vec3(.03))*bb,ts*.5);}
+ vec2 vd=vPos/uView-.5;g*=1.-dot(vd,vd)*.32;
+ o=vec4(clamp(g,0.,1.),1.);}`;
+ function compile(){const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x};
+  P=gl.createProgram();gl.attachShader(P,sh(gl.VERTEX_SHADER,VS));gl.attachShader(P,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(P);if(!gl.getProgramParameter(P,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(P));
+  gl.useProgram(P);for(const k of['uTex','uMask','uCam','uMill','uW','uView','uTexSize','uTime','uMag'])U[k]=gl.getUniformLocation(P,k);gl.uniform1i(U.uTex,0);gl.uniform1i(U.uMask,1)}
+ function texture(src,unit){const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t}
+ // masques tirés des couleurs de la peinture : R = frondaisons, G = eau, B = fenêtres et lanternes (bâtiments seulement)
+ function masks(img){const W=1672,H=941,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,W,H);
+  const p=x.getImageData(0,0,W,H).data,out=x.createImageData(W,H),q=out.data,GW=168,GH=95,near=new Float32Array(GW*GH),B=Object.values(VILLAGE.buildings);
+  for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){let mn=9;const u=(i+.5)/GW,v=(j+.5)/GH;for(const[a,b]of VILLAGE.water){const dd=Math.hypot((u-a)*1.78,v-b);if(dd<mn)mn=dd}near[j*GW+i]=mn}
+  const inB=(u,v)=>B.some(b=>u>b.x&&u<b.x+b.w&&v>b.y+b.h*.12&&v<b.y+b.h);
+  // luminosité moyenne du voisinage (image réduite 1/8) : une lumière est un petit point bien plus clair que ce qui l'entoure
+  const SW=209,SH=118,sc=document.createElement('canvas');sc.width=SW;sc.height=SH;const sx=sc.getContext('2d',{willReadFrequently:true});sx.drawImage(img,0,0,SW,SH);const sd=sx.getImageData(0,0,SW,SH).data;
+  const around=(u,v)=>{const k=(Math.min(SH-1,Math.floor(v*SH))*SW+Math.min(SW-1,Math.floor(u*SW)))*4;return(sd[k]*.299+sd[k+1]*.587+sd[k+2]*.114)/255};
+  for(let y=0;y<H;y++){const v=y/H;for(let X=0;X<W;X++){const i=(y*W+X)*4,r=p[i]/255,g=p[i+1]/255,b=p[i+2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),s=mx?(mx-mn)/mx:0,u=X/W;let veg=0,wat=0,em=0;
+   if(g>r*1.02&&g>b*1.12&&mx<.62&&s>.22)veg=Math.min(1,(g-Math.max(r,b))*6);
+   const nw=near[Math.floor(v*GH)*GW+Math.floor(u*GW)];if(nw<.06){if(b>r*1.12&&b>=g*.92&&mx>.3)wat=1;else if(mn>.74&&s<.2)wat=.6;wat*=1-Math.max(0,(nw-.04)/.02)}
+   if(mx>.78&&r>=g&&(r-b)/r>.42&&inB(u,v)){const lum=r*.299+g*.587+b*.114,k=lum-around(u,v);if(k>.16)em=Math.min(1,(k-.16)*5)}
+   q[i]=veg*255;q[i+1]=wat*255;q[i+2]=em*255;q[i+3]=255}}
+  x.putImageData(out,0,0);return c}
+ function init(){if(gl||lost)return;try{gl=cv.getContext('webgl2',{antialias:false,alpha:false,premultipliedAlpha:false,powerPreference:'high-performance'});if(!gl)return;compile();
+   const img=new Image();img.decoding='async';img.onload=()=>{try{tex=texture(img,0);gl.uniform2f(U.uTexSize,img.naturalWidth,img.naturalHeight);
+     const run=()=>{msk=texture(masks(img),1);ready=true};window.requestIdleCallback?requestIdleCallback(run,{timeout:1500}):setTimeout(run,60)}catch(e){fail(e)}};img.src=$('.map-base').src}catch(e){fail(e)}}
+ function fail(e){console.warn('rendu du domaine : repli sur l’image',e);ready=false;world.classList.remove('gl-on')}
+ cv.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;fail('contexte perdu')});
+ let off=false;// villageGL.off = true : revient à l'image simple (comparaison avant / après)
+ function frame(now){requestAnimationFrame(frame);const on=settings.level()!=='basse'&&!off;if(!on){world.classList.remove('gl-on');return}if(!gl&&!lost)init();if(!ready)return;
+  if($('#raceScreen').classList.contains('open')||document.hidden)return;if(settings.level()==='moyenne'&&(skip^=1))return;
+  draw(now/1000)}
+ function draw(time,W4){const V=village.view;if(!V.vw||!ready)return;const dpr=Math.min(settings.level()==='haute'?2:1.25,devicePixelRatio||1),W=Math.round(V.vw*dpr),H=Math.round(V.vh*dpr);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
+  const T=TOD[document.body.dataset.tod]||TOD.jour;w=W4||w.map((x,i)=>x+(T[i]-x)*.03);
+  gl.viewport(0,0,W,H);gl.uniform2f(U.uView,V.vw,V.vh);gl.uniform4f(U.uCam,V.x,V.y,V.w,V.h);gl.uniform1f(U.uTime,time);gl.uniform1f(U.uMag,V.w*dpr/3344);
+  gl.uniform4f(U.uMill,MILL.u,MILL.v,MILL.R,MILL.sx);gl.uniform4f(U.uW,...w);gl.drawArrays(gl.TRIANGLES,0,3);world.classList.add('gl-on')}// l'image simple ne disparaît qu'une fois la première image dessinée
+ requestAnimationFrame(frame);
+ // snap(t, 'nuit') : dessine une image à l'instant t (s) et à l'heure voulue — pour les captures de vérification
+ return{get ready(){return ready},set off(v){off=!!v},snap:(t,k)=>draw(t,k&&TOD[k])}})();
+/* --- 33-village-vie.js --- */
+/* ===== Domaine vivant : réverbères, lucioles, papillons, fontaine, particules de saison =====
+   Dessinés sur leur propre calque (au-dessus des chevaux) pour que les lumières restent vives la nuit.
+   La saison suit la date réelle : pétales au printemps, pollen l'été, feuilles mortes l'automne, neige l'hiver (?saison=hiver pour tester). */
+const villageVie=(()=>{
+ const world=$('#world'),cv=document.createElement('canvas');cv.id='villageGlow';cv.setAttribute('aria-hidden','true');$('#ambient').after(cv);const ctx=cv.getContext('2d');
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ // réverbères de l'allée centrale (tête de la lanterne, coordonnées carte)
+ const LAMPS=[[.4513,.6435],[.5144,.6435],[.4498,.7269],[.5161,.7269],[.4438,.8794],[.5194,.8794],[.4821,.5834]];
+ const FOUNTAIN={u:.4815,v:.5553,bu:.4815,bv:.5653};
+ const LAWNS=[[.29,.58,.385,.66],[.552,.612,.655,.695],[.655,.762,.765,.84],[.275,.376,.37,.428],[.02,.5,.3,.95],[.6,.8,1,1]];
+ const forced=new URLSearchParams(location.search).get('saison'),SEASONS=['hiver','printemps','ete','automne'];
+ const season=()=>SEASONS.includes(forced)?forced:SEASONS[Math.floor(((new Date().getMonth()+1)%12)/3)];
+ const rnd=(a,b)=>a+Math.random()*(b-a);
+ const flies=Array.from({length:70},()=>{const L=LAWNS[Math.floor(Math.random()*LAWNS.length)];return{u:rnd(L[0],L[2]),v:rnd(L[1],L[3]),p:Math.random()*6.28,f:rnd(.6,1.6),a:Math.random()*6.28}});
+ const butterflies=Array.from({length:9},(_,i)=>({u:rnd(.44,.53),v:rnd(.55,.7),p:Math.random()*6.28,c:['#ffd24a','#ffffff','#ff9ec4','#9fd8ff'][i%4]}));
+ let drops=[],fall=[],night=0,eve=0,last=performance.now(),W=0,H=0;
+ // montgolfière aux couleurs du domaine : traverse le ciel de temps en temps, son ombre glisse sur le sol
+ const balloon={on:false,next:performance.now()+25000,u:0,v:0,du:0,dv:0,sway:0};
+ function drawBalloon(dt,now,P,sc){const B=balloon;if(!B.on){if(now<B.next||night>.6)return;const l2r=Math.random()<.5;Object.assign(B,{on:true,u:l2r?-.08:1.08,v:rnd(.25,.7),du:(l2r?1:-1)*rnd(.011,.016),dv:rnd(-.004,.004)})}
+  B.u+=B.du*dt;B.v+=B.dv*dt;B.sway+=dt;if(B.u<-.12||B.u>1.12){B.on=false;B.next=now+rnd(90000,180000);return}
+  const[x,y]=P(B.u,B.v),k=Math.max(.75,sc*2.3),R=34*k,by=y-R*2.6+Math.sin(B.sway*.8)*3*k;
+  const[sx,sy]=P(B.u+.035,B.v+.09);ctx.globalAlpha=.18*(1-night);ctx.fillStyle='#0c1a0c';ctx.beginPath();ctx.ellipse(sx,sy,R*.9,R*.45,0,0,6.283);ctx.fill();ctx.globalAlpha=1;
+  ctx.save();ctx.beginPath();ctx.moveTo(x-R,by);ctx.bezierCurveTo(x-R,by-R*1.35,x+R,by-R*1.35,x+R,by);ctx.bezierCurveTo(x+R,by+R*.55,x+R*.28,by+R*.95,x+R*.2,by+R*1.12);ctx.lineTo(x-R*.2,by+R*1.12);ctx.bezierCurveTo(x-R*.28,by+R*.95,x-R,by+R*.55,x-R,by);ctx.closePath();ctx.clip();
+  for(let i=-3;i<3;i++){ctx.fillStyle=i%2?'#f3c64a':'#b81f2c';ctx.fillRect(x+i*R/3,by-R*1.4,R/3+.5,R*2.6)}
+  const sh=ctx.createRadialGradient(x-R*.4,by-R*.5,R*.1,x,by,R*1.4);sh.addColorStop(0,'rgba(255,255,255,.35)');sh.addColorStop(.5,'rgba(255,255,255,0)');sh.addColorStop(1,'rgba(0,0,0,.35)');ctx.fillStyle=sh;ctx.fillRect(x-R,by-R*1.4,R*2,R*2.6);ctx.restore();
+  ctx.strokeStyle='#5a3a1a';ctx.lineWidth=Math.max(.8,k);ctx.beginPath();ctx.moveTo(x-R*.2,by+R*1.12);ctx.lineTo(x-R*.13,by+R*1.45);ctx.moveTo(x+R*.2,by+R*1.12);ctx.lineTo(x+R*.13,by+R*1.45);ctx.stroke();
+  ctx.fillStyle='#7a4a22';ctx.fillRect(x-R*.16,by+R*1.45,R*.32,R*.24);ctx.fillStyle='#ffb347';ctx.globalAlpha=.5+.5*Math.sin(now*.01);ctx.beginPath();ctx.arc(x,by+R*1.08,R*.07,0,6.283);ctx.fill();ctx.globalAlpha=1}
+ function resize(){const d=Math.min(2,devicePixelRatio||1),r=world.getBoundingClientRect();if(W!==r.width||H!==r.height){W=r.width;H=r.height;cv.width=Math.round(W*d);cv.height=Math.round(H*d);ctx.setTransform(d,0,0,d,0,0);fall=[]}}
+ function seasonal(dt,k){const S=season(),N=S==='automne'?26:S==='hiver'?70:S==='printemps'?30:22;
+  while(fall.length<N)fall.push({x:rnd(-40,W),y:rnd(-H,H),vx:rnd(8,26),vy:S==='hiver'?rnd(18,42):S==='ete'?rnd(-4,4):rnd(16,34),r:S==='hiver'?rnd(1.2,3):S==='ete'?rnd(.8,1.8):rnd(3,5.5),a:Math.random()*6.28,s:rnd(-2,2),c:S==='automne'?['#d9731f','#b8421c','#e0a534','#8c4a1e'][Math.floor(Math.random()*4)]:S==='printemps'?['#ffd1e3','#ffb3cf','#fff0f6'][Math.floor(Math.random()*3)]:'#fff'});
+  const gust=Math.sin(performance.now()*.0004)*10;
+  for(const p of fall){p.x+=(p.vx+gust)*dt;p.y+=p.vy*dt+(S==='ete'?Math.sin(p.a)*6*dt:0);p.a+=p.s*dt;if(p.y>H+20||p.x>W+40){p.x=rnd(-40,W*.7);p.y=-20;if(S==='ete')p.y=rnd(0,H)}
+   if(S==='ete'){ctx.globalAlpha=(.25+.25*Math.sin(p.a*2))*(1-k);ctx.fillStyle='#fff3c4';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.283);ctx.fill()}
+   else if(S==='hiver'){ctx.globalAlpha=.75;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x+Math.sin(p.a)*3,p.y,p.r,0,6.283);ctx.fill()}
+   else{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.scale(1,Math.abs(Math.cos(p.a*1.3))*.8+.2);ctx.globalAlpha=.85*(1-k*.6);ctx.fillStyle=p.c;ctx.beginPath();ctx.ellipse(0,0,p.r,p.r*.5,0,0,6.283);ctx.fill();ctx.restore()}}}
+ function frame(now){requestAnimationFrame(frame);if($('#raceScreen').classList.contains('open')||document.hidden||document.body.classList.contains('no-anim')||reduce){last=now;if(W)ctx.clearRect(0,0,W,H);return}draw(now)}
+ function draw(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=Math.max(last,now);
+  resize();ctx.clearRect(0,0,W,H);const V=village.view;if(!V.vw)return;const T=document.body.dataset.tod;
+  night+=((T==='nuit'?1:0)-night)*Math.min(1,dt*1.5);eve+=((T==='soir'?1:0)-eve)*Math.min(1,dt*1.5);
+  const sc=V.w/3344,P=(u,v)=>[V.x+u*V.w,V.y+v*V.h],lit=Math.min(1,night+eve*.55),t=now/1000;
+  ctx.globalCompositeOperation='lighter';
+  // réverbères : halo de la lanterne + flaque de lumière au sol
+  if(lit>.02)for(const[i,[u,v]]of LAMPS.entries()){const[x,y]=P(u,v);if(x<-80||y<-80||x>W+80||y>H+120)continue;const fl=.9+.1*Math.sin(t*7+i*2.1)*Math.sin(t*3.1+i),R=Math.max(20,64*sc);
+   let g=ctx.createRadialGradient(x,y,0,x,y,R);g.addColorStop(0,`rgba(255,226,150,${.95*lit*fl})`);g.addColorStop(.25,`rgba(255,190,90,${.45*lit*fl})`);g.addColorStop(1,'rgba(255,160,60,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,R,0,6.283);ctx.fill();
+   const gy=y+44*sc;ctx.save();ctx.translate(x,gy);ctx.scale(1,.38);g=ctx.createRadialGradient(0,0,0,0,0,R*1.9);g.addColorStop(0,`rgba(255,200,120,${.4*lit})`);g.addColorStop(1,'rgba(255,170,80,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,R*1.9,0,6.283);ctx.fill();ctx.restore()}
+  // lucioles, la nuit
+  if(night>.05)for(const f of flies){f.a+=(Math.sin(t*.7+f.p)*.9)*dt;f.u+=Math.cos(f.a)*dt*.0022;f.v+=Math.sin(f.a)*dt*.0016;const b=Math.pow(Math.max(0,Math.sin(t*f.f+f.p)),5)*night;if(b<.03)continue;
+   const[x,y]=P(f.u,f.v);if(x<-10||y<-10||x>W+10||y>H+10)continue;const r=Math.max(2.4,5*sc);const g=ctx.createRadialGradient(x,y,0,x,y,r*2.6);g.addColorStop(0,`rgba(230,255,140,${b})`);g.addColorStop(1,'rgba(180,255,90,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*2.6,0,6.283);ctx.fill()}
+  ctx.globalCompositeOperation='source-over';
+  // fontaine : jets et gouttes
+  {const[x0,y0]=P(FOUNTAIN.u,FOUNTAIN.v);if(x0>-60&&y0>-60&&x0<W+60&&y0<H+60){if(drops.length<90)for(let k=0;k<3;k++){const a=Math.random()*6.28,s=rnd(8,16);drops.push({x:0,y:0,vx:Math.cos(a)*s,vy:-rnd(34,46),vz:Math.sin(a)*s*.45,life:0})}
+    ctx.fillStyle=night>.5?'#9fb4d8':'#eaf6ff';for(const d of drops){d.life+=dt;d.vy+=78*dt;d.x+=d.vx*dt;d.y+=(d.vy+d.vz)*dt;const x=x0+d.x*sc,y=y0+d.y*sc;ctx.globalAlpha=Math.max(0,.75-d.life*.5)*(1-night*.4);ctx.fillRect(x,y,Math.max(1,1.4*sc),Math.max(1.2,2.4*sc))}
+    drops=drops.filter(d=>d.y<(FOUNTAIN.bv-FOUNTAIN.v)*1882+4&&d.life<1.6);
+    const[bx,by]=P(FOUNTAIN.bu,FOUNTAIN.bv),ph=(t*.9)%1;ctx.globalAlpha=(1-ph)*.35;ctx.strokeStyle='#ffffff';ctx.lineWidth=Math.max(1,1.2*sc);ctx.beginPath();ctx.ellipse(bx,by,(8+ph*34)*sc,(3+ph*12)*sc,0,0,6.283);ctx.stroke()}}
+  // papillons, le jour (printemps / été)
+  const S=season();if(night<.5&&eve<.6&&(S==='printemps'||S==='ete'))for(const b of butterflies){b.p+=dt;b.u+=Math.cos(b.p*.7)*dt*.004+Math.sin(b.p*2.3)*dt*.002;b.v+=Math.sin(b.p*.5)*dt*.003;if(b.u<.43||b.u>.54)b.u=rnd(.45,.52);if(b.v<.54||b.v>.71)b.v=rnd(.56,.69);
+   const[x,y]=P(b.u,b.v);const s=Math.max(1.6,3.2*sc),fl=Math.abs(Math.sin(b.p*22));ctx.globalAlpha=.95;ctx.fillStyle=b.c;ctx.beginPath();ctx.ellipse(x-s*.6,y,s*fl,s*.7,-.4,0,6.283);ctx.ellipse(x+s*.6,y,s*fl,s*.7,.4,0,6.283);ctx.fill()}
+  drawBalloon(dt,now,P,sc);seasonal(dt,night);ctx.globalAlpha=1}
+ requestAnimationFrame(frame);
+ // snap(ms) : dessine une image à l'instant voulu (vérification sur capture)
+ return{season,snap:draw,balloon:()=>{balloon.next=0}}})();
 </script>
 </body>
 </html>

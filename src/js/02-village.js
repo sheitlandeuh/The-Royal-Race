@@ -79,7 +79,7 @@ const village=(()=>{
   try{villageLife.draw(ctx,now,dt,toScreen,MW*cam.z/3344,vw,vh)}catch(e){}}
  layout();requestAnimationFrame(tick);
  function onSelect(){}
- return{select,deselect,layout,get selected(){return selected},setTimer(id,text){const t=els[id].timer;t.innerHTML=`🔨 <b>${text}</b>`;t.classList.toggle('show',selected!==id)},clearTimer(id){els[id].timer.classList.remove('show')},set onSelect(f){onSelect=f}};
+ return{select,deselect,layout,get selected(){return selected},get view(){return{x:cam.x,y:cam.y,w:MW*cam.z,h:MH*cam.z,vw,vh,z:cam.z}},setTimer(id,text){const t=els[id].timer;t.innerHTML=`🔨 <b>${text}</b>`;t.classList.toggle('show',selected!==id)},clearTimer(id){els[id].timer.classList.remove('show')},set onSelect(f){onSelect=f}};
 })();
 function clockText(){const h=String(Math.floor(seconds/3600)).padStart(2,'0'),m=String(Math.floor(seconds%3600/60)).padStart(2,'0'),x=String(seconds%60).padStart(2,'0');return `${h}:${m}:${x}`}
 function selectBuilding(id){const b=BUILDINGS[id];state.building=b.name;state.buildingId=id;$('#selIcon').textContent=b.icon;$('#selTitle').textContent=b.name;$('#selDesc').textContent=b.lvl?`Niveau ${b.lvl} · ${b.desc}`:b.desc;const up=$('#upgradeBtn');up.style.display='';if(b.race){up.innerHTML='COURIR<br>🏁';up.disabled=false}else{up.innerHTML=`${b.lvl?'AMÉLIORER':'CONSTRUIRE'}<br>🪙 ${fmt(b.cost)}`;up.disabled=!!state.upgrading}$('#infoBtn').textContent=TRAIN_AT_LABEL[id]||'INFOS';$('#selection').classList.add('open')}

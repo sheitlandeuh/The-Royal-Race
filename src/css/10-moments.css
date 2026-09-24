@@ -1,0 +1,70 @@
+    /* ===== Temps forts (décisions en course) + Recourir ===== */
+    .moment{position:absolute;z-index:9;left:50%;top:clamp(150px,38%,320px);transform:translateX(-50%);width:min(460px,calc(100% - 24px));padding:12px 14px 14px;border-radius:18px;background:linear-gradient(#0d2a47f2,#071a2df2);border:2px solid #e5bb5a;box-shadow:0 14px 40px #0009,0 0 0 1px #0006 inset;text-align:center;animation:moIn .22s cubic-bezier(.2,1.4,.4,1)}
+    .moment[hidden]{display:none}
+    .moment[data-k=attaque]{border-color:#ff8a5c}.moment[data-k=breche]{border-color:#8dff9e}
+    .mo-title{display:block;font:800 clamp(17px,2.4vw,21px) Georgia,serif;color:#ffe29a;letter-spacing:.2px}
+    .moment p{margin:4px 0 9px;font-size:13px;line-height:1.35;color:#d9e4ee}
+    .mo-time{height:5px;border-radius:9px;background:#ffffff1f;overflow:hidden;margin-bottom:10px}.mo-time i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#f3c64a,#ff8a5c);transform-origin:left;transition:transform .1s linear}
+    @keyframes moIn{from{opacity:0;transform:translateX(-50%) scale(.85)}}
+    .mo-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .mo-btns button{min-height:52px;border-radius:14px;border:2px solid #ffffff30;background:linear-gradient(#2a5a86,#173a5a);color:#fff;font:800 15px system-ui,sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;padding:6px 8px;touch-action:manipulation}
+    .mo-btns button[data-mo=a]{background:linear-gradient(#4cb44f,#237a2e);border-color:#a6f0a0}
+    .mo-btns button:active{transform:scale(.96)}
+    .mo-btns kbd{font:700 11px system-ui;background:#0005;border-radius:6px;padding:2px 6px;opacity:.8}
+    @media (hover:none){.mo-btns kbd{display:none}}
+    .mo-news{position:absolute;z-index:8;left:50%;top:170px;transform:translateX(-50%) translateY(-6px);opacity:0;transition:.25s;pointer-events:none;background:#3b1d0edd;border:1px solid #ffb37a;color:#ffe3c9;border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:800;white-space:nowrap;max-width:88%;overflow:hidden;text-overflow:ellipsis}
+    .mo-news.show{opacity:1;transform:translateX(-50%)}
+    .mo-sum{margin:10px 0 2px;text-align:left;background:#ffffff0d;border:1px solid #ffffff1c;border-radius:12px;padding:8px 12px;font-size:12.5px}
+    .mo-sum b{color:#ffe29a}.mo-sum ul{margin:4px 0 0;padding-left:18px}.mo-sum li{margin:2px 0}
+    .mo-sum em{font-style:normal;font-weight:800;margin-left:4px}.mo-sum em.up{color:#8dff9e}.mo-sum em.down{color:#ff8a8a}
+    #raceAgain{margin-top:10px;display:flex;flex-direction:column;align-items:center;margin-left:auto;margin-right:auto;background:linear-gradient(#f3c64a,#b98116);color:#2a1a04}
+    #raceAgain small{font-size:11px;font-weight:700;opacity:.8}#raceAgain[hidden]{display:none}
+    @media (max-height:500px){.moment{top:60px;padding:7px 12px 9px}.mo-title{font-size:16px}.moment p{font-size:11.5px;margin:2px 0 6px}.mo-time{margin-bottom:7px}.mo-btns button{min-height:42px}.mo-news{top:128px}}
+    /* téléphone en paysage : jauge en bas à gauche, commandes à sa droite, sprint à droite */
+    @media (max-height:500px) and (orientation:landscape){
+      #raceScreen .auto-gallop{left:10px;right:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .steer{left:max(296px,calc(env(safe-area-inset-left,0px) + 296px));right:auto;transform:none;width:auto;bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .steer button{width:64px}
+      #raceScreen .lane-meter{width:130px}
+    }
+    /* téléphone en portrait : commandes de course sur une seule rangée en bas (gauche/droite + sprint), jauge au-dessus — plus rien ne se chevauche */
+    @media (max-width:600px) and (orientation:portrait){
+      #raceScreen .steer{left:10px;right:auto;transform:none;bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .lane-meter{width:88px}
+      #raceScreen .sprint-btn{right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .auto-gallop{left:10px;right:auto;bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+    }
+    /* ===== v0.14 : rythme de course, météo, mini-carte, photo-finish ===== */
+    .tac-chip{display:inline-block;margin-top:3px;font:800 10.5px system-ui,sans-serif;padding:2px 7px;border-radius:999px;background:#ffffff14;border:1px solid #ffffff2a;color:#d9e4ee;white-space:nowrap}
+    .tac-chip.t-leader{background:#ff8a5c26;border-color:#ff8a5c88;color:#ffc4a8}.tac-chip.t-finisher{background:#8dff9e1f;border-color:#8dff9e77;color:#c4ffcc}.tac-chip.t-stalker{background:#6fb7ff1f;border-color:#6fb7ff77;color:#c6e2ff}
+    #panelBody .pace{display:block;grid-column:1/-1;margin:0 0 10px;padding:9px 12px;border-radius:12px;background:#ffffff0b;border:1px solid #ffffff22;border-left:4px solid #6fb7ff}
+    #panelBody .pace b{display:block;font:800 11.5px system-ui,sans-serif;letter-spacing:.08em;color:#ffe29a}.pace p{margin:3px 0 0;font-size:12.5px;line-height:1.4;color:#d5e1ea}
+    #panelBody .pace-rapide,#panelBody .pace-duel{border-left-color:#ff8a5c}#panelBody .pace-seul{border-left-color:#8dff9e}#panelBody .pace-lent{border-left-color:#c9d3dc}
+    .meet small .amb{font-style:normal}
+    .race-map b.rdot{position:absolute;top:50%;width:8px;height:8px;border-radius:50%;border:1.5px solid #fffc;transform:translate(-50%,-50%);transition:left .15s;box-shadow:0 1px 3px #0008}
+    .race-map b.rdot.nem{border-color:#f3c64a;width:10px;height:10px}.race-map i{z-index:2}
+    .pf-banner{position:absolute;z-index:6;left:50%;top:24%;transform:translate(-50%,-50%) scale(.8);opacity:0;pointer-events:none;font:900 clamp(26px,6vw,56px) Georgia,serif;letter-spacing:.06em;color:#fff4d0;text-shadow:0 4px 18px #000,0 0 30px #f3c64a99;transition:.35s}
+    .pf-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    .race-screen.slowmo #race3d{filter:saturate(.8) contrast(1.12) brightness(1.03)}
+    .lbox{position:absolute;z-index:5;left:0;right:0;height:0;background:#000;transition:height .4s;pointer-events:none}.lbox.top{top:0}.lbox.bot{bottom:0}
+    .race-screen.slowmo .lbox{height:9%}
+    .pf-note{margin:0 0 8px;text-align:center;font:800 14px Georgia,serif;color:#ffd58a}.pf-note.win{color:#9dffab}
+    /* ===== Heure du domaine ===== */
+    .map-tod{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2s,background 2s}
+    .map-lamps{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2s}
+    .map-lamps i{position:absolute;width:calc(9% * var(--s));aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,#ffd27acc,#ffb44a55 45%,#ffb44a00);mix-blend-mode:screen;animation:lampFlicker 3.2s ease-in-out var(--d) infinite alternate}
+    @keyframes lampFlicker{to{opacity:.8;transform:translate(-50%,-50%) scale(.94)}}
+    body[data-tod=matin] .map-tod{opacity:1;mix-blend-mode:soft-light;background:linear-gradient(110deg,#ffb48acc,#ffd9b000 60%),linear-gradient(#c9b6ff40,#c9b6ff00 50%)}
+    body[data-tod=soir] .map-tod{opacity:.78;mix-blend-mode:multiply;background:linear-gradient(115deg,#ffc27acc,#f08a4ab3 55%,#6a4a8acc)}
+    body[data-tod=soir] .map-lamps{opacity:.55}
+    body[data-tod=nuit] .map-tod{opacity:1;mix-blend-mode:multiply;background:radial-gradient(60% 50% at 50% 40%,#5a6ea8,#27345e 70%,#141c38)}
+    body[data-tod=nuit] .map-lamps{opacity:1}
+    body[data-tod=nuit] .map-shade{opacity:.15}
+    body[data-tod=nuit] .ambient{filter:brightness(.42) saturate(.6) sepia(.25) hue-rotate(185deg)}
+    body[data-tod=soir] .ambient{filter:sepia(.25) saturate(1.1) brightness(.92)}
+    @media (prefers-reduced-motion:reduce){.map-lamps i{animation:none}}
+    /* ===== Domaine en rendu WebGL ===== */
+    #villageGL{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block}
+    .gl-on .map-base,.gl-on .map-shade,.gl-on .map-light,.gl-on .map-tod,.gl-on .map-lamps{visibility:hidden}
+    #world:not(.gl-on) #villageGL{visibility:hidden}
+    #villageGlow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}

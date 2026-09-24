@@ -11,7 +11,7 @@ const MEETINGS=[
  {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];
 const MISSION_POOL=[{k:'train',n:'Entraîner un cheval',goal:3,r:{gold:1500}},{k:'race',n:'Disputer des courses',goal:2,r:{feed:1500}},{k:'top3',n:'Finir sur le podium',goal:1,r:{gold:2500}},
- {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Réussir un départ parfait',goal:1,r:{gems:5}}];
+ {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Réussir un départ parfait',goal:1,r:{gems:5}},{k:'moment',n:'Gagner 3 places sur des temps forts',goal:3,r:{gold:2500}}];
 let RACE={...MEETINGS[1]};
 const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{const d=new Date(),t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-n+3);const f=new Date(Date.UTC(t.getUTCFullYear(),0,4));return t.getUTCFullYear()+'-S'+(1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7))};
  let C={};try{C=JSON.parse(localStorage.getItem('trr.progress')||'{}')}catch(e){}

@@ -15,12 +15,12 @@ float rfxF(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*rfxN(p);p*=2.03;a*=
  const load=(url,cb)=>{const t=new THREE.TextureLoader().load(url,cb);t.colorSpace=THREE.SRGBColorSpace;return t};
  function radialTex(inner='rgba(0,0,0,.85)',size=128){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d'),g=x.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);g.addColorStop(0,inner);g.addColorStop(.55,inner.replace(/[\d.]+\)$/,'0.35)'));g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,size,size);return new THREE.CanvasTexture(c)}
  function blob(scene,w,l,op){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,l).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:fx.shadowTex,transparent:true,opacity:op,depthWrite:false,color:0x000000,polygonOffset:true,polygonOffsetFactor:-2}));m.renderOrder=1;scene.add(m);return m}
- function sky(scene,sunDir){const mat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,depthTest:false,fog:false,uniforms:{uSun:{value:sunDir}},
+ function sky(scene,sunDir){const mat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,depthTest:false,fog:false,uniforms:{uSun:{value:sunDir},uZen:{value:new THREE.Vector3(.035,.14,.46)},uMid:{value:new THREE.Vector3(.08,.28,.68)},uHor:{value:new THREE.Vector3(.42,.6,.78)},uSunC:{value:new THREE.Vector3(1,.86,.62)},uSunK:{value:1}},
    vertexShader:'varying vec3 vD;void main(){vD=normalize(position);vec4 p=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_Position=p.xyww;}',
-   fragmentShader:'uniform vec3 uSun;varying vec3 vD;void main(){float h=clamp(vD.y,0.,1.);vec3 zen=vec3(.035,.14,.46),mid=vec3(.08,.28,.68),hor=vec3(.42,.6,.78);vec3 c=mix(hor,mid,smoothstep(0.,.3,h));c=mix(c,zen,smoothstep(.3,1.,h));float s=max(dot(vD,uSun),0.);c+=vec3(1.,.86,.62)*(pow(s,900.)*14.+pow(s,24.)*.28+pow(s,4.)*.06);gl_FragColor=vec4(c,1.);}'});
+   fragmentShader:'uniform vec3 uSun,uZen,uMid,uHor,uSunC;uniform float uSunK;varying vec3 vD;void main(){float h=clamp(vD.y,0.,1.);vec3 c=mix(uHor,uMid,smoothstep(0.,.3,h));c=mix(c,uZen,smoothstep(.3,1.,h));float s=max(dot(vD,uSun),0.);c+=uSunC*(pow(s,900.)*14.+pow(s,24.)*.28+pow(s,4.)*.06)*uSunK;gl_FragColor=vec4(c,1.);}'});fx.skyMat=mat;
   const m=new THREE.Mesh(new THREE.SphereGeometry(1500,32,16),mat);m.renderOrder=-10;m.frustumCulled=false;scene.add(m)}
  function horizon(scene){const R=900,Hc=R*2*Math.PI/3*486/1912;const t=load('assets/race/horizon.webp');t.wrapS=THREE.RepeatWrapping;t.repeat.set(-3,1);t.anisotropy=8;
-  const m=new THREE.Mesh(new THREE.CylinderGeometry(R,R,Hc,128,1,true),new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide,transparent:true,depthWrite:false,fog:false,color:0xf2f2f2}));m.position.y=Hc/2-10;m.renderOrder=-5;scene.add(m)}
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(R,R,Hc,128,1,true),new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide,transparent:true,depthWrite:false,fog:false,color:0xf2f2f2}));m.position.y=Hc/2-10;m.renderOrder=-5;scene.add(m);fx.horizonMat=m.material}
  function turfMaterial(renderer,track){const t=load('assets/race/grass.webp');t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=renderer.capabilities.getMaxAnisotropy();
   const rep=track?new THREE.Vector2(4.2,6.1):new THREE.Vector2(220,220);t.repeat.copy(rep);
   const mat=new THREE.MeshStandardMaterial({map:t,roughness:1,color:track?0xf4ffe6:0xe8f0dc});
@@ -102,5 +102,5 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   let bob=0;if(running){bob=Math.sin(fx.phase[0]/8*Math.PI*2)*.14;cam.position.y+=bob}
   if(!QUALITY[settings.level()].post){r.render(q.scene,cam);cam.position.y-=bob;return}r.setRenderTarget(P.rt);r.render(q.scene,cam);r.setRenderTarget(null);cam.position.y-=bob;
   P.mat.uniforms.uRes.value.copy(fx.size);P.mat.uniforms.uTime.value=now*.001;P.mat.uniforms.uBlur.value=fx.blur;r.render(P.scene,P.cam)}
- return{build,horse,podium,parade,render,ground,liveries,get _fx(){return fx}};
+ return{build,horse,podium,parade,render,ground,liveries,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
 })();

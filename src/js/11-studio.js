@@ -7,7 +7,7 @@ const studio=(()=>{const el=$('#studio'),cv=$('#studioCanvas'),ctx=cv.getContext
  function render(){const d=draft;$('#studioName').value=d.name;
   $('#studioCoats').innerHTML=S.COATS.map((c,i)=>`<button class="coat${c.id===d.coat?' on':''}" data-k="coat" data-v="${c.id}"><i style="background:${S.coatSwatch(i)}"></i>${c.name}</button>`).join('');
   $('#studioMain').innerHTML=sw('main',d.main);$('#studioSecond').innerHTML=sw('second',d.second);$('#studioCap').innerHTML=sw('cap',d.cap);
-  $('#studioMotifs').innerHTML=S.PATTERNS.map(([id,n])=>`<button class="motif${id===d.pattern?' on':''}" data-k="pattern" data-v="${id}">${S.silkSVG({...d,pattern:id},40)}${n}</button>`).join('');
+  $('#studioMotifs').innerHTML=S.PATTERNS.map(([id,n])=>id==='soleil'&&!season.unlocked('soleil')?`<button class="motif locked" disabled title="Palier 20 de la Route des étoiles">${S.silkSVG({...d,pattern:id},40)}🔒 Saison</button>`:`<button class="motif${id===d.pattern?' on':''}" data-k="pattern" data-v="${id}">${S.silkSVG({...d,pattern:id},40)}${n}</button>`).join('');
   $('#studioPlate').innerHTML=`${S.silkSVG(d,46)}<div><b>${escapeHTML(d.name||'Sans nom')}</b><small>${S.COATS.find(c=>c.id===d.coat).name.toUpperCase()} · PUR-SANG</small></div>`;draw(performance.now())}
  function fit(){const r=cv.getBoundingClientRect(),k=Math.min(2,devicePixelRatio||1);cv.width=Math.max(1,r.width*k);cv.height=Math.max(1,r.height*k)}
  function draw(now){if(!el.classList.contains('open'))return;const W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);

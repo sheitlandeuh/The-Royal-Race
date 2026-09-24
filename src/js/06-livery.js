@@ -7,7 +7,7 @@ const LIVERY=(()=>{
  const COLORS=[['Bleu roi','#1f3f9f'],['Marine','#15264a'],['Ciel','#5aa4e3'],['Rouge','#c21c27'],['Bordeaux','#6c1428'],['Rose','#e4679d'],
   ['Vert','#17824c'],['Vert anglais','#0f3b29'],['Jaune','#f3c41a'],['Or','#c8982c'],['Orange','#ee6914'],['Violet','#5a2a88'],
   ['Blanc','#f4f2ec'],['Gris','#8b9097'],['Noir','#17181b'],['Chocolat','#5e341c']];
- const PATTERNS=[['uni','Uni'],['losange','Losange'],['bandes','Rayures'],['cercle','Cerclé'],['chevrons','Chevrons'],['croix','Croix'],['etoile','Étoile'],['manches','Manches'],['brassards','Brassards'],['pois','Pois']];
+ const PATTERNS=[['uni','Uni'],['losange','Losange'],['bandes','Rayures'],['cercle','Cerclé'],['chevrons','Chevrons'],['croix','Croix'],['etoile','Étoile'],['manches','Manches'],['brassards','Brassards'],['pois','Pois'],['soleil','Soleil royal']];
  const DEFAULT={name:'Royal Thunder',coat:'bai',main:'#1f3f9f',second:'#c8982c',pattern:'losange',cap:'#1f3f9f'};
  const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
  function star(u,v,r){const a=Math.atan2(v,u),d=Math.hypot(u,v),k=Math.PI/5,m=((a%(2*k))+2*k)%(2*k)-k;return d*Math.cos(m)/Math.cos(k)<r*(.55+.45*Math.abs(Math.cos(2.5*a+Math.PI/2)))}
@@ -21,6 +21,7 @@ const LIVERY=(()=>{
   case 'manches':return Math.abs(u-.5)>.29;
   case 'brassards':return Math.abs(u-.5)>.27&&v>.44&&v<.6;
   case 'pois':{const fu=u*6.5,fv=v*5.2,cu=fu-Math.floor(fu)-.5,cv=fv-Math.floor(fv)-.5,sh=Math.floor(fv)%2?.5:0;const cu2=((fu+sh)%1)-.5;return Math.hypot(cu2,cv)<.26}
+  case 'soleil':{const a=Math.atan2(v-.42,u-.5),d=Math.hypot(u-.5,v-.42);return d<.1||Math.floor((a/Math.PI+1)*8)%2===0&&d<.62}
   default:return false}}
  // ---------- chargement des planches + masques ----------
  const img=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src});
@@ -65,6 +66,7 @@ const LIVERY=(()=>{
    case 'croix':p=`<path d="M14 18 L22 14 L66 70 L58 76Z M66 18 L58 14 L14 70 L22 76Z" fill="${s}"/>`;break;
    case 'etoile':p=`<path d="M40 30 L43.5 39.5 L53.5 39.8 L45.6 46 L48.4 55.7 L40 50 L31.6 55.7 L34.4 46 L26.5 39.8 L36.5 39.5Z" fill="${s}"/>`;break;
    case 'manches':p=R(0,0,23,80)+R(57,0,23,80);break;case 'brassards':p=R(0,33,23,7)+R(57,33,23,7);break;
+   case 'soleil':p=`<circle cx="40" cy="42" r="7" fill="${s}"/>`+Array.from({length:8},(_,k)=>{const a=k/8*Math.PI*2;return `<path d="M40 42 L${40+40*Math.cos(a)} ${42+40*Math.sin(a)} L${40+40*Math.cos(a+.39)} ${42+40*Math.sin(a+.39)}Z" fill="${s}"/>`}).join('');break;
    case 'pois':for(const[x,y]of[[30,28],[50,28],[40,40],[28,52],[52,52],[40,64],[14,40],[66,40]])p+=`<circle cx="${x}" cy="${y}" r="3.6" fill="${s}"/>`;break}
   return `<svg viewBox="0 0 80 84" width="${size}" height="${size}" aria-hidden="true"><defs><clipPath id="${id}"><path d="${body}"/></clipPath><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient></defs>
 <g clip-path="url(#${id})"><path d="${body}" fill="${m}"/>${p}<path d="${body}" fill="url(#${id}g)"/></g><path d="${body}" fill="none" stroke="#0007" stroke-width="1.6"/>

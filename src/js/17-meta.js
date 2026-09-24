@@ -5,7 +5,7 @@ const meta=(()=>{const C=career.data;C.chests=C.chests||[null,null,null,null];C.
  const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
  const L=()=>career.league();
  function addChest(type){const i=C.chests.findIndex(c=>!c);if(i<0)return null;C.chests[i]={type,ends:0};save();render();return CHESTS[type]}
- function onRace(rank,stars){C.streak=rank===1?C.streak+1:0;const streakBonus=rank===1&&C.streak>=2?Math.min(.5,(C.streak-1)*.1):0;let type=rank===1?(stars===3?'or':'argent'):rank<=3?'bois':null;
+ function onRace(rank,stars){season.add(stars);C.streak=rank===1?C.streak+1:0;const streakBonus=rank===1&&C.streak>=2?Math.min(.5,(C.streak-1)*.1):0;let type=rank===1?(stars===3?'or':'argent'):rank<=3?'bois':null;
   if(rank===1&&C.streak>0&&C.streak%5===0)type='royal';let chest=null,chestFull=false;if(type){chest=addChest(type);chestFull=!chest}save();return{streakBonus:+streakBonus.toFixed(1),chest,chestFull,streak:C.streak}}
  function contents(type,seed){let x=seed%2147483646+1;const r=()=>(x=(x*16807)%2147483647)/2147483647,k=1+L()*.6,m={bois:1,argent:2.6,or:6,royal:14}[type];
   const o={gold:Math.round((700+r()*500)*m*k/50)*50,feed:Math.round((500+r()*400)*m*k/50)*50};if(type!=='bois')o.gems=Math.round((2+r()*3)*m/2.6);if(type==='or'||type==='royal'||(type==='argent'&&r()<.35))o.elixir=type==='royal'?3:1;return o}

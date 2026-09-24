@@ -1,0 +1,30 @@
+/* ===== Élevage au Haras Royal : croiser deux chevaux pour obtenir un poulain qui hérite potentiel, talent et robe ===== */
+const STABLE_MAX=6,BREED_COST={gold:6000,feed:2500},BREED_MIN=120;
+const breeding=(()=>{const C=career.data;C.breed=C.breed||null;let pick=[];
+ const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
+ const H=id=>stable.byId(id),avg=(a,b,k,o)=>(a[o][k]+b[o][k])/2;
+ function preview(a,b){const o={};for(const s of STATS){const c=avg(a,b,s.k,'caps');o[s.k]=[Math.round(Math.min(100,c-4)),Math.round(Math.min(100,c+6))]}return o}
+ const ok=h=>h.level>=5&&h.fatigue<60&&!h.injury;
+ function start(){const[a,b]=pick.map(H);if(pick.length<2)return toast('Choisis deux chevaux');if(!ok(a)||!ok(b))return toast('Les parents doivent être niveau 5+, reposés et en bonne santé');
+  if(stable.data.horses.length>=STABLE_MAX)return toast(`Écurie pleine (${STABLE_MAX} places) : libère un cheval d’abord`);if(state.gold<BREED_COST.gold||state.feed<BREED_COST.feed)return toast('Ressources insuffisantes');
+  state.gold-=BREED_COST.gold;state.feed-=BREED_COST.feed;a.fatigue=Math.min(100,a.fatigue+30);b.fatigue=Math.min(100,b.fatigue+30);stable.save();sync();
+  C.breed={a:a.id,b:b.id,an:a.name,bn:b.name,ends:Date.now()+BREED_MIN*6e4,seed:Date.now()%99991};save();pick=[];open();toast('Le poulain naîtra dans 2 h');badge()}
+ function birth(){const B=C.breed;if(!B||Date.now()<B.ends)return;const a=H(B.a),b=H(B.b);let x=B.seed;const r=()=>(x=(x*16807)%2147483647)/2147483647;
+  const caps={},stats={};for(const s of STATS){const c=((a?a.caps[s.k]:80)+(b?b.caps[s.k]:80))/2;caps[s.k]=Math.round(Math.min(100,c-4+r()*10));stats[s.k]=Math.round(caps[s.k]*(.5+r()*.08))}
+  const tl=Object.keys(TALENTS),talent=r()<.45?a?.talent:r()<.82?b?.talent:tl[Math.floor(r()*tl.length)],coat=r()<.4?a?.coat:r()<.8?b?.coat:LIVERY.COATS[Math.floor(r()*6)].id;
+  const d=((a?.dist||1600)+(b?.dist||1600))/2,dist=DISTS.reduce((p,q)=>Math.abs(q[0]-d)<Math.abs(p[0]-d)?q:p)[0];
+  const base=['Espoir','Prince','Étoile','Reine','Tonnerre','Comète','Duc','Perle','Mistral','Aurore'],name=`${base[Math.floor(r()*base.length)]} ${B.an.split(' ').pop()}`.slice(0,18);
+  const f=stable.addHorse({name,coat:coat||'bai',stats,caps,dist,level:1,talent:talent||'metronome'});if(f){f.age=2;f.parents=[B.an,B.bn];stable.save()}C.breed=null;save();badge();sound.fanfare();buzz([40,40,80]);
+  $('#panelTitle').textContent='Naissance au Haras !';$('#panel .card').classList.remove('wide');$('#panelBody').innerHTML=`<div class="chest-pop open"><canvas class="foal" width="260" height="300"></canvas><p style="font:800 22px Georgia,serif;color:#fff3cf;margin:4px 0">${escapeHTML(name)}</p><p class="hint">Fils/fille de ${escapeHTML(B.an)} et ${escapeHTML(B.bn)} · ${TALENTS[f.talent].i} ${TALENTS[f.talent].n} · potentiel ${Math.round(Object.values(caps).reduce((s,v)=>s+v,0)/6)}</p><button class="action green" id="foalGo">VOIR À L’ÉCURIE</button></div>`;
+  $('#panel').classList.add('open');drawPortrait($('.foal'),f,1.1,0);$('#foalGo').onclick=()=>{stUI.horse=f.id;openStable()}}
+ function open(){birth();if($('#panelTitle').textContent==='Naissance au Haras !')return;$('#panelTitle').textContent='Haras Royal — élevage';$('#panel .card').classList.add('wide');const HS=stable.data.horses,B=C.breed;
+  if(B){const min=Math.max(0,Math.ceil((B.ends-Date.now())/6e4)),cost=Math.max(1,Math.ceil(min/6));$('#panelBody').innerHTML=`<div class="chest-pop"><div class="chest-big" style="--c:#8fd46a">🐣</div><p>Le poulain de <b>${escapeHTML(B.an)}</b> et <b>${escapeHTML(B.bn)}</b> naîtra dans <b>${min>=60?Math.floor(min/60)+' h '+(min%60):min} min</b>.</p><button class="action green" data-rush="${cost}">NAISSANCE IMMÉDIATE · 💎 ${cost}</button></div>`;$('#panel').classList.add('open');return}
+  const[a,b]=pick.map(H),pv=a&&b?preview(a,b):null;
+  $('#panelBody').innerHTML=`<p class="hint">Croise deux de tes chevaux (niveau 5+, reposés). Le poulain hérite du <b>potentiel moyen des parents</b> (±5), de l’un de leurs <b>talents</b> et souvent de leur <b>robe</b>. Il commence niveau 1 : à toi de l’entraîner jusqu’au sommet.</p>
+  <div class="st-horses">${HS.map(h=>`<button class="st-pick${pick.includes(h.id)?' on':''}" data-parent="${h.id}" ${ok(h)?'':'disabled'}><canvas width="84" height="112"></canvas><div><b>${escapeHTML(h.name)}</b><small>Niv. ${h.level} · ${TALENTS[h.talent].i} ${TALENTS[h.talent].n}</small><br><small>Potentiel ${Math.round(Object.values(h.caps).reduce((s,v)=>s+v,0)/6)}${ok(h)?'':' · indisponible'}</small></div></button>`).join('')}</div>
+  <section class="st-box breed"><h4>POULAIN ESPÉRÉ ${pv?'':'<em>choisis deux parents</em>'}</h4>${pv?STATS.map(s=>`<div class="stat"><span>${s.n}</span><div class="trk"><i class="cap" style="width:${pv[s.k][1]}%"></i><i class="cur" style="width:${pv[s.k][0]}%;opacity:.45"></i></div><b>${pv[s.k][0]}–${pv[s.k][1]}</b><span></span></div>`).join('')+`<p class="hint">Talent : ${TALENTS[a.talent].i} ${TALENTS[a.talent].n} ou ${TALENTS[b.talent].i} ${TALENTS[b.talent].n} (parfois un nouveau) · Écurie : ${HS.length}/${STABLE_MAX}</p>`:''}
+  <div class="race-entry"><button class="action green" id="breedGo" ${pv?'':'disabled'}>🐣 LANCER L’ÉLEVAGE · 🪙 ${fmt(BREED_COST.gold)} · 🌾 ${fmt(BREED_COST.feed)} · 2 h</button></div></section>`;
+  $$('#panelBody .st-pick canvas').forEach((cv,i)=>drawPortrait(cv,HS[i],1.6,-2));$('#panel').classList.add('open')}
+ function badge(){const bl=$('.bld[data-id=haras]');if(!bl)return;bl.classList.toggle('ready',!!(C.breed&&Date.now()>=C.breed.ends))}
+ $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.parent){const id=b.dataset.parent;pick=pick.includes(id)?pick.filter(x=>x!==id):[...pick.slice(-1),id];open()}else if(b.id==='breedGo')start();else if(b.dataset.rush){const c=+b.dataset.rush;if(state.gems<c)return toast('Pas assez de gemmes');state.gems-=c;sync();C.breed.ends=Date.now();save();open()}});
+ setInterval(badge,30e3);badge();return{open,badge}})();

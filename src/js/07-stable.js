@@ -63,7 +63,8 @@ const stable=(()=>{
   return{cruise:(.418+st.vit*.0007)*c*fit,sprint:.1+st.acc*.0011+t.s,sprintDrain:.62*(1.4-st.acc*.006),drain:.105*(1.55-st.end*.0085)*fitD,boxed:.27+st.tac*.0006,draft:.008+st.tac*.00012,noise:(100-st.tem)*.00008,window:180+(st.dep-50)*2.2,tactic:t}}
  function rivals(ref,n=5,seed=Date.now()){let x=seed%2147483646+1;const r=()=>(x=(x*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{const base=ref-7+r()*14,st={};for(const s of STATS)st[s.k]=clamp(base+(r()-.5)*22,35,99);return{stats:st,pref:DISTS[Math.floor(r()*4)][0],talent:Object.keys(TALENTS)[Math.floor(r()*6)]}})}
  function addHorse(o){if(S.horses.some(h=>h.name===o.name))return false;const h=mk('h'+(S.horses.length+1)+Date.now()%1000,o.name,o.coat,o.stats,o.caps,o.dist,o.level,o.talent||'coeur');h.rare=!!o.rare;S.horses.push(h);log(h,'Arrivée à l’écurie');save();return h}
- return{elixir,addHorse,get data(){return S},save,tick,active:()=>byId(S.active),byId,setActive(id){S.active=id;save()},train,care,spend,afterRace,preview,racePerf,rivals,rating,room,
+ function removeHorse(id){if(S.horses.length<2||id===S.active)return false;S.horses=S.horses.filter(h=>h.id!==id);save();return true}
+ return{removeHorse,elixir,addHorse,get data(){return S},save,tick,active:()=>byId(S.active),byId,setActive(id){S.active=id;save()},train,care,spend,afterRace,preview,racePerf,rivals,rating,room,
   get silks(){return S.silks},set silks(v){S.silks=v},get created(){return S.created},set created(v){S.created=v}}})();
 setInterval(()=>{stable.tick();stable.save()},60e3);
 /* champion = couleurs du propriétaire + robe/nom du cheval actif (API utilisée par l’atelier et la course) */

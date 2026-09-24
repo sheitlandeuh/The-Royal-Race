@@ -82,10 +82,10 @@ const village=(()=>{
 })();
 function clockText(){const h=String(Math.floor(seconds/3600)).padStart(2,'0'),m=String(Math.floor(seconds%3600/60)).padStart(2,'0'),x=String(seconds%60).padStart(2,'0');return `${h}:${m}:${x}`}
 function selectBuilding(id){const b=BUILDINGS[id];state.building=b.name;state.buildingId=id;$('#selIcon').textContent=b.icon;$('#selTitle').textContent=b.name;$('#selDesc').textContent=b.lvl?`Niveau ${b.lvl} · ${b.desc}`:b.desc;const up=$('#upgradeBtn');up.style.display='';if(b.race){up.innerHTML='COURIR<br>🏁';up.disabled=false}else{up.innerHTML=`${b.lvl?'AMÉLIORER':'CONSTRUIRE'}<br>🪙 ${fmt(b.cost)}`;up.disabled=!!state.upgrading}$('#infoBtn').textContent=TRAIN_AT_LABEL[id]||'INFOS';$('#selection').classList.add('open')}
-const TRAIN_AT_LABEL={carriere:'ENTRAÎNER',paddocks:'ENTRAÎNER',clinique:'SOINS',moulin:'RATION'};
+const TRAIN_AT_LABEL={haras:'ÉLEVAGE',carriere:'ENTRAÎNER',paddocks:'ENTRAÎNER',clinique:'SOINS',moulin:'RATION'};
 village.onSelect=selectBuilding;
 const TRAIN_AT={carriere:['train','carriere'],paddocks:['train','paddocks'],clinique:['care','clinique'],moulin:['care','moulin']};
-$('#infoBtn').onclick=()=>{const t=TRAIN_AT[state.buildingId];if(t){village.deselect();return openStable({tab:t[0],filter:t[1]})}openPanel(state.building||'Domaine')};
+$('#infoBtn').onclick=()=>{if(state.buildingId==='haras'){village.deselect();return breeding.open()}const t=TRAIN_AT[state.buildingId];if(t){village.deselect();return openStable({tab:t[0],filter:t[1]})}openPanel(state.building||'Domaine')};
 $('#upgradeBtn').onclick=()=>{const id=state.buildingId||'haras',b=BUILDINGS[id];if(b.race){village.deselect();return openPanel('courses')}if(state.upgrading)return toast('Une amélioration est déjà en cours');if(state.gold<b.cost)return toast('Pas assez d’or');state.gold-=b.cost;state.upgrading=true;state.upgradingId=id;sync();$('#builders').textContent='1/3';$('#upgradeBtn').disabled=true;village.setTimer(id,clockText());toast(`Travaux lancés : ${b.name}`)};
 (()=>{const base=$('.map-base'),hide=()=>setTimeout(()=>$('#splash').classList.add('gone'),350);base.complete?hide():(base.addEventListener('load',hide),base.addEventListener('error',hide));setTimeout(hide,6000)})();
 let seconds=8040;setInterval(()=>{if(!state.upgrading)return;seconds=Math.max(0,seconds-1);village.setTimer(state.upgradingId,clockText())},1000);

@@ -32,7 +32,7 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_
   if(c.k==='breche'&&ch==='a'){ok=M.rng()<c.p;if(ok){playerLane=c.lane;updateLane();M.fx[0]=F('gapOk',t)}else M.fx[0]=F('gapKo',t)}
   // suivre = hausser le rythme avec lui ; on ne se rabat dans son sillage que s'il est sur une trajectoire proche (sinon on irait perdre du terrain à l'extérieur)
   if(c.k==='attaque'&&ch==='a'){if(Math.abs(lane(c.r)-playerLane)<20){playerLane=clampRace(lane(c.r),7,93);updateLane()}M.fx[0]={...MOMENT_FX.follow,until:c.start+MOMENT_FX.attack.n}}
-  const e={k:c.k,ch,ok,r:c.r,t,rank0:c.rank0,dPos:null};M.log.push(e);M.watch=e;
+  const e={k:c.k,ch,ok,r:c.r,t,rank0:c.rank0,dPos:null};M.log.push(e);M.watch=e;hooks.emit('moment',{k:c.k,ch,ok,auto:!M.pending,ms:(t-c.start)*100});
   say(c.k==='breche'&&ch==='a'?(ok?(c.lane<20?'Tu te glisses à la corde !':'Tu trouves l’ouverture !'):'La brèche se referme : tu perds ton élan'):c.k==='attaque'?(ch==='a'?`Tu suis ${raceNames[c.r]}`:`Tu laisses filer ${raceNames[c.r]}`):ch==='a'?`${HN()} se relâche`:`${HN()} accélère`)}
  function tick(){if(!M||!rivalAI.length)return;
   if(M.watch&&raceTime>=M.watch.t+50){const d=M.watch.dPos=M.watch.rank0-rankNow();if(d>0)career.bump('moment',d);M.watch=null}

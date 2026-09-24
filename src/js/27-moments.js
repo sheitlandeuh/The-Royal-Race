@@ -51,8 +51,8 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_
    const d=e.dPos==null?'':e.dPos>0?` <em class="up">+${e.dPos} place${e.dPos>1?'s':''}</em>`:e.dPos<0?` <em class="down">${e.dPos} place${e.dPos<-1?'s':''}</em>`:'';return `<li>${txt}${d}</li>`}).join('');
   return `<div class="mo-sum"><b>⚡ Temps forts</b><ul>${L}</ul></div>`}
  return{reset,fx,tick,choose,summary,get cur(){return M&&M.cur},get log(){return M?M.log:[]},get active(){return !!(M&&M.cur)}}})();
-{const i0=initRivalAI;initRivalAI=function(){i0();moments.reset()}}
-{const c0=completeRace;completeRace=function(){c0();$('#fbStars').insertAdjacentHTML('beforeend',moments.summary());replay.show()}}
+hooks.on('race:launch',()=>moments.reset());
+hooks.on('race:end',()=>{$('#fbStars').insertAdjacentHTML('beforeend',moments.summary());replay.show()});
 /* ===== Recourir : relancer la même course en un geste (nouveau plateau), ou changer de cheval s'il est fatigué ===== */
 const replay=(()=>{const b=document.createElement('button');b.className='action';b.id='raceAgain';$('#returnDomain').after(b);
  function show(){const h=stable.active();if(RACE.tour){b.hidden=true;return}b.hidden=false;const tired=h.injury||h.fatigue>=90;b.dataset.mode=tired?'swap':'again';b.innerHTML=tired?`CHANGER DE CHEVAL<small>${escapeHTML(h.name)} doit se reposer</small>`:`RECOURIR<small>🌾 ${fmt(RACE.fee)} · ${escapeHTML(h.name)}</small>`}

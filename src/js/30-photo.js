@@ -16,6 +16,6 @@ const photo=(()=>{const map=$('.race-map'),dots=Array.from({length:5},()=>{const
   if(me===0&&finishOrder.length>1){const m=margin(t(1)-t(0));const g=t(1)-t(0);return m?`<p class="pf-note win">${g<.15?'📸 Photo-finish : victoire':'🏁 Victoire'} d’${m} devant ${escapeHTML(raceNames[finishOrder[1]])}</p>`:''}
   const g=t(me)-t(me-1),m=margin(g);return m?`<p class="pf-note">${g<.15?'📸 Photo-finish : battu':'Battu'} d’${m} par ${escapeHTML(raceNames[finishOrder[me-1]])}</p>`:''}
  return{reset,check,verdict,get slow(){return slow}}})();
-{const r0=runRaceV2;runRaceV2=function(){r0();photo.check()}}
-{const s0=startRace;startRace=function(){s0.apply(this,arguments);photo.reset()}}
-{const c0=completeRace;completeRace=function(){c0();$('#fbStars').insertAdjacentHTML('afterbegin',photo.verdict())}}
+hooks.on('race:tick',()=>photo.check());
+hooks.on('race:start',()=>photo.reset());
+hooks.on('race:end',()=>$('#fbStars').insertAdjacentHTML('afterbegin',photo.verdict()));

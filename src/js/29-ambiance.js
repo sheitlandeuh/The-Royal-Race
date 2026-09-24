@@ -24,8 +24,8 @@ const ambiance=(()=>{let rain=null,cur=null;
   q.horses.forEach(h=>h.material.color.set(A.tint));cur=A;
   if(A.rain&&!rain)rain=makeRain(q);if(rain)rain.L.visible=!!A.rain;$('#raceScreen').dataset.amb=k}
  return{key,apply,step:stepRain,info:(m=RACE)=>AMBIANCES[key(m)]}})();
-{const s0=startRace;startRace=function(){s0.apply(this,arguments);if(threeRace&&$('#raceScreen').classList.contains('open'))ambiance.apply(threeRace)}}
+hooks.on('race:start',()=>{if(threeRace)ambiance.apply(threeRace)});
 {const r0=raceFX.render;let last=0;raceFX.render=function(q){const now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;ambiance.step(q,dt);return r0.call(this,q)}}
-{const h0=raceHeader;raceHeader=function(){h0();const A=ambiance.info();$('.race-head small').textContent+=` • ${A.i} ${A.n}`}}
+hooks.on('race:header',()=>{const A=ambiance.info();$('.race-head small').textContent+=` • ${A.i} ${A.n}`});
 /* écran des courses : la météo du jour sur chaque carte */
-{const r0=renderCourses;renderCourses=function(){r0.apply(this,arguments);$$('#panelBody .meet[data-meet]').forEach(b=>{const m=b.dataset.meet==='tour'?RACE.tour&&RACE:MEETINGS.find(x=>x.id===b.dataset.meet);const s=b.querySelector('small');if(m&&s){const A=ambiance.info(m);s.insertAdjacentHTML('afterbegin',`<i class="amb" title="${A.n}">${A.i}</i> `)}})}}
+hooks.on('courses:render',()=>{$$('#panelBody .meet[data-meet]').forEach(b=>{const m=b.dataset.meet==='tour'?RACE.tour&&RACE:MEETINGS.find(x=>x.id===b.dataset.meet);const s=b.querySelector('small');if(m&&s){const A=ambiance.info(m);s.insertAdjacentHTML('afterbegin',`<i class="amb" title="${A.n}">${A.i}</i> `)}})});

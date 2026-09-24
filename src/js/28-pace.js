@@ -27,13 +27,13 @@ const pace=(()=>{
  const chip=t=>t?`<span class="tac-chip t-${t}">${ICO[t]} ${TAC[t]}</span>`:'';
  return{choose,mul,fx,adjust,info,chip,leaders}})();
 /* le plateau reçoit ses tactiques dès sa création (flux dérivé de la graine : même plateau = mêmes tactiques) */
-{const b0=buildField;buildField=function(fixed){const F=b0(fixed),R=seeded((F.seed^0x9e3779b9)>>>0);F.rivals.forEach(r=>{r.tac=pace.choose(r.stats,R)});return F}}
+hooks.on('field:built',F=>{const R=seeded((F.seed^0x9e3779b9)>>>0);F.rivals.forEach(r=>{r.tac=pace.choose(r.stats,R)})});
 /* en course, les adversaires suivent la tactique annoncée, et le rythme modifie l'effort des animateurs */
-{const i0=initRivalAI;initRivalAI=function(){i0();const F=currentField;rivalAI.forEach((ai,i)=>{const r=F&&F.rivals[i];if(r&&r.tac&&ai.tac!==r.tac){const P=terrainPerf(stable.racePerf(r.stats,{form:61,fatigue:10,moral:65},RACE.dist,r.pref,r.tac),r.stats,r.talent);const off=t=>t==='leader'?-.06:t==='finisher'?.04:0;ai.err=(ai.err||0)-off(ai.tac)+off(r.tac);ai.P=P;ai.speed=P.cruise;ai.tac=r.tac}
-  ai.P=pace.adjust(ai.P,ai.tac)})}}
-{const s0=startRace;startRace=function(){const before=racePlayer;s0.apply(this,arguments);if(racePlayer&&racePlayer!==before)racePlayer=pace.adjust(racePlayer,state.strategy)}}
+hooks.on('race:launch',()=>{const F=currentField;rivalAI.forEach((ai,i)=>{const r=F&&F.rivals[i];if(r&&r.tac&&ai.tac!==r.tac){const P=terrainPerf(stable.racePerf(r.stats,{form:61,fatigue:10,moral:65},RACE.dist,r.pref,r.tac),r.stats,r.talent);const off=t=>t==='leader'?-.06:t==='finisher'?.04:0;ai.err=(ai.err||0)-off(ai.tac)+off(r.tac);ai.P=P;ai.speed=P.cruise;ai.tac=r.tac}
+  ai.P=pace.adjust(ai.P,ai.tac)})});
+hooks.on('race:start',()=>{racePlayer=pace.adjust(racePlayer,state.strategy)});
 /* écran des courses : tactique de chaque partant + rythme prévu */
-{const r0=renderCourses;renderCourses=function(){r0.apply(this,arguments);const F=currentField;if(!F)return;
+hooks.on('courses:render',()=>{const F=currentField;if(!F)return;
   $$('#panelBody .runners tr').forEach((tr,i)=>{const td=tr.children[1];if(td)td.insertAdjacentHTML('beforeend',' '+pace.chip(i?F.rivals[i-1].tac:state.strategy))});
   const I=pace.info(),box=`<div class="pace pace-${I.k}"><b>RYTHME PRÉVU : ${I.label.toUpperCase()}</b><p>${I.txt}</p></div>`;$('#panelBody .tactics')?.insertAdjacentHTML('beforebegin',box);
-  if($('#panelBody .pace'))coach.tip('pace','Regarde la <b>tactique des adversaires</b> : s’ils sont plusieurs à vouloir mener, la course sera rapide et ils s’useront. Choisis ta tactique en conséquence.','#panelBody .pace')}}
+  if($('#panelBody .pace'))coach.tip('pace','Regarde la <b>tactique des adversaires</b> : s’ils sont plusieurs à vouloir mener, la course sera rapide et ils s’useront. Choisis ta tactique en conséquence.','#panelBody .pace')});

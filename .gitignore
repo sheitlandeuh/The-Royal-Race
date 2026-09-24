@@ -1,2 +1,8 @@
 node_modules/
 .DS_Store
+.claude/
+*.bundle
+# images non utilisées par le jeu (originaux dans assets-src/)
+/assets/*.png
+# captures de l’audit du 23/09 (gardées en local)
+/audit/

@@ -1,0 +1,64 @@
+/* ===== Interface de l’écurie et des engagements ===== */
+const stUI={horse:null,tab:'train',int:'normal',filter:null};
+const livOf=h=>({...stable.silks,name:h.name,coat:h.coat});
+const coatName=id=>LIVERY.COATS.find(c=>c.id===id).name;
+const distName=d=>(DISTS.find(x=>x[0]===d)||DISTS[1])[1];
+function drawPortrait(cv,h,zoom=1.25,dy=-4){LIVERY.ready.then(()=>{const p=LIVERY.portrait(livOf(h)),x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const s=cv.width/p.width*zoom;x.drawImage(p,(cv.width-p.width*s)/2,dy,p.width*s,p.height*s)})}
+const condLabel=(k,v)=>k==='fatigue'?(v<25?'Frais':v<50?'Correct':v<75?'Fatigué':'Épuisé'):k==='form'?(v<40?'Méforme':v<60?'Moyenne':v<78?'Bonne':'Au sommet'):(v<40?'Maussade':v<65?'Calme':'Joyeux');
+const condColor=(k,v)=>k==='fatigue'?(v<50?'#55c756':v<75?'#eeb93d':'#e26b4a'):(v<40?'#e26b4a':v<60?'#eeb93d':'#55c756');
+const costTxt=c=>[c.gold?`🪙 ${fmt(c.gold)}`:'',c.feed?`🌾 ${fmt(c.feed)}`:''].filter(Boolean).join(' · ')||'Gratuit';
+function openStable(opts={}){if(opts.tab)stUI.tab=opts.tab;stUI.filter=opts.filter||null;if(!stUI.horse)stUI.horse=stable.data.active;$('#panelTitle').textContent='Écurie';$('#panel .card').classList.add('wide');$('#panel').classList.add('open');renderStable()}
+function renderStable(flash){stable.tick();const H=stable.data.horses,h=stable.byId(stUI.horse),r=stable.rating(h),need=XP_LEVEL(h.level);
+ const picks=H.map(x=>`<button class="st-pick${x.id===h.id?' on':''}" data-pick="${x.id}"><canvas width="84" height="112"></canvas><div><b>${escapeHTML(x.name)}</b><small>${coatName(x.coat)} · Niv. ${x.level}</small><br><span class="note">${stable.rating(x)}</span>${x.id===stable.data.active?' <small>· engagé</small>':''}</div></button>`).join('');
+ const stats=STATS.map(s=>{const v=h.stats[s.k],c=h.caps[s.k],d=flash&&flash[s.k]||0;return `<div class="stat" title="${s.d}"><span>${s.n}</span><div class="trk"><i class="cap" style="width:${c}%"></i><i class="up" style="width:${v}%"></i><i class="cur" style="width:${v-d}%"></i></div><b>${Math.floor(v)}<small>/${Math.round(c)}</small></b><button class="plus" data-spend="${s.k}" ${h.points&&v<c?'':'disabled'} aria-label="Ajouter un point en ${s.n}">+</button></div>`}).join('');
+ const gauges=[['form','Forme',h.form],['fatigue','Fatigue',h.fatigue],['moral','Moral',h.moral]].map(([k,n,v])=>`<div class="gauge"><span style="text-align:left">${n}</span><div class="trk"><i style="width:${v}%;background:${condColor(k,v)}"></i></div><span>${condLabel(k,v)}</span></div>`).join('');
+ const dpos=d=>((d-1200)/1200*100);
+ const tabs=`<div class="tabs"><button data-tab="train" class="${stUI.tab==='train'?'on':''}">Entraînement</button><button data-tab="care" class="${stUI.tab==='care'?'on':''}">Soins & repos</button><button data-tab="log" class="${stUI.tab==='log'?'on':''}">Journal</button>${stUI.tab==='train'?`<div class="intens">${INTENS.map(i=>`<button data-int="${i.id}" class="${stUI.int===i.id?'on':''}">${i.n}</button>`).join('')}</div>`:''}</div>`;
+ let body='';
+ if(stUI.tab==='train'){const list=SESSIONS.filter(s=>!stUI.filter||s.b===stUI.filter);body=`${stUI.filter?`<p style="margin:0 0 8px;color:#c9d7e2;font-size:13px">Séances disponibles à : <b>${list[0]?.where||''}</b> · <a href="#" data-clearfilter style="color:#ffe09a">voir tout</a></p>`:''}<div class="sessions">${list.map(s=>{const p=stable.preview(h,s,stUI.int);return `<article class="ses"><header><i>${s.ico}</i><div><b>${s.n}</b><small>${s.where}</small></div></header><p>${s.txt}</p><div class="chips">${Object.entries(p.gain).map(([k,[a,b]])=>`<span class="chip">${STATS.find(x=>x.k===k).n} +${a.toFixed(1)}–${b.toFixed(1)}</span>`).join('')}<span class="chip f">Fatigue +${p.fat}</span>${p.risk!=='faible'?`<span class="chip r">Risque ${p.risk}</span>`:''}<span class="chip c">${costTxt(s.cost)}</span></div><button class="action green" data-train="${s.id}" ${h.injury||h.fatigue>=95?'disabled':''}>ENTRAÎNER</button></article>`}).join('')}</div>`}
+ else if(stUI.tab==='care')body=`<div class="sessions">${CARE.filter(c=>!stUI.filter||c.b===stUI.filter||stUI.filter==='hippodrome'||stUI.filter==='carriere').map(c=>`<article class="ses"><header><i>${c.ico}</i><div><b>${c.n}</b><small>${c.where}</small></div></header><p>${c.txt}</p><div class="chips">${c.fat?`<span class="chip${c.fat>0?' f':''}">Fatigue ${c.fat>0?'+':''}${c.fat}</span>`:''}${c.form?`<span class="chip">Forme +${c.form}</span>`:''}${c.moral?`<span class="chip">Moral +${c.moral}</span>`:''}${c.heal?'<span class="chip">Guérison</span>':''}<span class="chip c">${costTxt(c.cost)}</span></div><button class="action" data-care="${c.id}">${c.id==='repos'?'METTRE AU PRÉ':'APPLIQUER'}</button></article>`).join('')}</div>`;
+ else body=`<ul class="journal">${h.log.length?h.log.map(l=>`<li><small>${new Date(l.at).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</small>${escapeHTML(l.t)}</li>`).join(''):'<li>Aucune séance pour l’instant.</li>'}</ul>`;
+ $('#panelBody').innerHTML=`<div class="st-horses">${picks}</div>
+ <section class="st-hero"><canvas width="300" height="380" id="stPortrait"></canvas><div><h3>${escapeHTML(h.name)} <span class="note" title="Note globale">${r}</span></h3>
+  <div class="st-meta">${h.breed} · ${coatName(h.coat)} · ${h.age} ans · <b>${distName(h.dist)}</b> (${fmt(h.dist)} m) · ${h.races} courses, ${h.wins} victoires, ${h.places} places</div>
+  <div class="st-meta" style="margin:0 0 4px">Niveau <b>${h.level}</b> · ${Math.floor(h.xp)} / ${need} XP${h.points?` · <b style="color:#9fe39f">${h.points} point${h.points>1?'s':''} à répartir</b>`:''}</div><div class="xp"><i style="width:${h.xp/need*100}%"></i></div>
+  <div class="st-row"><button class="action" data-studio-for="${h.id}">🎨 ROBE & CASAQUE</button>${h.id!==stable.data.active?`<button class="action green" data-engage="${h.id}">ENGAGER EN COURSE</button>`:'<button class="action green" data-goraces>VOIR LES COURSES</button>'}</div>
+  ${h.injury?`<p class="alert">🩹 Petite boiterie : repos ou soins vétérinaires nécessaires avant de s’entraîner ou de courir.</p>`:''}</div></section>
+ <div class="st-cols"><section class="st-box"><h4>STATISTIQUES <em>barre hachurée = potentiel</em></h4>${stats}</section>
+  <section class="st-box"><h4>CONDITION</h4>${gauges}<h4 style="margin-top:14px">APTITUDE DE DISTANCE</h4><div class="dist">${DISTS.map(([d,n])=>`<span style="left:${dpos(d)}%">${n}</span>`).join('')}<i style="left:${dpos(h.dist)}%"></i></div></section></div>
+ ${tabs}${body}`;
+ $$('.st-pick canvas').forEach((cv,i)=>drawPortrait(cv,H[i],1.6,-2));drawPortrait($('#stPortrait'),h,1.3,-6);
+ if(flash)requestAnimationFrame(()=>$$('.stat .cur').forEach((el,i)=>{el.style.width=h.stats[STATS[i].k]+'%'}))}
+function flyText(el,txt){const r=el.getBoundingClientRect(),f=document.createElement('div');f.className='flyup';f.textContent=txt;f.style.left=r.left+r.width/2-40+'px';f.style.top=r.top-8+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),1500)}
+$('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t||!$('#panel .card').classList.contains('wide'))return;const h=stable.byId(stUI.horse);
+ if(t.dataset.pick){stUI.horse=t.dataset.pick;renderStable()}
+ else if(t.dataset.tab){stUI.tab=t.dataset.tab;renderStable()}
+ else if(t.dataset.int){stUI.int=t.dataset.int;renderStable()}
+ else if(t.hasAttribute('data-clearfilter')){e.preventDefault();stUI.filter=null;renderStable()}
+ else if(t.dataset.spend){if(stable.spend(h.id,t.dataset.spend)){const d={};d[t.dataset.spend]=1;renderStable(d);champion.emit()}}
+ else if(t.dataset.train){const res=stable.train(h.id,t.dataset.train,stUI.int);if(res.err)return toast(res.err);renderStable(res.delta);const txt=Object.entries(res.delta).map(([k,d])=>`${STATS.find(s=>s.k===k).n} +${d.toFixed(1)}`).join(' · ');
+  toast(res.hurt?`${h.name} s’est fait mal : direction la clinique !`:res.up?`${h.name} passe niveau ${h.level} ! +3 points à répartir`:txt||'Le cheval est au maximum de son potentiel ici');navigator.vibrate?.(12)}
+ else if(t.dataset.care){const res=stable.care(h.id,t.dataset.care);if(res.err)return toast(res.err);renderStable();toast(t.dataset.care==='soins'?`${h.name} est soigné`:t.dataset.care==='repos'?`${h.name} se repose au pré`:`${h.name} apprécie sa ration`)}
+ else if(t.dataset.engage){stable.setActive(t.dataset.engage);champion.emit();renderStable();toast(`${h.name} est engagé pour la prochaine course`)}
+ else if(t.hasAttribute('data-goraces')){openCourses()}
+ else if(t.dataset.studioFor){stable.setActive(t.dataset.studioFor);stUI.horse=t.dataset.studioFor;champion.emit();$('#panel').classList.remove('open');studio.open()}});
+/* ---------- engagement en course : partants, cotes, tactique ---------- */
+let currentField=null;const TACTICS=[['leader','Aux avant-postes','Plus vite en début de course, mais l’énergie fond.'],['stalker','Dans les dos','Équilibré : profite du sillage des leaders.'],['finisher','Attentiste','Économise en début de course, sprint final plus fort.']];
+function buildField(){const h=stable.active(),ref=stable.rating(h),seed=1+Math.floor(Math.random()*9e4),rv=stable.rivals(ref,5,seed),used=[stable.silks.main];
+ const coats=LIVERY.COATS.map(c=>c.id).sort(()=>Math.random()-.5);
+ currentField={seed,rivals:rv.map((r,i)=>{const l=LIVERY.random(seed+i*131,used);used.push(l.main);l.coat=coats[i];return{...r,name:raceNames[i+1],livery:l,rating:Math.round(r.stats.vit*.24+r.stats.acc*.2+r.stats.end*.18+r.stats.dep*.1+r.stats.tac*.15+r.stats.tem*.13)}})};return currentField}
+function odds(list){const m=list.reduce((a,x)=>a+x,0)/list.length,w=list.map(x=>Math.exp((x-m)/3.2)),S=w.reduce((a,x)=>a+x,0);return w.map(x=>Math.max(1.3,.82*S/x))}
+function openCourses(){$('#panelTitle').textContent='Grand Prix du Domaine Royal';$('#panel .card').classList.add('wide');$('#panel').classList.add('open');buildField();renderCourses()}
+function renderCourses(){stable.tick();const H=stable.data.horses,h=stable.active(),F=currentField,rt=[stable.rating(h),...F.rivals.map(r=>r.rating)],od=odds(rt.map((x,i)=>i?x:x+(h.form-60)*.08-Math.max(0,h.fatigue-40)*.1));
+ const ok=!h.injury&&h.fatigue<90,why=h.injury?'blessé':'trop fatigué';
+ const rows=[{name:h.name,liv:livOf(h),r:rt[0],me:1},...F.rivals.map((x,i)=>({name:x.name,liv:x.livery,r:rt[i+1]}))].map((x,i)=>`<tr class="${x.me?'me':''}"><td>${LIVERY.silkSVG(x.liv,30)}</td><td><b>${escapeHTML(x.name)}</b>${x.me?' · <small>VOUS</small>':''}<br><small style="color:#9fb3c2">${coatName(x.liv.coat)}</small></td><td class="num"><span class="note">${x.r}</span></td><td class="num odds">${od[i].toFixed(1)}/1</td></tr>`).join('');
+ $('#panelBody').innerHTML=`<p style="margin:12px 0 0;color:#c9d7e2">Hippodrome Royal · 1 600 m · Terrain bon · 6 partants · Allocation : 🪙 7 000 au vainqueur</p>
+ <div class="st-horses">${H.map(x=>`<button class="st-pick${x.id===h.id?' on':''}" data-runner="${x.id}"><canvas width="84" height="112"></canvas><div><b>${escapeHTML(x.name)}</b><small>Forme ${condLabel('form',x.form).toLowerCase()} · ${condLabel('fatigue',x.fatigue).toLowerCase()}</small><br><span class="note">${stable.rating(x)}</span> <small>${distName(x.dist)}</small></div></button>`).join('')}</div>
+ <div class="rc-grid"><section class="st-box"><h4>PARTANTS & COTES</h4><table class="runners">${rows}</table></section>
+ <section class="st-box"><h4>TACTIQUE DU JOCKEY</h4><div class="tactics">${TACTICS.map(([id,n,d])=>`<button data-tactic="${id}" class="${state.strategy===id?'on':''}"><b>${n}</b>${d}</button>`).join('')}</div>
+ <h4 style="margin-top:14px">CONSEIL DE L’ENTRAÎNEUR</h4><p style="margin:0;font-size:13px;color:#d5e1ea">${h.dist<1500?'Sprinter : 1 600 m est un peu long, garde de l’énergie pour la fin.':h.dist>1800?'Cheval de tenue : attends les derniers 300 m, il finira fort.':'Distance idéale pour lui.'} ${h.fatigue>50?'Il est fatigué : un repos avant la course serait sage.':''}</p>
+ ${ok?'':`<p class="alert">${escapeHTML(h.name)} est ${why} : choisis un autre partant ou passe par l’écurie.</p>`}
+ <div class="race-entry"><button class="action green" id="raceJoin" ${ok?'':'disabled'}>🏁 COURIR • 500 🌾</button></div></section></div>`;
+ $$('#panelBody .st-pick canvas').forEach((cv,i)=>drawPortrait(cv,H[i],1.6,-2));
+ $('#raceJoin').onclick=()=>startRace()}
+$('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.runner){stable.setActive(t.dataset.runner);champion.emit();buildField();renderCourses()}else if(t.dataset.tactic){state.strategy=t.dataset.tactic;renderCourses()}});

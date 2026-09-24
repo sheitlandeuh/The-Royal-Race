@@ -1,6 +1,6 @@
 {
   "name": "the-royal-race",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "private": true,
   "description": "The Royal Race \u2014 jeu de courses hippiques (PC / mobile, navigateur)",
   "scripts": {

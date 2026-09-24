@@ -1,0 +1,17 @@
+{
+  "name": "The Royal Race",
+  "short_name": "Royal Race",
+  "description": "Développe ton domaine équestre, entraîne tes champions et remporte les plus grandes courses.",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#071a2d",
+  "theme_color": "#071a2d",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

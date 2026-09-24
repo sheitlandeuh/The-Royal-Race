@@ -32,7 +32,7 @@ const stable=(()=>{
           mk('h3','Prince d’Or','palomino',{vit:69,acc:73,end:50,dep:68,tac:52,tem:55},{vit:92,acc:95,end:74,dep:92,tac:80,tem:78},1200,6,'fusee')]});
  let S=null;try{S=JSON.parse(localStorage.getItem('trr.stable')||'null')}catch(e){}
  if(S&&S.v===1&&S.horses.length>3&&!S.horses[3].id)S.horses.length=3;if(!S||S.v!==1){S=fresh();try{const old=JSON.parse(localStorage.getItem('trr.champion')||'null');if(old){S.created=true;S.silks={main:old.main,second:old.second,pattern:old.pattern,cap:old.cap};S.horses[0].name=old.name;S.horses[0].coat=old.coat}}catch(e){}}
- const save=()=>{S.res={gold:state.gold,feed:state.feed,gems:state.gems,trophies:state.trophies};try{localStorage.setItem('trr.stable',JSON.stringify(S))}catch(e){}};
+ const save=()=>{if(window.__noSave)return;S.res={gold:state.gold,feed:state.feed,gems:state.gems,trophies:state.trophies};try{localStorage.setItem('trr.stable',JSON.stringify(S))}catch(e){}};
  if(S.res)Object.assign(state,S.res);S.horses.forEach(h=>{if(!h.talent)h.talent=h.rare?'coeur':{h1:'finisseur',h2:'increvable',h3:'fusee'}[h.id]||'metronome'});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  // récupération en temps réel : la fatigue baisse, la forme revient vers la moyenne

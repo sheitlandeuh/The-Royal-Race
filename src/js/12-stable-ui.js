@@ -46,7 +46,7 @@ $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button,a'
  else if(t.dataset.studioFor){stable.setActive(t.dataset.studioFor);stUI.horse=t.dataset.studioFor;champion.emit();$('#panel').classList.remove('open');studio.open()}});
 /* ---------- engagement en course : partants, cotes, tactique ---------- */
 let currentField=null;const TACTICS=[['leader','Aux avant-postes','Plus vite en début de course, mais l’énergie fond.'],['stalker','Dans les dos','Équilibré : profite du sillage des leaders.'],['finisher','Attentiste','Économise en début de course, sprint final plus fort.']];
-function buildField(fixed){const h=stable.active(),ref=stable.rating(h)+(RACE.diff||0)+8,seed=fixed||1+Math.floor(Math.random()*9e4),rv=stable.rivals(ref,5,seed),used=[stable.silks.main],R=seeded(seed);
+function buildField(fixed){const h=stable.active(),first=(career.data.stats?.races||0)<2&&!RACE.tour,ref=stable.rating(h)+(RACE.diff||0)+(first?-6:8),seed=fixed||1+Math.floor(Math.random()*9e4),rv=stable.rivals(ref,5,seed),used=[stable.silks.main],R=seeded(seed);
  const coats=LIVERY.COATS.map(c=>c.id).sort(()=>R()-.5);
  currentField={seed,rivals:rv.map((r,i)=>{const l=LIVERY.random(seed+i*131,used);used.push(l.main);l.coat=coats[i];return{...r,name:raceNames[i+1],livery:l,rating:Math.round(r.stats.vit*.24+r.stats.acc*.2+r.stats.end*.18+r.stats.dep*.1+r.stats.tac*.15+r.stats.tem*.13)-7}})};rival.inject(currentField);return currentField}
 function odds(list){const m=list.reduce((a,x)=>a+x,0)/list.length,w=list.map(x=>Math.exp((x-m)/4.5)),S=w.reduce((a,x)=>a+x,0);return w.map(x=>Math.max(1.3,.82*S/x))}

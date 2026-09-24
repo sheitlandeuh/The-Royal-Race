@@ -25,3 +25,11 @@
     .st-pick.dim{opacity:.4;filter:grayscale(.6)}
     .start-sequence.parade{place-items:end center;padding-bottom:max(150px,24vh)}.start-sequence.parade strong{filter:drop-shadow(0 0 10px #000)}
     .slot.empty i{font-style:normal;font-size:22px;filter:grayscale(1) brightness(.8);opacity:.35}.slot.empty small{opacity:.6;letter-spacing:.08em;text-transform:uppercase;font-size:9px}
+    /* v0.12 : boutique, transfert de partie */
+    .wares{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}.wares.top{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:6px}
+    .ware{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:12px 10px;border-radius:14px;background:#ffffff0a;border:1.5px solid #ffffff1c}
+    .ware>i{font-style:normal;font-size:34px;filter:drop-shadow(0 4px 6px #0008)}.ware b{font-size:14px}.ware small{color:#c9d7e2;font-size:12px;min-height:30px}.ware .action{margin-top:4px;padding:7px 14px}.ware s{opacity:.6;font-weight:600}
+    .ware.gift{background:linear-gradient(150deg,#2f5a22,#12260d);border-color:#8fd46a}.ware.deal{background:linear-gradient(150deg,#5a3f0e,#231805);border-color:#ffd24a}.ware.done{opacity:.6}
+    .shop-h{margin:16px 0 8px;font-size:12px;letter-spacing:.14em;color:#e5c56a}
+    .savecode{width:100%;min-height:74px;margin-top:6px;border-radius:10px;border:1px solid #ffffff2a;background:#061525;color:#cfe3f2;font:12px/1.35 ui-monospace,monospace;padding:8px;resize:vertical;word-break:break-all}
+    @media (max-width:640px){.wares{grid-template-columns:repeat(2,minmax(0,1fr))}.wares.top{grid-template-columns:1fr}.ware>i{font-size:28px}}

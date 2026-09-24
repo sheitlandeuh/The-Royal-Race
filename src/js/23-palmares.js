@@ -17,10 +17,10 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
   ['lvl10','Champion confirmé','💪','Amène un cheval au niveau 10',()=>A.lvl,10,{gems:20}],
   ['stable6','Grande écurie','🏡','Possède 6 chevaux',()=>A.horses,6,{gems:20}],
   ['gear','Sellier royal','🧰','Possède tout l’équipement',()=>gear.owned.length,GEAR.length,{gems:20}],
-  ['or','Ligue Or','🟡','Atteins la ligue Or',()=>C.best||0,1600,{gems:30}],
+  ['or','Ligue Or','🟡','Atteins la ligue Or',()=>C.best||0,900,{gems:30}],
   ['cup5','Seigneur des tournois','👑','Remporte 5 Tournois royaux',()=>tour.cups,5,{gems:60}],
   ['win50','Légende des pistes','🏛️','Gagne 50 courses',()=>S().wins,50,{gems:50}],
-  ['royale','Ligue Royale','💜','Atteins la ligue Royale',()=>C.best||0,2400,{gems:80}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
+  ['royale','Ligue Royale','💜','Atteins la ligue Royale',()=>C.best||0,1800,{gems:80}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
  const rtxt=r=>r.gems?`💎 ${r.gems}`:`🪙 ${fmt(r.gold)}`,done=a=>{try{return a.p()>=a.goal}catch(e){return false}};
  function sample(){const H=stable.data.horses;A.horses=Math.max(A.horses,H.length);A.lvl=Math.max(A.lvl,...H.map(h=>h.level));A.foals=Math.max(A.foals,H.filter(h=>h.parents).length)}
  function check(silent){sample();let n=0;for(const a of LIST){if(done(a)&&!A.seen.includes(a.id)){A.seen.push(a.id);if(!silent)toast(`${a.i} Succès débloqué : ${a.n}`);n++}}save();badge();return n}

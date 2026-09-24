@@ -1,10 +1,10 @@
 /* ===== Carrière : ligues, programme des courses, missions du jour, événement de la semaine ===== */
-const LEAGUES=[{id:'bronze',n:'Bronze',min:0,col:'#c9834a',reward:{gold:0}},{id:'argent',n:'Argent',min:1000,col:'#c9d3dc',reward:{gold:10000,gems:20}},
- {id:'or',n:'Or',min:1600,col:'#f3c64a',reward:{gold:25000,gems:60}},{id:'royale',n:'Royale',min:2400,col:'#b98cff',reward:{gold:60000,gems:150}}];
+const LEAGUES=[{id:'bronze',n:'Bronze',min:0,col:'#c9834a',reward:{gold:0}},{id:'argent',n:'Argent',min:300,col:'#c9d3dc',reward:{gold:10000,gems:20}},
+ {id:'or',n:'Or',min:900,col:'#f3c64a',reward:{gold:25000,gems:60}},{id:'royale',n:'Royale',min:1800,col:'#b98cff',reward:{gold:60000,gems:150}}];
 const TERRAINS={bon:{n:'Bon',speed:1,drain:1,d:'Terrain rapide'},souple:{n:'Souple',speed:.985,drain:1.1,d:'L’endurance compte davantage'},lourd:{n:'Lourd',speed:.965,drain:1.22,d:'Épuisant : réservé aux chevaux de tenue'}};
 const MEETINGS=[
  {id:'m1',n:'Prix des Écuries',dist:1200,terrain:'bon',league:0,diff:-4,purse:3500,fee:300},
- {id:'m2',n:'Grand Prix du Domaine Royal',dist:1600,terrain:'bon',league:1,diff:0,purse:7000,fee:500},
+ {id:'m2',n:'Grand Prix du Domaine Royal',dist:1600,terrain:'bon',league:0,diff:0,purse:7000,fee:500},
  {id:'m3',n:'Prix de la Forêt',dist:2000,terrain:'souple',league:1,diff:1,purse:8500,fee:600},
  {id:'m4',n:'Coupe d’Automne',dist:2400,terrain:'lourd',league:2,diff:3,purse:14000,fee:900},
  {id:'m5',n:'Critérium des Sprinters',dist:1200,terrain:'bon',league:2,diff:4,purse:15000,fee:900},

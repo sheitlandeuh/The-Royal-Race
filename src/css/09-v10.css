@@ -23,3 +23,5 @@
     @media (max-width:640px){.kpis{grid-template-columns:repeat(3,1fr)}.tour-prizes{grid-template-columns:1fr}.tour-btns{margin-left:0}.tack{grid-template-columns:repeat(2,minmax(0,1fr))}.tack button{overflow-wrap:anywhere}}
     .nav.hot{position:relative}.nav.hot::after{content:'!';position:absolute;top:6px;right:10px;width:18px;height:18px;border-radius:50%;background:#e2402f;color:#fff;font:900 12px/18px ui-sans-serif,system-ui;text-align:center;box-shadow:0 0 0 2px #0b1f36;animation:haloPulse 1.4s ease-in-out infinite}
     .st-pick.dim{opacity:.4;filter:grayscale(.6)}
+    .start-sequence.parade{place-items:end center;padding-bottom:max(150px,24vh)}.start-sequence.parade strong{filter:drop-shadow(0 0 10px #000)}
+    .slot.empty i{font-style:normal;font-size:22px;filter:grayscale(1) brightness(.8);opacity:.35}.slot.empty small{opacity:.6;letter-spacing:.08em;text-transform:uppercase;font-size:9px}

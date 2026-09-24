@@ -26,7 +26,7 @@ float rfxF(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*rfxN(p);p*=2.03;a*=
   const mat=new THREE.MeshStandardMaterial({map:t,roughness:1,color:track?0xf4ffe6:0xe8f0dc});
   mat.onBeforeCompile=s=>{s.uniforms.uRep={value:rep};s.vertexShader='varying vec3 vW;\n'+s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvW=(modelMatrix*vec4(position,1.)).xyz;');
    s.fragmentShader='varying vec3 vW;uniform vec2 uRep;\n'+NOISE+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n'+(track?
-    `{vec2 tu=vMapUv/uRep;float band=step(.5,fract(tu.y*3.06));diffuseColor.rgb*=mix(.9,1.07,band);float wear=exp(-pow((tu.x-.16)/.11,2.));float div=smoothstep(.62,.8,rfxF(vW.xz*.55));diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.12,.94,.7),wear*.32);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.16,.11,.06),div*wear*.55);diffuseColor.rgb*=mix(.9,1.06,rfxF(vW.xz*.008));}`:
+    `{vec2 tu=vMapUv/uRep;float band=step(.5,fract(tu.y*3.06));diffuseColor.rgb*=mix(.9,1.07,band);float wear=exp(-pow((tu.x-.16)/.11,2.));float div=smoothstep(.62,.8,rfxF(vW.xz*.55));diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.12,.94,.7),wear*.32);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.16,.11,.06),div*wear*.55);diffuseColor.rgb*=mix(.9,1.06,rfxF(vW.xz*.008));float near=1.-smoothstep(8.,70.,distance(vW,cameraPosition));float bl=rfxF(vW.xz*vec2(2.6,2.6))*.55+rfxF(vW.xz*9.)*.45;diffuseColor.rgb*=mix(1.,mix(.84,1.12,bl),near);float clod=smoothstep(.8,.9,rfxF(vW.xz*1.7+11.))*wear;diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.2,.14,.08),clod*near*.7);}`:
     `{float m=rfxF(vW.xz*.005),m2=rfxF(vW.xz*.035+7.),dry=smoothstep(.56,.78,rfxF(vW.xz*.011+3.));diffuseColor.rgb*=mix(.74,1.1,m)*mix(.92,1.05,m2);diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.16,1.04,.72),dry*.55);}`))};
   return mat}
  function ground(scene,renderer){const turf=new THREE.Mesh(new THREE.PlaneGeometry(2200,2200),turfMaterial(renderer,false));turf.rotation.x=-Math.PI/2;turf.position.y=-.1;turf.receiveShadow=true;scene.add(turf);
@@ -72,13 +72,13 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   fx.gallop=[];q.horses.forEach((h,i)=>{const t=new THREE.CanvasTexture(document.createElement('canvas'));t.colorSpace=THREE.SRGBColorSpace;t.repeat.set(1/8,1);t.anisotropy=8;fx.gallop.push(t);q.horseTextures[i]=t;const m=h.material;m.map=t;m.alphaTest=.35;m.needsUpdate=true});liveries(q);
  }
  function liveries(q){if(!fx)return;LIVERY.ready.then(()=>{const me=champion.get(),F=currentField||buildField(),list=[me,...F.rivals.map(r=>r.livery)];fx.liv=list;
-  (fx.h3d||[]).forEach(m=>{q.scene.remove(m);HORSE3D.dispose(m)});fx.h3d=list.map(l=>{const m=HORSE3D.build(l);m.scale.setScalar(4.4);m.visible=false;q.scene.add(m);return m});
+  (fx.h3d||[]).forEach(m=>{q.scene.remove(m);HORSE3D.dispose(m)});fx.h3d=list.map((l,i)=>{const m=HORSE3D.build(l,{number:i+1,blinkers:!i&&gear.sel.id==='oeilleres'});m.scale.setScalar(4.4);m.visible=false;m.userData.mats.forEach(x=>{x.alphaHash=true});q.scene.add(m);return m});
   list.forEach((l,i)=>{const t=fx.gallop[i];t.image=LIVERY.gallop(l,i?.5:1);t.needsUpdate=true;const p=new THREE.CanvasTexture(LIVERY.portrait(l));p.colorSpace=THREE.SRGBColorSpace;p.anisotropy=8;q.podiumTextures[i]=p})})}
  function horse(q,i,p,speed,now){const h=q.horses[i];if(!fx)return;const running=q.startPhase==='running';
   const dt=Math.min(.05,(now-(fx.lastH||now))/1000);if(i===5)fx.lastH=now;
   if(h.material.map!==fx.gallop[i])h.material.map=fx.gallop[i];
   {const m=fx.h3d&&fx.h3d[i];if(m){const c=q.camera.position,dx=c.x-p.p.x,dz=c.z-p.p.z,L=Math.hypot(dx,dz)||1,behind=-(dx*p.f.x+dz*p.f.z)/L,three=behind<.72||(c.y-5)/L>.42;m.visible=three;h.visible=!three;fx.use3d=fx.use3d||[];fx.use3d[i]=three;
-   if(three){m.position.set(p.p.x,0,p.p.z);m.rotation.y=Math.atan2(-p.f.z,p.f.x);HORSE3D.pose(m,((fx.phase[i]/8)%1+1)%1,running?1:.12)}}}
+   if(three){m.position.set(p.p.x,0,p.p.z);m.rotation.y=Math.atan2(-p.f.z,p.f.x);HORSE3D.pose(m,((fx.phase[i]/8)%1+1)%1,running?1:.12);const near=Math.min(1,Math.max(0,(Math.hypot(dx,dz)-8.5)/3)),op=near*near*(3-2*near);if(Math.abs((m.userData.op??1)-op)>.02){m.userData.op=op;m.userData.mats.forEach(x=>{x.opacity=op});m.visible=op>.02}}}}
   fx.phase[i]+=(running?dt*(2.1+speed*1.6)*8:dt*1.2);const fr=Math.floor(fx.phase[i]+i*3)%8;fx.gallop[i].offset.x=fr/8;
   const lift=running?Math.abs(Math.sin(fx.phase[i]/8*Math.PI*2))*.22:0,H=12.6;
   h.position.copy(p.p);h.position.y=H*.5-H*.105+lift;h.scale.set(H*.375,H,1);h.material.rotation=running?Math.sin(fx.phase[i]/8*Math.PI*2)*.012:0;
@@ -86,6 +86,10 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   if(running&&i<6&&Math.random()<.9){const D=fx.dust;for(let k=0;k<2;k++){const j=D.next=(D.next+1)%D.N,side=(Math.random()-.5)*2.2;
    D.pos[j*3]=p.p.x-p.f.x*1.4+p.n.x*side;D.pos[j*3+1]=.35;D.pos[j*3+2]=p.p.z-p.f.z*1.4+p.n.z*side;
    const back=5+Math.random()*6;D.vel[j*3]=-p.f.x*back+p.n.x*(Math.random()-.5)*2;D.vel[j*3+1]=3+Math.random()*4;D.vel[j*3+2]=-p.f.z*back+p.n.z*(Math.random()-.5)*2;D.life[j]=.55+Math.random()*.4}}}
+ function parade(q,now,k){const m=fx&&fx.h3d&&fx.h3d[0];if(!m)return false;const b=trackPose(RACE_ORIGIN+.03,-52),e=k*k*(3-2*k);
+  m.visible=true;q.horses[0].visible=false;fx.horseShadows[0].visible=false;if(m.userData.op!==1){m.userData.op=1;m.userData.mats.forEach(x=>{x.opacity=1})}
+  m.position.set(b.p.x+b.f.x*(e*9-4.5),0,b.p.z+b.f.z*(e*9-4.5));m.rotation.y=Math.atan2(-b.f.z,b.f.x);HORSE3D.pose(m,(now*.00085)%1,.3);
+  const a=.55+e*1.5,R=18-e*3;q.camera.position.set(m.position.x+(b.f.x*Math.cos(a)+b.n.x*Math.sin(a))*R,4.2+e*2.2,m.position.z+(b.f.z*Math.cos(a)+b.n.z*Math.sin(a))*R);q.camera.lookAt(m.position.x,5.6,m.position.z);return true}
  function podium(q,i){if(!fx)return;fx.horseShadows[i].visible=false;if(fx.h3d&&fx.h3d[i])fx.h3d[i].visible=false}
  function render(q){const r=q.renderer;if(!fx)return r.render(q.scene,q.camera);const now=performance.now(),dt=Math.min(.05,(now-fx.last)/1000);fx.last=now;
   r.getDrawingBufferSize(fx.size);const P=fx.post;if(!P.rt){P.rt=new THREE.WebGLRenderTarget(fx.size.x,fx.size.y,{type:THREE.HalfFloatType,samples:r.capabilities.isWebGL2?4:0});P.mat.uniforms.tDiffuse.value=P.rt.texture}
@@ -98,5 +102,5 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   let bob=0;if(running){bob=Math.sin(fx.phase[0]/8*Math.PI*2)*.14;cam.position.y+=bob}
   if(!QUALITY[settings.level()].post){r.render(q.scene,cam);cam.position.y-=bob;return}r.setRenderTarget(P.rt);r.render(q.scene,cam);r.setRenderTarget(null);cam.position.y-=bob;
   P.mat.uniforms.uRes.value.copy(fx.size);P.mat.uniforms.uTime.value=now*.001;P.mat.uniforms.uBlur.value=fx.blur;r.render(P.scene,P.cam)}
- return{build,horse,podium,render,ground,liveries,get _fx(){return fx}};
+ return{build,horse,podium,parade,render,ground,liveries,get _fx(){return fx}};
 })();

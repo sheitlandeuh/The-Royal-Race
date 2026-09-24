@@ -75,7 +75,8 @@ const village=(()=>{
   for(const b of birds){b.u+=b.du*dt;b.v+=b.dv*dt;b.f+=dt*.018;const[x,y]=toScreen(b.u,b.v),w=5.5*Math.max(.8,z),flap=Math.sin(b.f)*w*.55;
    ctx.globalAlpha=.16;ctx.fillStyle='#0c1a0c';ctx.beginPath();ctx.ellipse(x+26*z,y+44*z,w*.9,w*.28,0,0,6.283);ctx.fill();
    ctx.globalAlpha=.9;ctx.strokeStyle='#2a2320';ctx.lineWidth=Math.max(1.2,1.4*z*.8);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-w,y-flap);ctx.quadraticCurveTo(x-w*.4,y-flap*.2-1,x,y);ctx.quadraticCurveTo(x+w*.4,y-flap*.2-1,x+w,y-flap);ctx.stroke()}
-  birds=birds.filter(b=>b.u>-.12&&b.u<1.12);ctx.globalAlpha=1}
+  birds=birds.filter(b=>b.u>-.12&&b.u<1.12);ctx.globalAlpha=1;
+  try{villageLife.draw(ctx,now,dt,toScreen,MW*cam.z/3344,vw,vh)}catch(e){}}
  layout();requestAnimationFrame(tick);
  function onSelect(){}
  return{select,deselect,layout,get selected(){return selected},setTimer(id,text){const t=els[id].timer;t.innerHTML=`🔨 <b>${text}</b>`;t.classList.toggle('show',selected!==id)},clearTimer(id){els[id].timer.classList.remove('show')},set onSelect(f){onSelect=f}};

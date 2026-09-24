@@ -32,7 +32,7 @@ const meta=(()=>{const C=career.data;C.chests=C.chests||[null,null,null,null];C.
  // ---------- barre d'accueil : coffres + bouton COURIR ----------
  const bar=document.createElement('div');bar.className='homebar';bar.innerHTML='<div class="slots"></div><button class="play" id="playBtn"><b>COURIR</b><small></small></button>';$('#game').appendChild(bar);
  bar.querySelector('.slots').addEventListener('click',e=>{const s=e.target.closest('[data-slot]');if(s)tap(+s.dataset.slot)});$('#playBtn').onclick=()=>openCourses();
- function render(){const now=Date.now();bar.querySelector('.slots').innerHTML=C.chests.map((c,i)=>{if(!c)return `<div class="slot empty" data-slot="${i}"><small>Gagne une course</small></div>`;const T=CHESTS[c.type],ready=c.ends&&now>=c.ends,left=c.ends?Math.max(0,Math.ceil((c.ends-now)/6e4)):T.min;
+ function render(){const now=Date.now();bar.querySelector('.slots').innerHTML=C.chests.map((c,i)=>{if(!c)return `<div class="slot empty" data-slot="${i}" title="Gagne ou place-toi sur le podium pour remplir cet emplacement"><i>🧰</i><small>Libre</small></div>`;const T=CHESTS[c.type],ready=c.ends&&now>=c.ends,left=c.ends?Math.max(0,Math.ceil((c.ends-now)/6e4)):T.min;
    return `<button class="slot${ready?' ready':c.ends?' going':''}" data-slot="${i}" style="--c:${T.col}"><i>${T.ico}</i><small>${ready?'OUVRIR':c.ends?fmtMin(left):fmtMin(T.min)}</small></button>`}).join('');
   const h=stable.active(),sf=suit(h);$('#playBtn small').innerHTML=`${escapeHTML(RACE.n)} · <span class="suit ${sf.k}">${sf.i} ${escapeHTML(h.name)}</span>`;
   const n=C.chests.filter(c=>c&&c.ends&&now>=c.ends).length;bar.classList.toggle('has-ready',!!n)}

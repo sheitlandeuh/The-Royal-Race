@@ -403,6 +403,14 @@
     .pace-lesson{margin:8px 0 2px;text-align:left;background:#e5bb5a14;border:1px solid #e5bb5a55;border-radius:12px;padding:8px 12px;font-size:12.5px}.pace-lesson b{display:block;color:#ffe29a;margin-bottom:2px}
     @media (max-height:500px){.speaker{top:100px;font-size:12px}}
     @media (max-width:600px) and (orientation:portrait){.speaker{top:150px}}
+    /* ===== Jockeys ===== */
+    .jockeys{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;min-width:0}
+    .jockeys button{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:9px 10px;border-radius:12px;background:#ffffff0a;border:1.5px solid #ffffff1f;color:#e9f1f7;cursor:pointer;font:inherit}
+    .jockeys button.on{border-color:#f1c75a;background:#f1c75a1a}.jockeys button.locked{opacity:.55}
+    .jockeys button b{font-size:13px}.jockeys button small{font-size:11px;color:#aebfcc;line-height:1.3}.jockeys .jk-spe{color:#ffe29a;font-weight:800}
+    .jockeys .price{font-size:11.5px;font-weight:800;color:#ffe29a;margin-top:2px}
+    .jk-face{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font:900 11px system-ui;border:2px solid #ffffffcc;box-shadow:0 2px 6px #0006;vertical-align:middle;font-style:normal}
+    h4 em .jk-face{width:20px;height:20px;font-size:9px}
   </style>
 </head>
 <body>
@@ -463,7 +471,8 @@ const state={gold:6000,feed:4000,gems:40,trophies:0,building:null,upgrading:fals
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
 /* événements du jeu : les modules s'y abonnent au lieu de s'emboîter les uns dans les autres (ordre d'abonnement = ordre des fichiers) */
-const hooks=(()=>{const L={};return{on(e,f){(L[e]=L[e]||[]).push(f)},emit(e,...a){for(const f of L[e]||[])try{f(...a)}catch(err){console.error('hook '+e,err)}}}})();
+// priorité facultative : les abonnés de priorité plus haute passent d'abord (ex. effets sur racePlayer avant l'enregistrement du rejeu)
+const hooks=(()=>{const L={};return{on(e,f,p=0){const l=L[e]=L[e]||[];l.push({f,p});l.sort((a,b)=>b.p-a.p)},emit(e,...a){for(const{f}of(L[e]||[]).slice())try{f(...a)}catch(err){console.error('hook '+e,err)}}}})();
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>n.toLocaleString('fr-FR');
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),2200)}
@@ -1523,7 +1532,8 @@ const villageLife=(()=>{
    cam=new THREE.OrthographicCamera(-1.55,1.55,1.23,-1.23,.1,20);cam.position.set(0,Math.sin(PITCH)*8,Math.cos(PITCH)*8);cam.lookAt(0,1.05,0);
    livs.forEach((l,k)=>{for(let d=0;d<DIRS;d++)jobs.push([k,d])})}catch(e){sheets=[];busy=false;return}
   let cur=-1,h=null,x=null;const idle=f=>(window.requestIdleCallback?requestIdleCallback(f,{timeout:400}):setTimeout(f,30));
-  const step=()=>{try{const job=jobs.shift();if(!job){if(h){sc.remove(h);HORSE3D.dispose(h)}r.dispose();r.forceContextLoss?.();sheets=out;busy=false;
+  const step=()=>{try{const job=jobs.shift();if(!job){if(h){sc.remove(h);HORSE3D.dispose(h)}r.dispose();r=null;cv.width=cv.height=1;// pas de forceContextLoss : Chrome bloque WebGL pour le site après plusieurs pertes de contexte provoquées
+    sheets=out;busy=false;
      runners=[0,1,2,3].map(i=>({s:i,th:i*TOT*.23+80,sp:.07+i*.004,lane:1.02-i*.012,f:Math.random()*8}));return}
     const[k,d]=job;if(k!==cur){if(h){sc.remove(h);HORSE3D.dispose(h)}cur=k;h=HORSE3D.build(livs[k],{number:1});sc.add(h);const S=document.createElement('canvas');S.width=FW*(FR+2);S.height=FH*DIRS;out[k]=S;x=S.getContext('2d');
      // cheval en liberté : sans jockey, sans selle ni rênes
@@ -2030,6 +2040,7 @@ const UNLOCKS=[
  {k:'ecurie',at:2,sel:['.nav[data-view=chevaux]','.nav[data-view=ecurie]'],n:'Écurie et entraînement',txt:'Ton écurie est ouverte : <b>entraîne</b> tes chevaux, soigne-les, répartis leurs points de niveau.'},
  {k:'ligues',at:3,sel:['[data-panel=trophees]','[data-panel=saison]'],n:'Ligues et Route des étoiles',txt:'Tes trophées te font monter de <b>ligue</b> (de nouvelles courses s’ouvrent), tes étoiles de course font avancer la <b>Route des étoiles</b>.'},
  {k:'defi',at:3,sel:['#panelBody [data-defi]'],n:'Défi du jour',txt:'Chaque jour, <b>la même course pour tous les joueurs</b>. Retente-la autant que tu veux : ton meilleur essai court à côté de toi, en fantôme.'},
+ {k:'jockeys',at:4,sel:['#panelBody .jockeys-block'],n:'Jockeys',txt:'Tu peux maintenant <b>engager des jockeys</b> : départ éclair, finisseur, tacticienne… Choisis-le selon la course, avant le départ. Ils progressent en montant.'},
  {k:'tournoi',at:5,sel:['.nav[data-view=events]','[data-panel=events]','[data-panel=palmares]'],n:'Tournoi royal',txt:'Chaque jour, un <b>tournoi</b> à élimination directe. Et chaque semaine, un cheval rare à gagner.'},
  {k:'boutique',at:7,sel:['[data-panel=boutique]','.resource .plus','#panelBody h4:has(+ .tack)','#panelBody .tack'],n:'Boutique et sellerie',txt:'La <b>boutique</b> accepte tes gemmes, et la <b>sellerie</b> permet d’équiper ton cheval selon le terrain.'}];
 const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
@@ -2320,6 +2331,38 @@ const speaker=(()=>{const el=document.createElement('div');el.className='speaker
   else t=`${n} chevaux se sont disputé la tête${meLead?', toi compris':''} : le meilleur d’entre eux a fini ${top}${top===1?'er':'e'}. ${top>=3?'Le rythme rapide a profité aux chevaux venus de l’arrière.':'Il a malgré tout résisté.'}`;
   $('#fbStars').insertAdjacentHTML('beforeend',`<div class="pace-lesson"><b>🎙️ Le rythme de la course</b><span>${t}</span></div>`)});
  return{show}})();
+/* --- 44-jockeys.js --- */
+/* ===== Jockeys : un choix avant chaque course, une équipe à constituer, des jockeys qui progressent =====
+   Chaque jockey a une spécialité qui modifie les paramètres de course du joueur (appliquée avant l'enregistrement du rejeu :
+   la course reste rejouable à l'identique). Il gagne un niveau toutes les 5 courses montées (niveau 5 au plus) : sa spécialité
+   se renforce de 15 % par niveau. Débloqué après 4 courses. */
+const JOCKEYS=[
+ {id:'paul',n:'Paul Garnier',c:'#7a8a99',price:0,spe:'Polyvalent',d:'Le jockey maison : fiable, sans spécialité.',fx:()=>({}),fit:()=>0},
+ {id:'lea',n:'Léa Martin',c:'#e0567a',price:5000,spe:'Départ éclair',d:'Fenêtre de réaction aux stalles élargie (+40 ms).',fx:k=>({window:40*k}),fit:m=>m.dist<=1200?1:0},
+ {id:'hugo',n:'Hugo Bernard',c:'#e89b2e',price:8000,spe:'Finisseur',d:'Sprint final plus puissant (+4 %).',fx:k=>({sprintMul:1+.04*k}),fit:m=>m.dist>=1600&&m.dist<=2000?1:0},
+ {id:'ines',n:'Inès Dubois',c:'#3aa0e0',price:8000,spe:'Tacticienne',d:'Profite mieux des sillages (+25 %) et se dégage plus vite quand elle est enfermée.',fx:k=>({draftMul:1+.25*k,boxed:.015*k}),fit:()=>0},
+ {id:'victor',n:'Victor Laurent',c:'#4caf6a',price:10000,league:1,spe:'Économe',d:'Ménage sa monture : −4 % d’énergie dépensée en course.',fx:k=>({drainMul:1-.04*k}),fit:m=>m.dist>=2000||m.terrain!=='bon'?1:-0},
+ {id:'chloe',n:'Chloé Moreau',c:'#9a6cd6',price:12000,league:1,spe:'Sprint long',d:'Peut lancer son sprint de plus loin : il coûte 3 % d’énergie en moins.',fx:k=>({sprintDrainMul:1-.03*k}),fit:m=>m.dist>=2000?1:0}];
+const jockeys=(()=>{const C=career.data;C.jockeys=C.jockeys||{owned:['paul'],sel:'paul',xp:{}};const J=C.jockeys;
+ const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
+ const byId=id=>JOCKEYS.find(j=>j.id===id)||JOCKEYS[0],lvl=id=>Math.min(5,Math.floor((J.xp[id]||0)/5)),power=id=>1+.15*lvl(id);
+ const initials=n=>n.split(' ').map(w=>w[0]).join('');
+ // effet sur les paramètres de course du joueur — priorité haute : avant l'enregistrement du rejeu
+ hooks.on('race:start',()=>{if(!racePlayer)return;const j=byId(J.sel),f=j.fx(power(j.id)),o={...racePlayer};
+  if(f.window)o.window+=f.window;if(f.sprintMul)o.sprint*=f.sprintMul;if(f.draftMul)o.draft*=f.draftMul;if(f.boxed)o.boxed+=f.boxed;if(f.drainMul)o.drain*=f.drainMul;if(f.noiseMul)o.noise*=f.noiseMul;if(f.sprintDrainMul)o.sprintDrain*=f.sprintDrainMul;
+  o.jockey=j.id;racePlayer=o},5);
+ hooks.on('race:end',()=>{const id=J.sel,before=lvl(id);J.xp[id]=(J.xp[id]||0)+1;save();if(lvl(id)>before)setTimeout(()=>toast(`${byId(id).n} passe niveau ${lvl(id)} : sa spécialité se renforce !`),1200)});
+ function pick(id){const j=byId(id);if(J.owned.includes(id)){J.sel=id;save();return true}
+  if(j.league&&career.league()<j.league)return toast(`${j.n} ne monte qu’en ligue ${LEAGUES[j.league].n}`),false;
+  if(state.gold<j.price)return toast('Or insuffisant'),false;state.gold-=j.price;J.owned.push(id);J.sel=id;save();sync();sound.coin();toast(`${j.n} rejoint ton écurie !`);return true}
+ const badge=j=>`<span class="jk-face" style="--c:${j.c}">${initials(j.n)}</span>`;
+ function block(m=RACE){const s=byId(J.sel);return `<div class="jockeys-block"><h4 style="margin-top:14px">JOCKEY <em>${badge(s)} ${escapeHTML(s.n)}</em></h4><div class="jockeys">${JOCKEYS.map(j=>{const own=J.owned.includes(j.id),lock=j.league&&career.league()<j.league,f=j.fit(m),L=lvl(j.id);
+  return `<button data-jockey="${j.id}" class="${J.sel===j.id?'on':''}${lock?' locked':''}">${badge(j)}<b>${escapeHTML(j.n)}</b><small class="jk-spe">${j.spe}${own&&j.price?` · niv. ${L}`:''}</small><small>${j.d}</small>${f>0?'<em class="suit ideal">✓ Conseillé ici</em>':''}${own?'':`<span class="price">${lock?'🔒 Ligue '+LEAGUES[j.league].n:'🪙 '+fmt(j.price)}</span>`}</button>`}).join('')}</div></div>`}
+ hooks.on('courses:render',()=>{const h=[...$$('#panelBody h4')].find(x=>x.textContent.startsWith('ÉQUIPEMENT'));if(h)h.insertAdjacentHTML('beforebegin',block())});
+ $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-jockey]');if(!b)return;if(pick(b.dataset.jockey))renderCourses()});
+ // le jockey apparaît dans le bandeau de course
+ hooks.on('race:header',()=>{const j=byId(J.sel);$('#autoGallop span').textContent=`${HN()} · ${j.n}`});
+ return{get sel(){return byId(J.sel)},lvl,block,byId,get owned(){return J.owned}}})();
 </script>
 </body>
 </html>

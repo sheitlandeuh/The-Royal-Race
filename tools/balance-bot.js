@@ -3,10 +3,19 @@
 // Il ne sauvegarde rien (window.__noSave) et neutralise la fin de course (pas d'or, de trophées ni de coffres).
 // Politique de temps forts : { tire:'a'|'b'|fn, breche:..., attaque:... } ; 'b' = ne rien faire.
 export const bot = window.bot = (() => {
+  // sans WebGL (machine sans carte graphique, navigateur qui a bloqué la 3D) : scène factice, la simulation n'a pas besoin de rendu
+  const gl = (() => { try { return !!document.createElement('canvas').getContext('webgl2') } catch (e) { return false } })();
+  function headless() {
+    if (threeRace || gl) return;
+    threeRace = { headless: true, startPhase: 'idle', goTime: 0, introStart: 0, falseStartPenalty: 0, horses: [], silks: [], markers: [], horseTextures: [], podiumTextures: [],
+      podium: { visible: false }, stalls: { visible: true, userData: { doors: [] } }, renderer: { setPixelRatio() {}, setSize() {}, shadowMap: {} },
+      sun: { color: { set() {} }, position: { set() {} } }, hemi: { color: { set() {} }, groundColor: { set() {} } }, scene: { fog: { color: { set() {} } }, add() {} }, camera: {} };
+  }
   function race(meet, seed, tactic, policy) {
+    headless();
     RACE = { ...MEETINGS.find(m => m.id === meet) }; state.strategy = tactic; career.data.rival.lvl = 0;
     const h = stable.active(); h.fatigue = 10; h.form = 62; h.moral = 72;
-    currentField = null; buildField(seed); state.feed = 99999; startRace();
+    currentField = null; buildField(seed); state.feed = 99999; startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open');
     threeRace.startPhase = 'waiting'; threeRace.goTime = performance.now() - 150; launchFromStalls();
     clearInterval(raceLoop); raceLoop = -1;
     let n = 0;
@@ -56,5 +65,5 @@ export const bot = window.bot = (() => {
     finally { completeRace = done }
     return out;
   }
-  return { race, one, run, pair, tactics, smart };
+  return { race, one, run, pair, tactics, smart, headless, get gl() { return gl } };
 })();

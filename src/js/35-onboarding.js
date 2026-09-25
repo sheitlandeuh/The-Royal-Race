@@ -7,6 +7,7 @@ const UNLOCKS=[
  {k:'ecurie',at:2,sel:['.nav[data-view=chevaux]','.nav[data-view=ecurie]'],n:'Écurie et entraînement',txt:'Ton écurie est ouverte : <b>entraîne</b> tes chevaux, soigne-les, répartis leurs points de niveau.'},
  {k:'ligues',at:3,sel:['[data-panel=trophees]','[data-panel=saison]'],n:'Ligues et Route des étoiles',txt:'Tes trophées te font monter de <b>ligue</b> (de nouvelles courses s’ouvrent), tes étoiles de course font avancer la <b>Route des étoiles</b>.'},
  {k:'defi',at:3,sel:['#panelBody [data-defi]'],n:'Défi du jour',txt:'Chaque jour, <b>la même course pour tous les joueurs</b>. Retente-la autant que tu veux : ton meilleur essai court à côté de toi, en fantôme.'},
+ {k:'jockeys',at:4,sel:['#panelBody .jockeys-block'],n:'Jockeys',txt:'Tu peux maintenant <b>engager des jockeys</b> : départ éclair, finisseur, tacticienne… Choisis-le selon la course, avant le départ. Ils progressent en montant.'},
  {k:'tournoi',at:5,sel:['.nav[data-view=events]','[data-panel=events]','[data-panel=palmares]'],n:'Tournoi royal',txt:'Chaque jour, un <b>tournoi</b> à élimination directe. Et chaque semaine, un cheval rare à gagner.'},
  {k:'boutique',at:7,sel:['[data-panel=boutique]','.resource .plus','#panelBody h4:has(+ .tack)','#panelBody .tack'],n:'Boutique et sellerie',txt:'La <b>boutique</b> accepte tes gemmes, et la <b>sellerie</b> permet d’équiper ton cheval selon le terrain.'}];
 const onboarding=(()=>{const races=()=>career.data.stats?.races||0;

@@ -16,7 +16,8 @@ const villageLife=(()=>{
    cam=new THREE.OrthographicCamera(-1.55,1.55,1.23,-1.23,.1,20);cam.position.set(0,Math.sin(PITCH)*8,Math.cos(PITCH)*8);cam.lookAt(0,1.05,0);
    livs.forEach((l,k)=>{for(let d=0;d<DIRS;d++)jobs.push([k,d])})}catch(e){sheets=[];busy=false;return}
   let cur=-1,h=null,x=null;const idle=f=>(window.requestIdleCallback?requestIdleCallback(f,{timeout:400}):setTimeout(f,30));
-  const step=()=>{try{const job=jobs.shift();if(!job){if(h){sc.remove(h);HORSE3D.dispose(h)}r.dispose();r.forceContextLoss?.();sheets=out;busy=false;
+  const step=()=>{try{const job=jobs.shift();if(!job){if(h){sc.remove(h);HORSE3D.dispose(h)}r.dispose();r=null;cv.width=cv.height=1;// pas de forceContextLoss : Chrome bloque WebGL pour le site après plusieurs pertes de contexte provoquées
+    sheets=out;busy=false;
      runners=[0,1,2,3].map(i=>({s:i,th:i*TOT*.23+80,sp:.07+i*.004,lane:1.02-i*.012,f:Math.random()*8}));return}
     const[k,d]=job;if(k!==cur){if(h){sc.remove(h);HORSE3D.dispose(h)}cur=k;h=HORSE3D.build(livs[k],{number:1});sc.add(h);const S=document.createElement('canvas');S.width=FW*(FR+2);S.height=FH*DIRS;out[k]=S;x=S.getContext('2d');
      // cheval en liberté : sans jockey, sans selle ni rênes

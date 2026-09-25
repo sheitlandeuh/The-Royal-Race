@@ -43,5 +43,5 @@ const playtest=(()=>{const q=new URLSearchParams(location.search);if(!q.has('tes
   if(b.dataset.pt==='dl'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));a.download=`royal-race-test-${who}-${S.start.slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
   if(b.dataset.pt==='clear'&&confirm('Effacer toutes les sessions de test de ce navigateur ?')){all=[S];S.ev=[];save();open()}
   if(b.dataset.pt==='close')box.hidden=true});
- log('session',{version:'0.15',nouvellePartie:!champion.exists()});
+ log('session',{version:'0.16',nouvellePartie:!champion.exists()});
  return{on:true,log,summary}})();

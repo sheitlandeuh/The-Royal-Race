@@ -18,14 +18,16 @@ const village=(()=>{
  // --- construire les calques de bâtiments ---
  for(const id of VILLAGE.order){const m=VILLAGE.buildings[id],b=BUILDINGS[id],el=document.createElement('div');el.className='bld';el.dataset.id=id;
   Object.assign(el.style,{left:m.x*100+'%',top:m.y*100+'%',width:m.w*100+'%',height:m.h*100+'%'});
-  const halo=`assets/village/${id}-halo.webp`;el.style.setProperty('--halo',`url("${halo}")`);
-  el.innerHTML=`<img class="cut" src="assets/village/${id}-cut.webp" alt="" decoding="async"><img class="halo" src="${halo}" alt="" decoding="async"><div class="glint"></div>`;
+  // découpe et halo du bâtiment : chargés au premier survol / à la sélection (ou en tâche de fond après le démarrage), pas au chargement du jeu
+  el.innerHTML=`<img class="cut" data-src="assets/village/${id}-cut.webp" alt="" decoding="async"><img class="halo" data-src="assets/village/${id}-halo.webp" alt="" decoding="async"><div class="glint"></div>`;
   const tag=document.createElement('div');tag.className='bld-tag';tag.innerHTML=`<span>${b.icon}</span>${b.name}${b.lvl?`<i>NIV. ${b.lvl}</i>`:''}`;
   Object.assign(tag.style,{left:m.topX*100+'%',top:m.topY*100+'%'});
   const timer=document.createElement('div');timer.className='bld-timer';Object.assign(timer.style,{left:m.topX*100+'%',top:m.topY*100+'%'});
   const btn=document.createElement('button');btn.className='bld-hit';btn.setAttribute('aria-label',b.name);Object.assign(btn.style,{left:(m.x+m.w*.2)*100+'%',top:(m.y+m.h*.2)*100+'%',width:m.w*60+'%',height:m.h*60+'%'});
   btn.addEventListener('click',()=>select(id));
   map.append(el,tag,timer,btn);els[id]={el,tag,timer,m}}
+ function layers(id){const e=els[id];if(!e||e.loaded)return;e.loaded=true;e.el.querySelectorAll('img[data-src]').forEach(i=>{i.src=i.dataset.src;i.removeAttribute('data-src')});e.el.style.setProperty('--halo',`url("assets/village/${id}-halo.webp")`)}
+ (window.requestIdleCallback||setTimeout)(()=>setTimeout(()=>VILLAGE.order.forEach(layers),9000),{timeout:12000});
  // --- carte de collision au pixel près (index du bâtiment encodé dans l'image) ---
  const hm=new Image();hm.onload=()=>{const c=document.createElement('canvas');c.width=hitW=hm.naturalWidth;c.height=hitH=hm.naturalHeight;const x=c.getContext('2d');x.drawImage(hm,0,0);const d=x.getImageData(0,0,hitW,hitH).data;hit=new Uint8Array(hitW*hitH);for(let i=0;i<hit.length;i++)hit[i]=Math.round(d[i*4]/30)};hm.src=HITMAP_SRC;
  function pick(cx,cy){if(!hit)return null;const r=world.getBoundingClientRect(),u=(cx-r.left-cam.x)/(MW*cam.z),v=(cy-r.top-cam.y)/(MH*cam.z);if(u<0||v<0||u>=1||v>=1)return null;const i=hit[Math.floor(v*hitH)*hitW+Math.floor(u*hitW)];return i?VILLAGE.order[i-1]:null}
@@ -38,8 +40,8 @@ const village=(()=>{
  let glide=null;function glideTo(tx,ty){cancelAnimationFrame(glide);const sx=cam.x,sy=cam.y,t0=performance.now(),D=reduce?1:520;const step=now=>{const t=Math.min(1,(now-t0)/D),e=1-Math.pow(1-t,3);cam.x=sx+(tx-sx)*e;cam.y=sy+(ty-sy)*e;apply();if(t<1)glide=requestAnimationFrame(step)};glide=requestAnimationFrame(step)}
  function frame(id){const m=els[id].m,px=m.cx*MW*cam.z,py=m.cy*MH*cam.z,safeTop=vh*.18,safeBot=vh*.62;let tx=cam.x,ty=cam.y;const sx=px+cam.x,sy=py+cam.y;if(sx<vw*.18||sx>vw*.82)tx=vw/2-px;if(sy<safeTop||sy>safeBot)ty=vh*.42-py;if(tx!==cam.x||ty!==cam.y){const ox=cam.x,oy=cam.y;cam.x=tx;cam.y=ty;clamp();tx=cam.x;ty=cam.y;cam.x=ox;cam.y=oy;glideTo(tx,ty)}}
  // --- sélection / survol ---
- function setHover(id){if(hovered===id)return;if(hovered)els[hovered].el.classList.remove('hover');hovered=id;if(id&&id!==selected)els[id].el.classList.add('hover');world.classList.toggle('over-bld',!!id)}
- function select(id){if(!id)return deselect();if(selected&&selected!==id)deselect(true);const e=els[id];selected=id;e.el.classList.remove('hover');e.el.classList.add('selected');e.el.classList.remove('pop');void e.el.offsetWidth;if(!reduce)e.el.classList.add('pop');e.tag.classList.add('show');placeTag();els[id].timer.classList.remove('show');navigator.vibrate?.(8);frame(id);onSelect(id)}
+ function setHover(id){if(hovered===id)return;if(id)layers(id);if(hovered)els[hovered].el.classList.remove('hover');hovered=id;if(id&&id!==selected)els[id].el.classList.add('hover');world.classList.toggle('over-bld',!!id)}
+ function select(id){if(!id)return deselect();layers(id);if(selected&&selected!==id)deselect(true);const e=els[id];selected=id;e.el.classList.remove('hover');e.el.classList.add('selected');e.el.classList.remove('pop');void e.el.offsetWidth;if(!reduce)e.el.classList.add('pop');e.tag.classList.add('show');placeTag();els[id].timer.classList.remove('show');navigator.vibrate?.(8);frame(id);onSelect(id)}
  function deselect(keepCard){if(!selected)return;const e=els[selected];e.el.classList.remove('selected','pop');e.tag.classList.remove('show');if(state.upgradingId===selected)e.timer.classList.add('show');selected=null;if(!keepCard)$('#selection').classList.remove('open')}
  // --- entrées : glisser, pincer, molette, toucher ---
  const pts=new Map();let drag=null,pinch=null,lastMove=0;

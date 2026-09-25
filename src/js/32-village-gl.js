@@ -95,8 +95,9 @@ void main(){
    q[i]=veg*255;q[i+1]=wat*255;q[i+2]=em*255;q[i+3]=255}}
   x.putImageData(out,0,0);return c}
  function init(){if(gl||lost)return;try{gl=cv.getContext('webgl2',{antialias:false,alpha:false,premultipliedAlpha:false,powerPreference:'high-performance'});if(!gl)return;compile();
-   const img=new Image();img.decoding='async';img.onload=()=>{try{tex=texture(img,0);gl.uniform2f(U.uTexSize,img.naturalWidth,img.naturalHeight);
-     const run=()=>{msk=texture(masks(img),1);ready=true};window.requestIdleCallback?requestIdleCallback(run,{timeout:1500}):setTimeout(run,60)}catch(e){fail(e)}};img.src=$('.map-base').src}catch(e){fail(e)}}
+   // on réutilise la peinture déjà chargée par la page (pas de second téléchargement ni de second décodage)
+   const img=$('.map-base'),onload=()=>{try{tex=texture(img,0);gl.uniform2f(U.uTexSize,img.naturalWidth,img.naturalHeight);
+     const run=()=>{msk=texture(masks(img),1);ready=true};window.requestIdleCallback?requestIdleCallback(run,{timeout:1500}):setTimeout(run,60)}catch(e){fail(e)}};img.complete&&img.naturalWidth?onload():img.addEventListener('load',onload,{once:true})}catch(e){fail(e)}}
  function fail(e){console.warn('rendu du domaine : repli sur l’image',e);ready=false;world.classList.remove('gl-on')}
  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;fail('contexte perdu')});
  let off=false;// villageGL.off = true : revient à l'image simple (comparaison avant / après)

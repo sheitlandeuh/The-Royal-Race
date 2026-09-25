@@ -9,6 +9,8 @@ const villageGL=(()=>{
  // moulin : moyeu (coordonnées carte), rayon des ailes en pixels de la peinture, écrasement horizontal dû à la perspective
  const MILL={u:.8485,v:.6376,R:174,sx:.78};
  const TOD={jour:[1,0,0,0],matin:[0,1,0,0],soir:[0,0,1,0],nuit:[0,0,0,1]};
+ // accessibilité : « réduire les animations » (système) ou animations coupées dans les réglages → image fixe, mais toujours nette et éclairée selon l'heure
+ const RM=matchMedia('(prefers-reduced-motion: reduce)'),still=()=>RM.matches||document.body.classList.contains('no-anim');
  let gl=null,P=null,U={},tex=null,msk=null,ready=false,lost=false,w=[1,0,0,0],skip=0;
  const VS=`#version 300 es
 uniform vec2 uView;out vec2 vPos;
@@ -103,7 +105,7 @@ void main(){
   draw(now/1000)}
  function draw(time,W4){const V=village.view;if(!V.vw||!ready)return;const dpr=Math.min(settings.level()==='haute'?2:1.25,devicePixelRatio||1),W=Math.round(V.vw*dpr),H=Math.round(V.vh*dpr);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
   const T=TOD[document.body.dataset.tod]||TOD.jour;w=W4||w.map((x,i)=>x+(T[i]-x)*.03);
-  gl.viewport(0,0,W,H);gl.uniform2f(U.uView,V.vw,V.vh);gl.uniform4f(U.uCam,V.x,V.y,V.w,V.h);gl.uniform1f(U.uTime,time);gl.uniform1f(U.uMag,V.w*dpr/3344);
+  gl.viewport(0,0,W,H);gl.uniform2f(U.uView,V.vw,V.vh);gl.uniform4f(U.uCam,V.x,V.y,V.w,V.h);gl.uniform1f(U.uTime,still()?0:time);gl.uniform1f(U.uMag,V.w*dpr/3344);
   gl.uniform4f(U.uMill,MILL.u,MILL.v,MILL.R,MILL.sx);gl.uniform4f(U.uW,...w);gl.drawArrays(gl.TRIANGLES,0,3);world.classList.add('gl-on')}// l'image simple ne disparaît qu'une fois la première image dessinée
  requestAnimationFrame(frame);
  // snap(t, 'nuit') : dessine une image à l'instant t (s) et à l'heure voulue — pour les captures de vérification

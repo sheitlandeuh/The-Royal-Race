@@ -86,3 +86,5 @@
     .ghost-gap{position:absolute;z-index:8;right:14px;top:112px;opacity:0;transform:translateY(-4px);transition:.25s;pointer-events:none;background:#0b2440dd;border:1px solid #8fd3ff;color:#dff2ff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:800}
     .ghost-gap.show{opacity:1;transform:none}.ghost-gap.ahead{border-color:#8dff9e;color:#d8ffe0}
     @media (max-width:600px){.ghost-gap{top:128px;right:8px;font-size:11.5px}}
+    #finishRows small.lg{display:block;font-size:10.5px;opacity:.72;font-weight:700}
+    #defiShare{margin-top:10px;background:linear-gradient(#3aa0e0,#1c5f9c);color:#fff}

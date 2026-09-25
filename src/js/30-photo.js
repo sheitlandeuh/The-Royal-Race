@@ -19,3 +19,6 @@ const photo=(()=>{const map=$('.race-map'),dots=Array.from({length:5},()=>{const
 hooks.on('race:tick',()=>photo.check());
 hooks.on('race:start',()=>photo.reset());
 hooks.on('race:end',()=>$('#fbStars').insertAdjacentHTML('afterbegin',photo.verdict()));
+/* tableau d'arrivée : écarts dans le vocabulaire des courses (une longueur ≈ 0,17 s à cette allure) */
+const ecart=g=>{if(g<.03)return'nez';if(g<.08)return'courte tête';if(g<.15)return'tête';if(g<.3)return'encolure';const L=Math.round(g/.17*4)/4;if(L>12)return'loin';const w=Math.floor(L),f=['','¼','½','¾'][Math.round((L-w)*4)%4];return `${w||''}${w&&f?' ':''}${f} long.`};
+hooks.on('race:end',()=>{$$('#finishRows tr').forEach((tr,i)=>{if(!i)return;const prev=raceFinishTimes[finishOrder[i-1]],cur=raceFinishTimes[finishOrder[i]],td=tr.children[3];if(td)td.innerHTML=`${td.textContent} <small class="lg">${ecart(cur-prev)}</small>`})});

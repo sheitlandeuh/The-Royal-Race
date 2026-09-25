@@ -377,6 +377,8 @@
     .ghost-gap{position:absolute;z-index:8;right:14px;top:112px;opacity:0;transform:translateY(-4px);transition:.25s;pointer-events:none;background:#0b2440dd;border:1px solid #8fd3ff;color:#dff2ff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:800}
     .ghost-gap.show{opacity:1;transform:none}.ghost-gap.ahead{border-color:#8dff9e;color:#d8ffe0}
     @media (max-width:600px){.ghost-gap{top:128px;right:8px;font-size:11.5px}}
+    #finishRows small.lg{display:block;font-size:10.5px;opacity:.72;font-weight:700}
+    #defiShare{margin-top:10px;background:linear-gradient(#3aa0e0,#1c5f9c);color:#fff}
   </style>
 </head>
 <body>
@@ -536,7 +538,8 @@ $('#upgradeBtn').onclick=()=>{const id=state.buildingId||'haras',b=BUILDINGS[id]
 (()=>{const base=$('.map-base'),hide=()=>setTimeout(()=>$('#splash').classList.add('gone'),350);base.complete?hide():(base.addEventListener('load',hide),base.addEventListener('error',hide));setTimeout(hide,6000)})();
 let seconds=8040;setInterval(()=>{if(!state.upgrading)return;seconds=Math.max(0,seconds-1);village.setTimer(state.upgradingId,clockText())},1000);
 /* --- 03-panels.js --- */
-const content={club:`<div class="grid"><article class="tile"><div class="horse">🛡️</div><strong>Club Royal</strong><p>12 membres • Ligue Argent</p><button class="action">VOIR LE CLUB</button></article><article class="tile"><div class="horse">🎁</div><strong>Récompense collective</strong><p>8 400 / 10 000 points</p><div class="bar"><i style="width:84%"></i></div></article></div>`,missions:`<div class="grid"><article class="tile"><strong>Entraîner un cheval</strong><p>2 / 3 séances</p><div class="bar"><i style="width:66%"></i></div></article><article class="tile"><strong>Produire du fourrage</strong><p>Récompense : 1 500 🪙</p><button class="action green" data-reward="1500">RÉCUPÉRER</button></article></div>`,trophees:`<p>Vous possédez <b>1 245 trophées</b>. Encore 255 pour atteindre la Ligue Or.</p><div class="bar"><i style="width:83%"></i></div>`,boutique:`<div class="grid"><article class="tile"><div class="horse">🪙</div><strong>Coffre du propriétaire</strong><p>20 000 or • 120 gemmes</p></article><article class="tile"><div class="horse">🎠</div><strong>Décorations</strong><p>Personnalisez votre domaine.</p></article></div>`,events:`<div class="tile"><div class="horse">👑</div><strong>Derby du Royaume</strong><p>Terminez 5 courses avant dimanche pour gagner un cheval rare.</p></div>`};
+// panneau générique (bâtiments sans écran dédié)
+const content={};
 function openPanel(key){if(key==='saison')return season.open();if(key==='palmares')return palmares.open();if(key==='boutique')return shop.open();if(key==='events')return tour.open();if(key==='missions')return career.openMissions();if(key==='trophees')return career.openTrophies();if(key==='events')return career.openEvents();if(key==='chevaux'||key==='ecurie')return openStable();if(key==='courses')return openCourses();$('#panel .card').classList.remove('wide');$('#panelTitle').textContent=key.charAt(0).toUpperCase()+key.slice(1);$('#panelBody').innerHTML=content[key]||`<div class="tile"><div class="horse">🏰</div><strong>${key}</strong><p>Bâtiment sélectionné dans votre domaine.</p></div>`;$('#panel').classList.add('open');if(key==='chevaux'||key==='ecurie'){const t=$('#panelBody .tile');if(t){t.outerHTML=`<article class="tile">${championTile('<p>Vitesse</p><div class="bar"><i style="width:88%"></i></div>')}</article>`;paintThumbs()}}if(key==='courses'){const t=$('#panelBody .choice');if(t){t.querySelector('.horse').innerHTML=LIVERY.silkSVG(champion.get(),52);t.querySelector('strong').textContent=HN()+' • Niv. 8'}}const reward=$('[data-reward]');if(reward)reward.onclick=()=>{state.gold+=1500;sync();reward.disabled=true;reward.textContent='RÉCUPÉRÉ';toast('+ 1 500 or')};}
 $$('[data-panel]').forEach(b=>b.onclick=()=>openPanel(b.dataset.panel));
 $$('.nav').forEach(n=>n.onclick=()=>{$$('.nav').forEach(x=>x.classList.remove('active'));n.classList.add('active');if(n.dataset.view==='domaine'){$('#panel').classList.remove('open');village.deselect()}else openPanel(n.dataset.view)});
@@ -1748,6 +1751,9 @@ const photo=(()=>{const map=$('.race-map'),dots=Array.from({length:5},()=>{const
 hooks.on('race:tick',()=>photo.check());
 hooks.on('race:start',()=>photo.reset());
 hooks.on('race:end',()=>$('#fbStars').insertAdjacentHTML('afterbegin',photo.verdict()));
+/* tableau d'arrivée : écarts dans le vocabulaire des courses (une longueur ≈ 0,17 s à cette allure) */
+const ecart=g=>{if(g<.03)return'nez';if(g<.08)return'courte tête';if(g<.15)return'tête';if(g<.3)return'encolure';const L=Math.round(g/.17*4)/4;if(L>12)return'loin';const w=Math.floor(L),f=['','¼','½','¾'][Math.round((L-w)*4)%4];return `${w||''}${w&&f?' ':''}${f} long.`};
+hooks.on('race:end',()=>{$$('#finishRows tr').forEach((tr,i)=>{if(!i)return;const prev=raceFinishTimes[finishOrder[i-1]],cur=raceFinishTimes[finishOrder[i]],td=tr.children[3];if(td)td.innerHTML=`${td.textContent} <small class="lg">${ecart(cur-prev)}</small>`})});
 /* --- 31-heure.js --- */
 /* ===== Heure du domaine : la lumière du village suit l'heure réelle du joueur (matin, jour, soir, nuit) ===== */
 const heure=(()=>{const map=$('#map'),tod=document.createElement('div');tod.className='map-tod';map.appendChild(tod);
@@ -2104,6 +2110,36 @@ const defi=(()=>{
  // écart au fantôme, affiché en course
  gap=document.createElement('div');gap.className='ghost-gap';$('#raceScreen').appendChild(gap);
  return{meeting,field,select,today,get done(){return !!today().first}}})();
+/* --- 38-partage.js --- */
+/* ===== Partager son temps du Défi du jour : une carte image (1080×1350) envoyée par le partage natif du téléphone =====
+   Si le partage de fichiers n'existe pas (PC), l'image est téléchargée. Aucune donnée personnelle : nom du cheval, casaque, temps. */
+const partage=(()=>{
+ const W=1080,H=1350,svgImg=svg=>new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.includes('xmlns')?svg:svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'))});
+ async function card(){const T=defi.today(),M=defi.meeting(),h=stable.active(),liv={...stable.silks,coat:h.coat},c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  // fond : nuit bleue, liseré or, halo
+  let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0d2a47');g.addColorStop(1,'#061524');x.fillStyle=g;x.fillRect(0,0,W,H);
+  g=x.createRadialGradient(W/2,H*.42,40,W/2,H*.42,W*.75);g.addColorStop(0,'rgba(243,198,74,.28)');g.addColorStop(1,'rgba(243,198,74,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.strokeStyle='#e5bb5a';x.lineWidth=10;x.strokeRect(34,34,W-68,H-68);x.lineWidth=2;x.strokeRect(56,56,W-112,H-112);
+  x.textAlign='center';x.fillStyle='#ffe29a';x.font='900 64px Georgia,serif';x.fillText('THE ROYAL RACE',W/2,170);
+  x.fillStyle='#bfe6ff';x.font='700 40px system-ui,sans-serif';x.fillText(`DÉFI DU JOUR · ${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long'}).toUpperCase()}`,W/2,240);
+  x.fillStyle='#d5e1ea';x.font='600 34px system-ui,sans-serif';x.fillText(`${fmt(M.dist)} m · terrain ${TERRAINS[M.terrain].n.toLowerCase()} · même course pour tous`,W/2,295);
+  // casaque de l'écurie
+  const img=await svgImg(LIVERY.silkSVG(liv,300));if(img)x.drawImage(img,W/2-150,340,300,300);
+  x.fillStyle='#fff';x.font='800 58px Georgia,serif';x.fillText(h.name,W/2,720);
+  // le temps
+  x.fillStyle='#ffe29a';x.font='900 190px Georgia,serif';x.fillText(`${T.best.toFixed(2).replace('.',',')} s`,W/2,930);
+  x.fillStyle='#d5e1ea';x.font='700 38px system-ui,sans-serif';x.fillText(`meilleur temps en ${T.tries} essai${T.tries>1?'s':''}`,W/2,995);
+  // l'appel au défi
+  x.fillStyle='#9dffab';x.font='900 62px system-ui,sans-serif';x.fillText('Tu fais mieux ?',W/2,1135);
+  x.fillStyle='#8fb0c8';x.font='600 30px system-ui,sans-serif';x.fillText(location.host+location.pathname.replace(/index\.html$/,''),W/2,1220);
+  return new Promise(res=>c.toBlob(b=>res(b),'image/png'))}
+ async function share(){try{const b=await card(),T=defi.today(),name=`royal-race-defi-${T.day}.png`,f=new File([b],name,{type:'image/png'}),url=location.origin+location.pathname,text=`Défi du jour The Royal Race : ${T.best.toFixed(2).replace('.',',')} s avec ${stable.active().name}. Tu fais mieux ? ${url}`;
+   if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text,title:'The Royal Race'});return}
+   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast('Image enregistrée : partage-la où tu veux')}
+  catch(e){if(e&&e.name!=='AbortError')toast('Partage impossible sur cet appareil')}}
+ // bouton sous le bilan du défi
+ hooks.on('race:end',()=>{if(!RACE.defi||!defi.today().best)return;$('#fbGain').insertAdjacentHTML('beforeend','<br><button class="action" id="defiShare">📤 PARTAGER MON TEMPS</button>');$('#defiShare').onclick=e=>{e.stopPropagation();share()}});
+ return{card,share}})();
 </script>
 </body>
 </html>

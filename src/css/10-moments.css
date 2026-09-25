@@ -94,3 +94,14 @@
     .pause-card{display:flex;flex-direction:column;align-items:center;gap:12px;padding:26px 30px;border-radius:20px;background:linear-gradient(#0d2a47f5,#071a2df5);border:2px solid #e5bb5a;min-width:260px}
     .pause-card strong{font:900 34px Georgia,serif;letter-spacing:.12em;color:#ffe29a}.pause-cd{font:900 64px Georgia,serif;color:#fff;min-height:0}
     .pause-card.counting button{display:none}.pause-card:not(.counting) .pause-cd{display:none}.pause-card .action{min-width:220px}
+    /* ===== Replay télévisé ===== */
+    .race-screen.tv .steer,.race-screen.tv .sprint-btn,.race-screen.tv .auto-gallop,.race-screen.tv .look,.race-screen.tv .moment,.race-screen.tv .mo-news,.race-screen.tv .go-btn,.race-screen.tv .race-call,.race-screen.tv .draft,.race-screen.tv .ghost-gap,.race-screen.tv .race-pause{display:none!important}
+    .tv-bar{position:absolute;z-index:12;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:none;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-radius:999px;background:#06131ddd;border:1px solid #ffffff33;box-shadow:0 8px 24px #0008;white-space:nowrap}
+    .race-screen.tv .tv-bar{display:flex}.tv-live{color:#ff5a5a;font:900 12px system-ui;letter-spacing:.12em;animation:tvBlink 1.2s steps(2) infinite}@keyframes tvBlink{50%{opacity:.35}}
+    .tv-bar b{font:800 14px Georgia,serif;color:#ffe29a;max-width:38vw;overflow:hidden;text-overflow:ellipsis}.tv-bar button{border:0;border-radius:999px;padding:7px 12px;font:800 12px system-ui;background:#2a5a86;color:#fff;cursor:pointer}
+    #tvBtn{margin-bottom:10px;background:linear-gradient(#3aa0e0,#1c5f9c);color:#fff}#tvBtn[hidden]{display:none}
+    /* ===== Installer le jeu ===== */
+    .install-card{position:absolute;z-index:75;left:50%;bottom:calc(200px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(460px,calc(100% - 24px));display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:18px;background:linear-gradient(#0d2a47f5,#071a2df5);border:2px solid #e5bb5a;box-shadow:0 14px 40px #000a;animation:moIn .3s ease}
+    .install-card[hidden]{display:none}.ic-icon img{width:56px;height:56px;border-radius:14px;box-shadow:0 4px 12px #0008}
+    .ic-body b{font:800 17px Georgia,serif;color:#ffe29a}.ic-body p{margin:4px 0 10px;font-size:13.5px;line-height:1.4;color:#d9e4ee}.ic-body div{display:flex;gap:8px;flex-wrap:wrap}.ic-share{display:inline-block;padding:0 5px;border:1px solid #ffffff55;border-radius:5px}
+    .set-install{margin-bottom:12px}

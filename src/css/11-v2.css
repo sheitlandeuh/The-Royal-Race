@@ -22,3 +22,30 @@
 .dom-btn{margin-top:auto;display:flex;flex-direction:column;gap:4px}.dom-btn .action{width:100%;font-size:13px}.dom-lock{display:block;text-align:center;padding:9px;border-radius:10px;background:#ffffff0d;color:#c9d7e2;font-weight:800;font-size:13px}.dom-why{color:#ffb4a0;text-align:center}
 .bld-harvest[hidden]{display:none}
 .card .dom header{justify-content:flex-start;border:0;padding:0}
+/* ----- ventes aux enchères ----- */
+.lots{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:12px}
+.lot{display:flex;gap:12px;padding:12px;border-radius:16px;background:#ffffff0c;border:1px solid #dcb05a55}
+.lot.star{border-color:#ffd66b;background:linear-gradient(140deg,#f3c64a1f,#ffffff08);box-shadow:inset 0 0 0 1px #ffd66b33}
+.lot.sold{opacity:.72}
+.lot-pic{position:relative;flex:0 0 112px}.lot-pic canvas{width:112px;height:142px;border-radius:12px;background:radial-gradient(circle at 50% 30%,#2f6b3a,#0f2a18);display:block}
+.lot-n{position:absolute;left:6px;top:6px;padding:3px 7px;border-radius:7px;background:#071a2de6;border:1px solid #f1c75a;font:900 11px/1 ui-sans-serif,system-ui;color:#ffe09a}
+.lot-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.lot-info>b{font:800 18px Georgia,serif;color:#fff3cf}.lot-info>small{color:#9fb3c2;font-size:12px}
+.lot-type{align-self:flex-start;font-style:normal;font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:#ffffff18;color:#d5e1ea}
+.lot-type.t-vedette{background:linear-gradient(#ffd66b,#c68a22);color:#2b1a02}.lot-type.t-yearling{background:#55c75633;color:#bff0bf}.lot-type.t-specialiste{background:#3aa0e033;color:#bfe6ff}
+.lot-kpi{display:flex;gap:8px}.lot-kpi>div{flex:1;text-align:center;padding:6px 4px;border-radius:10px;background:#00000029}.lot-kpi b{display:block;font-size:15px;color:#fff}.lot-kpi small{display:block;font-size:10px;color:#9fb3c2;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.lot-t,.lot-est{margin:0;font-size:12px;color:#c9d7e2}.lot-est b{color:#ffe09a}
+.lot-sold{display:block;text-align:center;padding:8px;border-radius:10px;background:#ffffff12;font-weight:800;font-size:13px}
+.auc{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;align-items:start}.auc .lots{grid-template-columns:1fr;margin-top:0}
+.auc-live{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;border-radius:18px;background:linear-gradient(160deg,#173b5d,#071a2d);border:2px solid #e6b84e;text-align:center}
+.auc-live>small{letter-spacing:.2em;color:#e8c875;font-weight:900;font-size:11px}
+.auc-price{font:900 40px/1 Georgia,serif;color:#ffe29a;text-shadow:0 2px 0 #0008}
+.auc-top{display:flex;align-items:center;gap:6px;font-weight:800;color:#fff}
+.auc-face{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#ffffff1c;font-size:17px;flex:0 0 30px}.auc-face.me{background:#ffffff;overflow:hidden}.auc-face svg{display:block}
+.auc-call{display:flex;gap:6px}.auc-call i{width:34px;height:8px;border-radius:4px;background:#ffffff22;transition:.2s}.auc-call i.on{background:#e84e4e;box-shadow:0 0 10px #e84e4e}
+.auc-say{margin:0;font:800 18px Georgia,serif;color:#d5e1ea;min-height:24px}.auc-say.hot{color:#ff9d7a;animation:haloPulse 1s ease-in-out infinite}
+.auc-bidders{display:flex;gap:10px;justify-content:center}.auc-bidders span{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 8px;border-radius:12px;border:1px solid transparent}
+.auc-bidders span.top{border-color:#ffd66b;background:#ffd66b1f}.auc-bidders span.out{opacity:.35;filter:grayscale(1)}.auc-bidders small{font-size:11px;color:#c9d7e2}
+.auc-log{list-style:none;margin:0;padding:0;width:100%;font-size:13px;color:#c9d7e2;min-height:60px}.auc-log li{display:flex;align-items:center;gap:6px;padding:3px 0;justify-content:center}.auc-log li:first-child{color:#fff;font-weight:700}.auc-log .auc-face{width:22px;height:22px;flex-basis:22px;font-size:13px}
+.auc-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}.auc-btns .action{flex:1;min-width:150px}.auc-btns small{width:100%}
+@media(max-width:850px){.auc{grid-template-columns:1fr}.lots{grid-template-columns:1fr}.lot-pic{flex-basis:92px}.lot-pic canvas{width:92px;height:118px}.auc-price{font-size:34px}}

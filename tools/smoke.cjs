@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const URL = process.env.URL || 'http://localhost:8765/index.html';
 const shotsDir = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 const MODULES = ['hooks', 'stable', 'career', 'meta', 'season', 'breeding', 'rival', 'gear', 'tour', 'palmares', 'shop', 'moments', 'pace', 'ambiance', 'photo',
-  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'pauseRace', 'tele', 'installer', 'speaker', 'jockeys'];
+  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'pauseRace', 'tele', 'installer', 'speaker', 'jockeys', 'domaine'];
 const CHAMPION = { name: 'Éclair de Lune', coat: 'alezan', main: '#c21c27', second: '#f4f2ec', pattern: 'chevrons', cap: '#f4f2ec' };
 // chaque profil : état de départ (localStorage) + éventuellement du code joué dans le jeu avant de recharger la page
 const PROFILES = {
@@ -49,6 +49,7 @@ const SCREENS = [
       await p.goto(URL); await p.waitForTimeout(2200);
       if (P.setup) { await p.evaluate(P.setup).catch(e => errs.push('setup: ' + e.message)); await p.reload(); await p.waitForTimeout(2200) }
       const missing = await p.evaluate(list => list.filter(m => { try { return eval(`typeof ${m}`) === 'undefined' } catch (e) { return true } }), MODULES);
+      const ko = await p.evaluate(() => window.__modulesKo || ['chargeur des modules absent']); if (ko.length) errs.push('modules en échec au chargement : ' + ko.join(', '));
       for (const [screen, js] of SCREENS) {
         await p.evaluate(`try{while(coach.open)coach.hide()}catch(e){};${js}`).catch(e => errs.push(`${screen}: ${e.message}`));
         await p.waitForTimeout(shotsDir ? 700 : 150);

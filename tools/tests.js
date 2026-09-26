@@ -11,7 +11,7 @@ export async function run({ quick = false } = {}) {
   career.data.stats.races = 10; // joueur confirmé (le plateau débutant fausserait l'équilibrage)
   try {
     // 1. modules présents
-    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys'];
+    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine'];
     const missing = mods.filter(m => { try { return typeof eval(m) === 'undefined' } catch (e) { return true } });
     pass('Modules chargés', !missing.length, missing.length ? 'manquants : ' + missing.join(', ') : `${mods.length} modules`); await tick();
 
@@ -51,7 +51,17 @@ export async function run({ quick = false } = {}) {
     { const sig = () => JSON.stringify(defi.field().rivals.map(r => [r.stats, r.tac, r.pref, r.talent])); const a = sig(); stable.setActive('h2'); career.data.stats.races = 2; const b = sig(); stable.setActive(savedActive);
       pass('Défi du jour identique pour tous', a === b, `graine ${defi.meeting().seed} · ${defi.meeting().dist} m`) }
 
-    // 7. aucun contenu factice visible
+    // 7. domaine : chaque niveau a un effet réel (entraînement, allocations, places, récupération)
+    { const keep = { ...domainLv }, h = stable.active(), g = () => stable.preview(h, SESSIONS[0], 'normal').gain.vit[1], m = MEETINGS[1];
+      const lv = n => { Object.keys(domainLv).forEach(k => delete domainLv[k]); ['haras', 'hippodrome', 'ecurie', 'carriere', 'paddocks', 'clinique', 'moulin'].forEach(k => domainLv[k] = n) };
+      lv(1); const a = [g(), purseOf(m), stableMax(), dfx('paddocks'), stable.careCost(CARE[1]).gold]; lv(4); const b = [g(), purseOf(m), stableMax(), dfx('paddocks'), stable.careCost(CARE[1]).gold];
+      Object.keys(domainLv).forEach(k => delete domainLv[k]); Object.assign(domainLv, keep);
+      pass('Domaine : effets réels des niveaux', b[0] > a[0] * 1.14 && b[1] > a[1] && b[2] === a[2] + 3 && b[3] > a[3] && b[4] < a[4], `niveau 1 → 4 : gains ×${(b[0] / a[0]).toFixed(2)} · allocation ${fmt(a[1])} → ${fmt(b[1])} · places ${a[2]} → ${b[2]} · soins ${fmt(a[4])} → ${fmt(b[4])} or`) }
+
+    // 8. chargement : aucun module en échec
+    pass('Tous les modules se sont chargés', !(window.__modulesKo || []).length, (window.__modulesKo || []).join(', ') || 'aucun échec');
+
+    // 9. aucun contenu factice visible
     const txt = document.body.innerText, bad = ['bientôt', 'Lorem', 'TODO', 'undefined', 'NaN'].filter(w => txt.includes(w));
     pass('Aucun texte factice ou cassé', !bad.length, bad.length ? 'trouvé : ' + bad.join(', ') : 'rien trouvé');
   } finally {

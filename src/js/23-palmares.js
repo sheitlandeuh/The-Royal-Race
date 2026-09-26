@@ -20,7 +20,14 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
   ['or','Ligue Or','🟡','Atteins la ligue Or',()=>C.best||0,900,{gems:30}],
   ['cup5','Seigneur des tournois','👑','Remporte 5 Tournois royaux',()=>tour.cups,5,{gems:60}],
   ['win50','Légende des pistes','🏛️','Gagne 50 courses',()=>S().wins,50,{gems:50}],
-  ['royale','Ligue Royale','💜','Atteins la ligue Royale',()=>C.best||0,1800,{gems:80}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
+  ['royale','Ligue Royale','💜','Atteins la ligue Royale',()=>C.best||0,1800,{gems:80}],
+  // V2 : domaine, ventes, Légendes, duels, Couronne (lus dans les données, sans dépendre des modules chargés plus loin)
+  ['batisseur','Bâtisseur','🏗️','Monte un bâtiment au niveau 3',()=>Math.max(1,...Object.values(domainLv)),3,{gems:10}],
+  ['domaine5','Domaine royal','🏰','Monte les sept bâtiments au niveau 5',()=>Math.min(...['haras','hippodrome','ecurie','carriere','paddocks','clinique','moulin'].map(dlv)),5,{gems:60}],
+  ['enchere','Coup de marteau','🔨','Achète un cheval aux enchères',()=>C.ventes?.bought||0,1,{gems:10}],
+  ['legende','Entrée dans l’histoire','🎖️','Mets un cheval à la retraite',()=>(C.legendes||[]).length,1,{gems:15}],
+  ['duel3','Duelliste','⚔️','Gagne 3 duels contre des amis',()=>{try{return JSON.parse(localStorage.getItem('trr.duels')||'{}').wins||0}catch(e){return 0}},3,{gems:15}],
+  ['couronne','Vainqueur de la Couronne','👑','Remporte le Grand Prix de la Couronne',()=>(C.couronne?.done||[]).includes('c6')?1:0,1,{gems:80}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
  const rtxt=r=>r.gems?`💎 ${r.gems}`:`🪙 ${fmt(r.gold)}`,done=a=>{try{return a.p()>=a.goal}catch(e){return false}};
  function sample(){const H=stable.data.horses;A.horses=Math.max(A.horses,H.length);A.lvl=Math.max(A.lvl,...H.map(h=>h.level));A.foals=Math.max(A.foals,H.filter(h=>h.parents).length)}
  function check(silent){sample();let n=0;for(const a of LIST){if(done(a)&&!A.seen.includes(a.id)){A.seen.push(a.id);if(!silent)toast(`${a.i} Succès débloqué : ${a.n}`);n++}}save();badge();return n}
@@ -35,4 +42,5 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
    <div class="achs">${order.map(a=>{const v=Math.min(a.goal,a.p()),ok=v>=a.goal,g=A.got.includes(a.id);return `<article class="ach${ok?' ok':''}${g?' got':''}"><i>${a.i}</i><div><b>${a.n}</b><small>${a.d}</small><div class="bar"><i style="width:${v/a.goal*100}%"></i></div><small>${a.goal>=1000?fmt(v)+' / '+fmt(a.goal):v+' / '+a.goal}</small></div>${g?'<span class="chip">✓</span>':`<button class="action green" data-ach="${a.id}" ${ok?'':'disabled'}>${rtxt(a.r)}</button>`}</article>`}).join('')}</div>`;
   $('#panel').classList.add('open')}
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-ach]');if(b)claim(b.dataset.ach)});
- check(true);return{open,onRace,check,badge}})();
+ check(true);['domaine:fini','legende','couronne','vente:fin'].forEach(e=>hooks.on(e,()=>check()));hooks.on('duel:end',()=>setTimeout(()=>check(),50));
+ return{open,onRace,check,badge}})();

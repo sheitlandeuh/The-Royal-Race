@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const URL = process.env.URL || 'http://localhost:8765/index.html';
 const shotsDir = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 const MODULES = ['hooks', 'stable', 'career', 'meta', 'season', 'breeding', 'rival', 'gear', 'tour', 'palmares', 'shop', 'moments', 'pace', 'ambiance', 'photo',
-  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'pauseRace', 'tele', 'installer', 'speaker', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne'];
+  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'pauseRace', 'tele', 'installer', 'speaker', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes'];
 const CHAMPION = { name: 'Éclair de Lune', coat: 'alezan', main: '#c21c27', second: '#f4f2ec', pattern: 'chevrons', cap: '#f4f2ec' };
 // chaque profil : état de départ (localStorage) + éventuellement du code joué dans le jeu avant de recharger la page
 const PROFILES = {
@@ -34,6 +34,7 @@ const SCREENS = [
   ['haras', `breeding.open()`], ['batiment', `document.querySelector('#panel').classList.remove('open');village.select('moulin')`],
   ['batiments', `typeof domaine!=='undefined'&&domaine.open('carriere')`], ['ventes', `typeof ventes!=='undefined'&&ventes.open()`],
   ['legendes', `typeof legendes!=='undefined'&&legendes.open()`], ['couronne', `typeof couronne!=='undefined'&&couronne.open()`],
+  ['nouveautes', `typeof nouveautes!=='undefined'&&nouveautes.open()`], ['duel', `typeof duel!=='undefined'&&duel.list.length&&duel.card(duel.list[0])`],
 ];
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });

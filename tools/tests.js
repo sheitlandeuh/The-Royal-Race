@@ -11,7 +11,7 @@ export async function run({ quick = false } = {}) {
   career.data.stats.races = 10; // joueur confirmé (le plateau débutant fausserait l'équilibrage)
   try {
     // 1. modules présents
-    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel'];
+    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes'];
     const missing = mods.filter(m => { try { return typeof eval(m) === 'undefined' } catch (e) { return true } });
     pass('Modules chargés', !missing.length, missing.length ? 'manquants : ' + missing.join(', ') : `${mods.length} modules`); await tick();
 
@@ -38,7 +38,9 @@ export async function run({ quick = false } = {}) {
 
     // 4. temps forts : la politique « malin » ne fait pas moins bien que toujours oui / toujours non
     const A = { tire: 'a', breche: 'a', attaque: 'a' }; let okM = 0; const det2 = [];
-    for (const m of ['m1', 'm3']) { const r = await bot.run([[m + ' non', {}, m, 'stalker', N], [m + ' oui', A, m, 'stalker', N], [m + ' malin', bot.smart, m, 'stalker', N]]);
+    // 30 courses au moins, même en mode rapide : sur 16, trois ou quatre temps forts suffisent à faire basculer la moyenne
+    const NM = Math.max(N, 30);
+    for (const m of ['m1', 'm3']) { const r = await bot.run([[m + ' non', {}, m, 'stalker', NM], [m + ' oui', A, m, 'stalker', NM], [m + ' malin', bot.smart, m, 'stalker', NM]]);
       const s = rk(r[m + ' malin']), best = Math.min(rk(r[m + ' non']), rk(r[m + ' oui'])); if (s <= best + .15) okM++; det2.push(`${m} malin ${s} / meilleur fixe ${best}`) }
     pass('Temps forts : lire la course ne pénalise pas', okM === 2, det2.join(' · ')); await tick();
 
@@ -64,10 +66,21 @@ export async function run({ quick = false } = {}) {
       const inj = JSON.parse(JSON.stringify(back)); inj.field.rivals[0].livery.main = '"><img src=x onerror=alert(1)>';
       pass('Duel : lien vérifié, fantôme tracé, triche refusée', duel.valid(back) && v.ok && v.track.p.length > 100 && ko && !duel.valid(inj), `lien ${code.length} caractères · trajectoire ${v.track.p.length} pas · temps truqué refusé ${ko ? 'oui' : 'NON'} · couleurs piégées refusées ${!duel.valid(inj) ? 'oui' : 'NON'}`) }
 
-    // 9. chargement : aucun module en échec
+    // 9. La Couronne : un chapitre réussi débloque sa récompense (plateau affaibli pour garantir l'objectif)
+    { const keepRace = RACE; couronne.select('c1'); RACE.diff = -40; currentField = null; buildField(1234); stable.active().fatigue = 10; state.feed = 99999;
+      bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); threeRace.startPhase = 'waiting'; threeRace.goTime = performance.now() - 150; launchFromStalls(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+      while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
+      raceLoop = null; const ok = career.data.couronne.done.includes('c1') && career.data.unlocks.includes('echarpe'); leaveRace(); while (coach.open) coach.hide(); RACE = keepRace; $('#panel').classList.remove('open');
+      pass('Couronne : chapitre réussi et récompensé', ok, `rang ${finishOrder.indexOf(0) + 1} · Black Majesty ${finishOrder.indexOf(1) + 1}e · motif Écharpe ${ok ? 'débloqué' : 'NON débloqué'}`) }
+
+    // 10. ventes : le catalogue du jour ne dépend que de la ligue (même vente pour tous les joueurs d'une ligue)
+    { const sig = () => JSON.stringify(ventes.lots().map(l => [l.type, l.stats, l.pot, l.value, l.talent])); const a = sig(); const h = stable.active(), k = { ...h.stats }; h.stats.vit += 9; stable.setActive('h2'); const b = sig(); Object.assign(h.stats, k); stable.setActive(savedActive);
+      pass('Ventes : même catalogue pour une ligue', a === b, `${ventes.lots().length} lots · ${ventes.lots().map(l => l.type).join(', ')}`) }
+
+    // 11. chargement : aucun module en échec
     pass('Tous les modules se sont chargés', !(window.__modulesKo || []).length, (window.__modulesKo || []).join(', ') || 'aucun échec');
 
-    // 10. aucun contenu factice visible
+    // 12. aucun contenu factice visible
     const txt = document.body.innerText, bad = ['bientôt', 'Lorem', 'TODO', 'undefined', 'NaN'].filter(w => txt.includes(w));
     pass('Aucun texte factice ou cassé', !bad.length, bad.length ? 'trouvé : ' + bad.join(', ') : 'rien trouvé');
   } finally {

@@ -21,7 +21,7 @@ $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');
  else if(b.id==='doImport'){if(!b.dataset.armed){b.dataset.armed=1;b.textContent='CONFIRMER : la partie actuelle sera remplacée';return}if(saveCode.import($('#importCode').value)){toast('Partie importée !');setTimeout(()=>location.reload(),600)}else{toast('Code invalide');delete b.dataset.armed;b.textContent='IMPORTER (remplace la partie actuelle)'}}});
 // 4) erreurs : message clair plutôt qu'un jeu bloqué sans explication
 {let last=0;const oops=m=>{console.error(m);const now=Date.now();if(now-last<8000)return;last=now;toast('Petit souci technique : si le jeu se bloque, recharge la page (ta partie est sauvegardée)')};
- addEventListener('error',e=>{if(e.filename&&!/index\.html|^$/.test(e.filename.split('/').pop()||''))return;oops(e.message)});addEventListener('unhandledrejection',e=>oops(e.reason))}
+ addEventListener('error',e=>{if(e.filename&&!/index\.html|^\d\d-[\w-]+\.js$|^$/.test(e.filename.split('/').pop()||''))return;oops(e.message)});addEventListener('unhandledrejection',e=>oops(e.reason))}
 // 5) le téléphone reprend la mémoire graphique (appel, changement d'appli…) : on annule proprement la course et on rembourse
 $('#race3d')?.addEventListener('webglcontextlost',e=>{e.preventDefault();if($('#raceScreen').classList.contains('open')&&!finishOrder.length){state.feed+=RACE.fee||0;sync();leaveRace();toast('Affichage 3D interrompu : course annulée, engagement remboursé')}});
 $('#race3d')?.addEventListener('webglcontextrestored',()=>{try{threeRace&&threeRace.renderer.setSize(1,1,false);threeRace.lastW=0}catch(e){}});

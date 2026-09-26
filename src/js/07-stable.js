@@ -36,7 +36,7 @@ const stable=(()=>{
  if(S.res)Object.assign(state,S.res);S.horses.forEach(h=>{if(!h.talent)h.talent=h.rare?'coeur':{h1:'finisseur',h2:'increvable',h3:'fusee'}[h.id]||'metronome'});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  // récupération en temps réel : la fatigue baisse, la forme revient vers la moyenne
- function tick(){const now=Date.now(),hrs=Math.max(0,(now-S.lastT)/36e5);if(hrs<.001)return;S.lastT=now;for(const h of S.horses){h.fatigue=clamp(h.fatigue-9*hrs,0,100);h.moral=clamp(h.moral+(72-h.moral)*Math.min(1,hrs*.08),0,100);h.form=clamp(h.form+(58-h.form)*Math.min(1,hrs*.02),0,100);if(h.injury&&now>h.injury)h.injury=0}}
+ function tick(){const now=Date.now(),hrs=Math.max(0,(now-S.lastT)/36e5);if(hrs<.001)return;S.lastT=now;for(const h of S.horses){h.fatigue=clamp(h.fatigue-9*hrs*dfx('paddocks'),0,100);h.moral=clamp(h.moral+(72-h.moral)*Math.min(1,hrs*.08),0,100);h.form=clamp(h.form+(58-h.form)*Math.min(1,hrs*.02),0,100);if(h.injury&&now>h.injury)h.injury=0}}
  tick();
  const byId=id=>S.horses.find(h=>h.id===id)||S.horses[0];
  const log=(h,t)=>{h.log.unshift({t,at:Date.now()});h.log.length=Math.min(h.log.length,12)};
@@ -44,15 +44,17 @@ const stable=(()=>{
  const canPay=c=>(c.gold||0)<=state.gold&&(c.feed||0)<=state.feed;
  const pay=c=>{state.gold-=c.gold||0;state.feed-=c.feed||0;sync()};
  const room=(h,k)=>clamp((h.caps[k]-h.stats[k])/Math.max(6,h.caps[k]-35),0,1);
- function preview(h,ses,int){const I=INTENS.find(x=>x.id===int)||INTENS[1],out={};for(const[k,b]of Object.entries(ses.gain)){const g=b*I.g*Math.pow(room(h,k),.75)*(h.fatigue>70?.55:1)*(.85+h.form/400);out[k]=[g*.8,g*1.2]}return{gain:out,fat:Math.round(ses.fat*I.f),risk:h.fatigue+ses.fat*I.f>85&&I.id==='intensif'?'élevé':h.fatigue+ses.fat*I.f>92?'modéré':'faible'}}
+ function preview(h,ses,int){const I=INTENS.find(x=>x.id===int)||INTENS[1],out={};for(const[k,b]of Object.entries(ses.gain)){const g=b*I.g*Math.pow(room(h,k),.75)*(h.fatigue>70?.55:1)*(.85+h.form/400)*dfx('carriere');out[k]=[g*.8,g*1.2]}return{gain:out,fat:Math.round(ses.fat*I.f),risk:h.fatigue+ses.fat*I.f>85&&I.id==='intensif'?'élevé':h.fatigue+ses.fat*I.f>92?'modéré':'faible'}}
  function train(id,sesId,int){tick();const h=byId(id),ses=SESSIONS.find(s=>s.id===sesId),I=INTENS.find(x=>x.id===int)||INTENS[1];
   if(h.injury)return{err:`${h.name} est blessé : passe par la clinique.`};if(h.fatigue>=95)return{err:`${h.name} est épuisé. Laisse-le se reposer.`};if(!canPay(ses.cost))return{err:ses.cost.gold?'Or insuffisant':'Fourrage insuffisant'};
   pay(ses.cost);const p=preview(h,ses,int),delta={};for(const[k,[a,b]]of Object.entries(p.gain)){const g=a+Math.random()*(b-a),before=h.stats[k];h.stats[k]=Math.min(h.caps[k],+(h.stats[k]+g).toFixed(2));delta[k]=h.stats[k]-before}
   h.fatigue=clamp(h.fatigue+p.fat,0,100);h.form=clamp(h.form+(h.fatigue<70?1.5:-3),0,100);h.moral=clamp(h.moral+(I.id==='intensif'?-4:I.id==='leger'?2:0),0,100);
-  let hurt=false;if(I.id==='intensif'&&h.fatigue>85&&Math.random()<.3){h.injury=Date.now()+30*60e3;hurt=true}
+  let hurt=false;if(I.id==='intensif'&&h.fatigue>85&&Math.random()<.3*dfx('clinique')){h.injury=Date.now()+30*60e3*dfx('clinique');hurt=true}
   const up=gainXP(h,Math.round(22*I.g));log(h,`${ses.n} (${I.n.toLowerCase()}) : `+Object.entries(delta).map(([k,d])=>`${STATS.find(s=>s.k===k).n} +${d.toFixed(1)}`).join(', '));save();return{delta,hurt,up,h}}
- function care(id,cId){tick();const h=byId(id),c=CARE.find(x=>x.id===cId);if(!canPay(c.cost))return{err:c.cost.gold?'Or insuffisant':'Fourrage insuffisant'};pay(c.cost);
-  h.fatigue=clamp(h.fatigue+(c.fat||0),0,100);h.form=clamp(h.form+(c.form||0),0,100);h.moral=clamp(h.moral+(c.moral||0),0,100);if(c.heal)h.injury=0;log(h,c.n);save();return{h}}
+ // la clinique réduit le coût des soins, les paddocks renforcent le repos au pré
+ const careCost=c=>c.cost.gold?{...c.cost,gold:Math.round(c.cost.gold*dfx('clinique')/50)*50}:c.cost,careFat=c=>Math.round((c.fat||0)*(c.id==='repos'?dfx('paddocks'):1));
+ function care(id,cId){tick();const h=byId(id),c=CARE.find(x=>x.id===cId),cost=careCost(c);if(!canPay(cost))return{err:cost.gold?'Or insuffisant':'Fourrage insuffisant'};pay(cost);
+  h.fatigue=clamp(h.fatigue+careFat(c),0,100);h.form=clamp(h.form+(c.form||0),0,100);h.moral=clamp(h.moral+(c.moral||0),0,100);if(c.heal)h.injury=0;log(h,c.n);save();return{h}}
  function elixir(id){const h=byId(id);const up=gainXP(h,150);log(h,'Élixir d’XP : +150 XP');save();return up}
  function spend(id,k){const h=byId(id);if(h.points<1||h.stats[k]>=h.caps[k])return false;h.points--;h.stats[k]=Math.min(h.caps[k],h.stats[k]+1);save();return true}
  function afterRace(id,rank,field){const h=byId(id);h.races++;if(rank===1)h.wins++;if(rank<=3)h.places++;h.fatigue=clamp(h.fatigue+24,0,100);h.form=clamp(h.form+(rank===1?5:rank<=3?2:-2),0,100);h.moral=clamp(h.moral+(rank===1?10:rank<=3?4:-3),0,100);
@@ -64,7 +66,7 @@ const stable=(()=>{
  function rivals(ref,n=5,seed=Date.now()){let x=seed%2147483646+1;const r=()=>(x=(x*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{const base=ref-7+r()*14,st={};for(const s of STATS)st[s.k]=clamp(base+(r()-.5)*22,35,99);return{stats:st,pref:DISTS[Math.floor(r()*4)][0],talent:Object.keys(TALENTS)[Math.floor(r()*6)]}})}
  function addHorse(o){if(S.horses.some(h=>h.name===o.name))return false;const h=mk('h'+(S.horses.length+1)+Date.now()%1000,o.name,o.coat,o.stats,o.caps,o.dist,o.level,o.talent||'coeur');h.rare=!!o.rare;S.horses.push(h);log(h,'Arrivée à l’écurie');save();return h}
  function removeHorse(id){if(S.horses.length<2||id===S.active)return false;S.horses=S.horses.filter(h=>h.id!==id);save();return true}
- return{removeHorse,elixir,addHorse,get data(){return S},save,tick,active:()=>byId(S.active),byId,setActive(id){S.active=id;save()},train,care,spend,afterRace,preview,racePerf,rivals,rating,room,
+ return{careCost,careFat,removeHorse,elixir,addHorse,get data(){return S},save,tick,active:()=>byId(S.active),byId,setActive(id){S.active=id;save()},train,care,spend,afterRace,preview,racePerf,rivals,rating,room,
   get silks(){return S.silks},set silks(v){S.silks=v},get created(){return S.created},set created(v){S.created=v}}})();
 setInterval(()=>{stable.tick();stable.save()},60e3);
 /* champion = couleurs du propriétaire + robe/nom du cheval actif (API utilisée par l’atelier et la course) */

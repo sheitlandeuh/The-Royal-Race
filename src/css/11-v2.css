@@ -1,3 +1,24 @@
 /* ===== V2 ===== */
 /* réglages accessibles sur téléphone (le bouton était masqué sous 850 px) */
 @media(max-width:850px){.resources .gear{display:flex;position:absolute;right:0;top:44px;width:36px;height:36px;min-width:36px;padding:0;font-size:18px}}
+/* ----- domaine : niveaux, travaux, récoltes ----- */
+.bld-tag em{font-style:normal}
+.bld-harvest{position:absolute;z-index:3;transform:translate(-50%,-100%) scale(var(--inv,1));transform-origin:50% 100%;display:flex;align-items:center;gap:5px;padding:6px 11px 6px 8px;border-radius:999px;border:2px solid #fff3c4;background:linear-gradient(#6fdc5c,#2b9a2d);color:#fff;font:900 14px/1 ui-sans-serif,system-ui;box-shadow:0 6px 16px #0009;animation:harvestBob 1.6s ease-in-out infinite}
+.bld-harvest b{text-shadow:0 1px 2px #0008}.bld-harvest:hover{filter:brightness(1.12)}
+@keyframes harvestBob{0%,100%{margin-top:0}50%{margin-top:-6px}}
+.sel-prog{display:block;height:6px;margin-top:6px;border-radius:9px;background:#0002;overflow:hidden}.sel-prog i{display:block;height:100%;background:linear-gradient(90deg,#eeb93d,#55c756)}
+#upgradeBtn small{font-size:11px;font-weight:800}
+.resource.builder{cursor:pointer}
+.dom-prods{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:10px 0}
+.dom-prod{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:#ffffff0d;border:1px solid #dcb05a55}.dom-prod>i{font-style:normal;font-size:30px}.dom-prod>div{flex:1;min-width:0}.dom-prod small{display:block;color:#c9d7e2;margin:2px 0 6px}
+.dom-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:12px}
+.dom{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;background:#ffffff0c;border:1px solid #dcb05a55}
+.dom.focus{border-color:#ffd66b;box-shadow:0 0 0 2px #ffd66b55,0 8px 20px #0006}.dom.working{background:#2a6e2a1f}
+.dom header{display:flex;gap:10px;align-items:center}.dom header>i{font-style:normal;font-size:30px;width:46px;height:46px;display:grid;place-items:center;border-radius:12px;background:#ffffff14}
+.dom header b{display:block;font:800 16px Georgia,serif;color:#fff3cf}
+.pips{display:flex;gap:4px;margin-top:5px}.pips i{width:16px;height:6px;border-radius:3px;background:#ffffff24}.pips i.on{background:linear-gradient(90deg,#ffd66b,#e3a93a)}.pips i.go{background:#55c756;animation:haloPulse 1.4s ease-in-out infinite}
+.dom ul{margin:0;padding:0;list-style:none;font-size:13px;color:#d5e1ea}.dom ul li{padding:2px 0}.dom ul.now li::before{content:'✓ ';color:#9fe39f}
+.dom ul.next{padding:6px 8px;border-radius:10px;background:#00000029;color:#bcd0de}.dom ul.next li.h{font-weight:900;color:#ffe09a;font-size:11px;letter-spacing:.06em;text-transform:uppercase}.dom ul.next li:not(.h)::before{content:'→ ';color:#ffd66b}
+.dom-btn{margin-top:auto;display:flex;flex-direction:column;gap:4px}.dom-btn .action{width:100%;font-size:13px}.dom-lock{display:block;text-align:center;padding:9px;border-radius:10px;background:#ffffff0d;color:#c9d7e2;font-weight:800;font-size:13px}.dom-why{color:#ffb4a0;text-align:center}
+.bld-harvest[hidden]{display:none}
+.card .dom header{justify-content:flex-start;border:0;padding:0}

@@ -26,6 +26,10 @@ Noter l'heure (le chronomètre de la pastille) pour chaque moment marquant.
 | Arrivée | Regarde l'analyse ? Comprend pourquoi il a gagné ou perdu ? | |
 | Après la course | RECOURIR, retour au domaine, ou arrêt ? | |
 | Domaine | Explore les bâtiments ? Remarque la vie (chevaux, moulin, carrosse) ? | |
+| Travaux du domaine (V2) | Lance une amélioration ? Comprend l'effet ? Pense à récolter le moulin ? | |
+| La Couronne (V2) | Ouvre la campagne ? Lit l'objectif du chapitre ? Retente après un échec ? | |
+| Ventes aux enchères (V2) | Enchérit ? Se fie au potentiel estimé ou au prix ? Frustration face à Valmont ? | |
+| Duel (V2) | Envoie un défi ? (demander à un ami présent de l'ouvrir sur son téléphone) | |
 | Signes forts | « Encore une ! », rire, soupir, abandon, question répétée | |
 
 ## Après la session (5 min) — questions

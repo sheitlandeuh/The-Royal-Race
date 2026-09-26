@@ -18,11 +18,12 @@ Joueur mobile de 16 à 45 ans, amateur de jeux de gestion légers et de jeux de 
 - **Pas un jeu de réflexes.** Le départ récompense la réactivité, mais on gagne surtout par la lecture.
 - **Pas un « pay-to-win ».** On vend des cosmétiques (casaques, robes, décors du domaine) et du confort, jamais de la vitesse.
 
-## Priorités (septembre 2026)
-1. Tester avec de vrais joueurs (voir [PLAYTEST.md](PLAYTEST.md)) et corriger ce qui bloque.
-2. Premières minutes limpides : systèmes débloqués un par un, un objectif toujours visible.
-3. Rejouer une course à partir de sa graine et des actions du joueur (base des courses fantômes et de l'anti-triche).
-4. Serveur et courses fantômes asynchrones, puis lancement discret dans un ou deux pays tests.
+## Priorités (fin septembre 2026, après la V2)
+La V2 a livré : un domaine réel (chaque niveau de bâtiment a un effet), les ventes aux enchères, la retraite et les Légendes, les duels entre amis par lien (courses fantômes asynchrones, vérifiées par rejeu, sans serveur), la campagne « La Couronne » contre Valmont, et un équilibrage remesuré au bot (note des chevaux, talents, distances, temps forts).
+1. Tester la V2 avec de vrais joueurs (voir [PLAYTEST.md](PLAYTEST.md)) : les duels donnent-ils envie de revenir ? la campagne est-elle bien dosée ? l'économie du domaine tient-elle sur deux semaines ?
+2. Serveur : comptes, sauvegarde cloud, résultats revérifiés avec le moteur de `replays.verify`, classement en ligne du Défi du jour et des duels.
+3. Faire compter le Départ, l'Intelligence et le Tempérament en course (aujourd'hui peu décisifs, d'où leur faible poids dans la note).
+4. Lancement discret dans un ou deux pays tests (Capacitor, achats intégrés de cosmétiques).
 
 ## Indicateurs de réussite du lancement discret
 | Indicateur | Objectif |

@@ -21,7 +21,7 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_
  function pick(){const ph=progress[0],h=stable.active(),due=(k,max)=>M.plan[k]!=null&&ph>=M.plan[k]&&ph<max;
   if(due('tire',40))return{k:'tire'};
   // ouverture : seulement si le joueur est enfermé derrière un cheval ou loin de la corde, et qu'un couloir libre existe
-  if(due('breche',72)){const a=nearbyHorses(0)[0],stuck=a&&a.gap<2&&Math.abs(a.l-playerLane)<11;const free=[12,30,48].find(L=>Math.abs(L-playerLane)>=10&&!progress.some((p,j)=>j&&!raceFinished[j]&&Math.abs(lane(j)-L)<9&&p-ph>-1.2&&p-ph<3.5));if((stuck||playerLane>30)&&free!=null)return{k:'breche',lane:free,p:Math.min(.95,.5+h.stats.tac*.0055)}}
+  if(due('breche',72)){const a=nearbyHorses(0)[0],stuck=a&&a.gap<2&&Math.abs(a.l-playerLane)<11;const free=[12,30,48].find(L=>Math.abs(L-playerLane)>=10&&!progress.some((p,j)=>j&&!raceFinished[j]&&Math.abs(lane(j)-L)<9&&p-ph>-1.2&&p-ph<3.5));if((stuck||playerLane>30)&&free!=null)return{k:'breche',lane:free,p:Math.min(.95,.5+(racePlayer?.tac??h.stats.tac)*.0055)}}
   if(due('attaque',74)){const c=rivalAI.map((ai,i)=>({ai,i:i+1,g:progress[i+1]-ph})).filter(x=>!raceFinished[x.i]&&!x.ai.final&&x.ai.energy>45&&x.g>-3&&x.g<4).sort((a,b)=>Math.abs(a.g)-Math.abs(b.g))[0];if(c)return{k:'attaque',r:c.i}}
   return null}
  function open(m){const T=MOMENT_TYPES[m.k],name=m.r?raceNames[m.r]:'';M.plan[m.k]=null;M.cur={...m,start:raceTime,end:raceTime+DUR,rank0:rankNow()};
@@ -54,6 +54,8 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...MOMENT_FX[k],until:t+(MOMENT_
   return `<div class="mo-sum"><b>⚡ Temps forts</b><ul>${L}</ul></div>`}
  return{reset,fx,tick,choose,summary,get cur(){return M&&M.cur},get plan(){return M&&{...M.plan}},set plan(p){if(M)M.plan={...p}},get log(){return M?M.log:[]},get active(){return !!(M&&M.cur)}}})();
 hooks.on('race:launch',()=>moments.reset());
+/* l'Intelligence du cheval (chance de passer une brèche) voyage avec les paramètres de course enregistrés : un rejeu sur un autre appareil ne lit pas l'écurie locale */
+hooks.on('race:start',()=>{if(racePlayer)racePlayer.tac=stable.active().stats.tac},6);
 hooks.on('race:end',()=>{$('#fbStars').insertAdjacentHTML('beforeend',moments.summary());replay.show()});
 /* ===== Recourir : relancer la même course en un geste (nouveau plateau), ou changer de cheval s'il est fatigué ===== */
 const replay=(()=>{const b=document.createElement('button');b.className='action';b.id='raceAgain';$('#returnDomain').after(b);

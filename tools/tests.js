@@ -11,7 +11,7 @@ export async function run({ quick = false } = {}) {
   career.data.stats.races = 10; // joueur confirmé (le plateau débutant fausserait l'équilibrage)
   try {
     // 1. modules présents
-    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine'];
+    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel'];
     const missing = mods.filter(m => { try { return typeof eval(m) === 'undefined' } catch (e) { return true } });
     pass('Modules chargés', !missing.length, missing.length ? 'manquants : ' + missing.join(', ') : `${mods.length} modules`); await tick();
 
@@ -58,10 +58,16 @@ export async function run({ quick = false } = {}) {
       Object.keys(domainLv).forEach(k => delete domainLv[k]); Object.assign(domainLv, keep);
       pass('Domaine : effets réels des niveaux', b[0] > a[0] * 1.14 && b[1] > a[1] && b[2] === a[2] + 3 && b[3] > a[3] && b[4] < a[4], `niveau 1 → 4 : gains ×${(b[0] / a[0]).toFixed(2)} · allocation ${fmt(a[1])} → ${fmt(b[1])} · places ${a[2]} → ${b[2]} · soins ${fmt(a[4])} → ${fmt(b[4])} or`) }
 
-    // 8. chargement : aucun module en échec
+    // 8. duels entre amis : lien → décodage → vérification ; temps truqué et couleurs piégées refusés
+    { const r = replays.last(), code = await duel.encode(duel.pack(r)), back = await duel.decode(code), v = replays.verify(JSON.parse(JSON.stringify(back)), { track: true });
+      const bad = JSON.parse(JSON.stringify(back)); bad.result.times[0] -= .4; const ko = replays.verify(bad).ok === false;
+      const inj = JSON.parse(JSON.stringify(back)); inj.field.rivals[0].livery.main = '"><img src=x onerror=alert(1)>';
+      pass('Duel : lien vérifié, fantôme tracé, triche refusée', duel.valid(back) && v.ok && v.track.p.length > 100 && ko && !duel.valid(inj), `lien ${code.length} caractères · trajectoire ${v.track.p.length} pas · temps truqué refusé ${ko ? 'oui' : 'NON'} · couleurs piégées refusées ${!duel.valid(inj) ? 'oui' : 'NON'}`) }
+
+    // 9. chargement : aucun module en échec
     pass('Tous les modules se sont chargés', !(window.__modulesKo || []).length, (window.__modulesKo || []).join(', ') || 'aucun échec');
 
-    // 9. aucun contenu factice visible
+    // 10. aucun contenu factice visible
     const txt = document.body.innerText, bad = ['bientôt', 'Lorem', 'TODO', 'undefined', 'NaN'].filter(w => txt.includes(w));
     pass('Aucun texte factice ou cassé', !bad.length, bad.length ? 'trouvé : ' + bad.join(', ') : 'rien trouvé');
   } finally {

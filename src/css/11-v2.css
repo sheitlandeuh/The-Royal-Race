@@ -61,3 +61,12 @@
 .action.legend-btn{background:linear-gradient(#b98cff,#6a3fb8);border-color:#3c1f6e}
 .legend-pop .legend-frame{display:inline-block}
 @media(max-width:850px){.legends{grid-template-columns:1fr 1fr;gap:8px}.legend{padding:10px 6px}.legend .legend-frame canvas{width:96px;height:118px}}
+/* ----- duels ----- */
+.duel-card{text-align:center}.duel-silk{display:inline-grid;place-items:center;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#2e5170,#0b1d30);border:3px solid #f1c75a;box-shadow:0 10px 24px #0008}
+.duel-t{font:800 22px Georgia,serif;color:#fff3cf;margin:10px 0 2px}.duel-time b{display:block;font:900 44px/1.1 Georgia,serif;color:#ffe29a}.duel-time small{color:#c9d7e2}
+.duel-ok{color:#9fe39f;font-weight:800}
+.meet.duel-meet{border-color:#e8a060;background:linear-gradient(150deg,#e8a0602a,#ffffff06)}.meet.duel-meet.on{box-shadow:0 0 0 2px #ffb87a}
+.duel-res{display:flex;flex-direction:column;gap:3px;padding:12px;border-radius:14px;background:#ffffff10;border:1px solid #ffffff26;text-align:center;margin-bottom:8px}.duel-res.win{background:linear-gradient(150deg,#55c75633,#ffffff08);border-color:#8fe38f}
+.duel-res b{font:800 19px Georgia,serif;color:#fff3cf}.duel-res span{font-weight:800;color:#ffe29a}.duel-res small{color:#c9d7e2}
+.action.duel-btn{margin-top:8px;background:linear-gradient(#f0a65a,#b8641e);border-color:#6e3a0e}
+.ghost-gap.duel-gap{border-color:#ffb87a}

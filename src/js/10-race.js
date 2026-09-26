@@ -71,6 +71,8 @@ function raceAnalysis(rank){const RW=RS.window,r=RS.reaction,dep=r<RW*1.78,draft
 function completeRace(){clearInterval(raceLoop);raceLoop=null;
  // Défi du jour : ni trophées, ni gains, ni fatigue — le module 37-defi affiche son propre bilan
  if(RACE.defi){hooks.emit('defi:end');hooks.emit('race:end',finishOrder.indexOf(0)+1);return}
+ // duel entre amis (48-duel) : même principe, bilan du duel
+ if(RACE.duel){hooks.emit('duel:end');hooks.emit('race:end',finishOrder.indexOf(0)+1);return}
 const rank=finishOrder.indexOf(0)+1,win=rank===1,A=raceAnalysis(rank);if(A.lines[2][0])career.bump('sprint');
  const CR=career.afterRace(rank,RACE,A.stars),prize=Math.round(purseOf(RACE)*[1,.46,.26,.17,.13,.1][rank-1]*(1+CR.streakBonus));state.gold+=prize;sync();const AR=stable.afterRace(stable.data.active,rank,6);
  sound.crowdLevel(1);setTimeout(()=>sound.crowdLevel(.2),2500);if(win){sound.fanfare();buzz([60,40,120])}else buzz(40);sound.say(`${raceNames[finishOrder[0]]} remporte le ${RACE.n} !`,true);

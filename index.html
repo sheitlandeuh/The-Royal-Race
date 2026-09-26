@@ -497,6 +497,13 @@
 .cour-quote{margin:4px 0 0;font:italic 15px Georgia,serif;color:#ffe9c2}.cour-tip{margin:0;font-size:13px;color:#bff0bf}
 .cour-rw{font-size:12px;font-weight:800;color:#ffe09a}.cour-body .action,.cour-body .dom-lock{align-self:flex-start}
 .cour-scene{text-align:center}.tface.big{width:74px;height:74px;font-size:42px;margin:0 auto}.cour-scene .cour-quote{font-size:19px;margin:12px 0 2px}.cour-scene>small{color:#9fb3c2}
+.set-version{text-align:center;opacity:.6;margin-top:14px}
+.cour-body .chip{align-self:flex-start}
+/* ----- nouveautés ----- */
+.news{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:10px}
+.news-it{display:flex;gap:12px;padding:12px;border-radius:14px;background:#ffffff0c;border:1px solid #dcb05a55}.news-it>i{font-style:normal;font-size:30px;flex:0 0 46px;height:46px;display:grid;place-items:center;border-radius:12px;background:#ffffff14}
+.news-it b{font:800 16px Georgia,serif;color:#fff3cf}.news-it p{margin:3px 0 0;font-size:13px;color:#d5e1ea}.news-it small{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;color:#ffd66b}
+.set-version a{color:#ffe09a}
   </style>
 </head>
 <body>
@@ -551,7 +558,8 @@
   <div class="toast" id="toast">Action effectuée</div>
 </main>
 <script src="assets/vendor/three.min.js"></script>
-<script type="text/x-module" data-f="01-core.js">const state={gold:6000,feed:4000,gems:40,trophies:0};
+<script type="text/x-module" data-f="01-core.js">const VERSION='2.0';
+const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
 /* bâtiments du domaine : niveaux lus dès le démarrage (la récupération hors ligne de l'écurie en dépend) ; travaux, coûts et écrans dans 45-domaine.
@@ -1311,7 +1319,7 @@ function openSettings(){$('#panelTitle').textContent='Réglages';$('#panel .card
   <p class="hint">${lv==='auto'?`Auto : ${QUALITY[settings.level()].n.toLowerCase()} sur cet appareil. `:''}${QUALITY[settings.level()].d}</p></section>
  <section><h4>AFFICHAGE</h4><label class="tog"><input type="checkbox" id="setAnim" ${settings.get('anim')?'checked':''}> Animations du domaine (nuages, oiseaux, bannières)</label></section>
  <section><h4>SON</h4><label class="sl">Effets <input type="range" id="setSfx" min="0" max="1" step=".05" value="${settings.get('sfx')}"></label><label class="sl">Musique <input type="range" id="setMusic" min="0" max="1" step=".05" value="${settings.get('music')}"></label><label class="tog"><input type="checkbox" id="setVoice" ${settings.get('voice')?'checked':''}> Commentaire du speaker</label></section>
- <section><h4>SAUVEGARDE</h4><p class="hint">Ta partie est enregistrée dans ce navigateur (${stable.data.horses.length} chevaux, ${fmt(state.gold)} or).</p><button class="action green" id="saveTools">TRANSFÉRER / SAUVEGARDER MA PARTIE</button> <button class="action" id="resetSave">Recommencer une partie</button></section></div>`;
+ <section><h4>SAUVEGARDE</h4><p class="hint">Ta partie est enregistrée dans ce navigateur (${stable.data.horses.length} chevaux, ${fmt(state.gold)} or).</p><button class="action green" id="saveTools">TRANSFÉRER / SAUVEGARDER MA PARTIE</button> <button class="action" id="resetSave">Recommencer une partie</button></section><p class="hint set-version">The Royal Race ${VERSION} · <a href="#" data-news>quoi de neuf ?</a></p></div>`;
  $('#panel').classList.add('open')}
 $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){settings.set('q',b.dataset.q);openSettings();toast(`Qualité : ${QUALITY[settings.level()].n.toLowerCase()}`)}
  if(e.target.id==='resetSave'){const r=e.target;if(r.dataset.armed){try{window.__noSave=true;['trr.stable','trr.champion','trr.progress','trr.bak'].forEach(k=>localStorage.removeItem(k))}catch(err){}location.reload()}else{r.dataset.armed=1;r.textContent='Confirmer : tout effacer';r.classList.add('danger');setTimeout(()=>{if(r.isConnected){delete r.dataset.armed;r.textContent='Recommencer une partie';r.classList.remove('danger')}},4000)}}});
@@ -1607,7 +1615,14 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
   ['or','Ligue Or','🟡','Atteins la ligue Or',()=>C.best||0,900,{gems:30}],
   ['cup5','Seigneur des tournois','👑','Remporte 5 Tournois royaux',()=>tour.cups,5,{gems:60}],
   ['win50','Légende des pistes','🏛️','Gagne 50 courses',()=>S().wins,50,{gems:50}],
-  ['royale','Ligue Royale','💜','Atteins la ligue Royale',()=>C.best||0,1800,{gems:80}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
+  ['royale','Ligue Royale','💜','Atteins la ligue Royale',()=>C.best||0,1800,{gems:80}],
+  // V2 : domaine, ventes, Légendes, duels, Couronne (lus dans les données, sans dépendre des modules chargés plus loin)
+  ['batisseur','Bâtisseur','🏗️','Monte un bâtiment au niveau 3',()=>Math.max(1,...Object.values(domainLv)),3,{gems:10}],
+  ['domaine5','Domaine royal','🏰','Monte les sept bâtiments au niveau 5',()=>Math.min(...['haras','hippodrome','ecurie','carriere','paddocks','clinique','moulin'].map(dlv)),5,{gems:60}],
+  ['enchere','Coup de marteau','🔨','Achète un cheval aux enchères',()=>C.ventes?.bought||0,1,{gems:10}],
+  ['legende','Entrée dans l’histoire','🎖️','Mets un cheval à la retraite',()=>(C.legendes||[]).length,1,{gems:15}],
+  ['duel3','Duelliste','⚔️','Gagne 3 duels contre des amis',()=>{try{return JSON.parse(localStorage.getItem('trr.duels')||'{}').wins||0}catch(e){return 0}},3,{gems:15}],
+  ['couronne','Vainqueur de la Couronne','👑','Remporte le Grand Prix de la Couronne',()=>(C.couronne?.done||[]).includes('c6')?1:0,1,{gems:80}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
  const rtxt=r=>r.gems?`💎 ${r.gems}`:`🪙 ${fmt(r.gold)}`,done=a=>{try{return a.p()>=a.goal}catch(e){return false}};
  function sample(){const H=stable.data.horses;A.horses=Math.max(A.horses,H.length);A.lvl=Math.max(A.lvl,...H.map(h=>h.level));A.foals=Math.max(A.foals,H.filter(h=>h.parents).length)}
  function check(silent){sample();let n=0;for(const a of LIST){if(done(a)&&!A.seen.includes(a.id)){A.seen.push(a.id);if(!silent)toast(`${a.i} Succès débloqué : ${a.n}`);n++}}save();badge();return n}
@@ -1622,7 +1637,8 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
    <div class="achs">${order.map(a=>{const v=Math.min(a.goal,a.p()),ok=v>=a.goal,g=A.got.includes(a.id);return `<article class="ach${ok?' ok':''}${g?' got':''}"><i>${a.i}</i><div><b>${a.n}</b><small>${a.d}</small><div class="bar"><i style="width:${v/a.goal*100}%"></i></div><small>${a.goal>=1000?fmt(v)+' / '+fmt(a.goal):v+' / '+a.goal}</small></div>${g?'<span class="chip">✓</span>':`<button class="action green" data-ach="${a.id}" ${ok?'':'disabled'}>${rtxt(a.r)}</button>`}</article>`}).join('')}</div>`;
   $('#panel').classList.add('open')}
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-ach]');if(b)claim(b.dataset.ach)});
- check(true);return{open,onRace,check,badge}})();
+ check(true);['domaine:fini','legende','couronne','vente:fin'].forEach(e=>hooks.on(e,()=>check()));hooks.on('duel:end',()=>setTimeout(()=>check(),50));
+ return{open,onRace,check,badge}})();
 </script>
 <script type="text/x-module" data-f="24-village-life.js">/* ===== Vie du domaine : des chevaux montés galopent sur la piste du village.
    Leurs images sont rendues une seule fois à partir du modèle 3D (8 orientations × 8 temps de galop), éclairées comme la peinture. ===== */
@@ -1752,9 +1768,9 @@ const MOMENT_TYPES={
  breche:{a:'Plonger',b:'Rester',t:(h,r,m)=>m.lane<20?'Brèche à la corde !':'Ouverture à l’extérieur !',d:()=>'Un trou s’ouvre : tu peux t’y glisser pour courir libre. Plus ton cheval est intelligent, plus il a de chances de passer.'},
  attaque:{a:'Suivre',b:'Laisser filer',t:(h,r)=>`${r} attaque de loin !`,d:m=>`${RACE.dist<=1200?'Course courte : s’il s’échappe maintenant, il n’aura pas le temps de s’user.':RACE.dist>=2000?'Longue course : le suivre coûte, mais un rival qui prend du champ ici se revoit rarement.':'Le suivre coûte de l’énergie ; le laisser filer, c’est parier qu’il s’usera : compare vos réserves.'} Énergie : toi ${Math.round(playerEnergy)} % · lui ≈ ${Math.round(rivalAI[m.r-1].energy/10)*10} %`}};
 /* effets (vitesse ajoutée, multiplicateur de dépense d'énergie, durée en pas de 100 ms) — réglés au bot d'équilibrage */
-const MOMENT_FX={tireA:{speed:-.025,drain:.4,n:30},tireB:{speed:.055,drain:2.1,n:30,dk:3},gapOk:{speed:.04,drain:.7,n:25},gapKo:{speed:-.07,drain:1,n:15},attack:{speed:.07,drain:3,n:45,dk:[-2,0]},follow:{speed:.065,drain:1.8,dk:[-2,0]}};
-// dk : l'effet sur la dépense d'énergie varie avec la distance, ×(distance / 1 600)^dk — un nombre, ou [exposant sous 1 600 m, au-delà]
-const momentFx=k=>{const f=MOMENT_FX[k];if(!f.dk)return{...f};const g=RACE.dist/1600,e=Array.isArray(f.dk)?f.dk[g<1?0:1]:f.dk;return{...f,drain:1+(f.drain-1)*Math.pow(g,e)}};
+const MOMENT_FX={tireA:{speed:-.025,drain:.4,n:30,sk:-2},tireB:{speed:.055,drain:2.1,n:30,dk:3},gapOk:{speed:.04,drain:.7,n:25},gapKo:{speed:-.07,drain:1,n:15},attack:{speed:.07,drain:3,n:45,dk:[-2,0]},follow:{speed:.065,drain:1.8,dk:[-2,0]}};
+// dk : l'effet sur la dépense d'énergie varie avec la distance, ×(distance / 1 600)^dk — un nombre, ou [exposant sous 1 600 m, au-delà] ; sk : idem pour la vitesse
+const momentFx=k=>{const f=MOMENT_FX[k],g=RACE.dist/1600,x=(v,d)=>Math.pow(g,Array.isArray(d)?d[g<1?0:1]:d),o={...f};if(f.dk)o.drain=1+(f.drain-1)*x(g,f.dk);if(f.sk)o.speed=f.speed*x(g,f.sk);return o};
 const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_FX[k].n||0)});const DUR=40,ord=n=>n+(n===1?'er':'e');
  const card=document.createElement('div');card.className='moment';card.hidden=true;card.innerHTML='<b class="mo-title"></b><p></p><div class="mo-time"><i></i></div><div class="mo-btns"><button data-mo="a"><kbd>1</kbd><span></span></button><button data-mo="b"><kbd>2</kbd><span></span></button></div>';
  const news=document.createElement('div');news.className='mo-news';$('#raceScreen').append(card,news);
@@ -2142,7 +2158,7 @@ const playtest=(()=>{const q=new URLSearchParams(location.search);if(!q.has('tes
   if(b.dataset.pt==='dl'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));a.download=`royal-race-test-${who}-${S.start.slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
   if(b.dataset.pt==='clear'&&confirm('Effacer toutes les sessions de test de ce navigateur ?')){all=[S];S.ev=[];save();open()}
   if(b.dataset.pt==='close')box.hidden=true});
- log('session',{version:'0.16',nouvellePartie:!champion.exists()});
+ log('session',{version:VERSION,nouvellePartie:!champion.exists()});
  return{on:true,log,summary}})();
 </script>
 <script type="text/x-module" data-f="35-onboarding.js">/* ===== Premières minutes : les systèmes se débloquent un par un, un objectif est toujours visible =====
@@ -2888,6 +2904,27 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
  function goal(){const ch=cur();if(!ch||lock(ch)||(career.data.stats?.races||0)<4)return null;return[`La Couronne, chapitre ${idx()+1} : ${ch.n}`,'couronne']}
  PANELS.couronne=open;setInterval(badge,5000);hooks.on('ready',badge);
  return{open,select,goal,lock,badge,get done(){return K.done.slice()},get chapter(){return cur()}}})();
+</script>
+<script type="text/x-module" data-f="50-nouveautes.js">/* ===== Quoi de neuf dans la V2 : présenté une seule fois aux joueurs qui avaient déjà commencé leur partie =====
+   Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
+const NOUVEAUTES=[
+ ['🏗️','Le domaine prend vie','Chaque bâtiment s’améliore pour de vrai : entraînement, soins, allocations, places à l’écurie. Le moulin produit du fourrage même quand tu ne joues pas.',2],
+ ['👑','La Couronne','Six Grands Prix contre le Comte de Valmont, jusqu’au Grand Prix de la Couronne. Motifs de casaque exclusifs à la clé.',4],
+ ['🔨','Ventes aux enchères','Chaque jour, quatre chevaux à disputer à Valmont. Lis le potentiel estimé, ne paie pas plus qu’il ne vaut.',6],
+ ['🎖️','Légendes','Tes champions prennent leur retraite, entrent dans la Salle des trophées et transmettent leur sang au Haras.',0],
+ ['⚔️','Duels entre amis','Envoie une course par lien : ton ami la court avec son cheval contre ton fantôme. Les temps sont vérifiés.',0],
+ ['⚖️','Courses rééquilibrées','La note d’un cheval reflète sa vraie valeur en course et tous les talents comptent : chaque cheval de ton écurie peut gagner à sa distance.',0]];
+const nouveautes=(()=>{const C=career.data,races=()=>C.stats?.races||0;
+ const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
+ if(!C.v2&&!races()){C.v2=true;save()}
+ const free=()=>!$('#panel').classList.contains('open')&&!$('#studio').classList.contains('open')&&!coach.open&&!$('#raceScreen').classList.contains('open');
+ function open(){const n=races();$('#panelTitle').textContent=`The Royal Race ${VERSION}`;$('#panel .card').classList.add('wide');
+  $('#panelBody').innerHTML=`<p class="hint">Bienvenue dans la version ${VERSION} ! Voici ce qui a changé au domaine.</p><div class="news">${NOUVEAUTES.map(([i,t,d,at])=>`<article class="news-it"><i>${i}</i><div><b>${t}</b><p>${d}</p>${at>n?`<small>Débloqué après ${at} courses</small>`:''}</div></article>`).join('')}</div>
+   <div class="race-entry"><button class="action green" data-news-ok>C’EST PARTI !</button></div>`;$('#panel').classList.add('open')}
+ $('#panelBody').addEventListener('click',e=>{if(e.target.closest('[data-news-ok]'))$('#panel').classList.remove('open');else if(e.target.closest('[data-news]')){e.preventDefault();open()}});
+ hooks.on('ready',()=>{if(C.v2)return;setTimeout(()=>{const t=setInterval(()=>{if(!free())return;clearInterval(t);C.v2=true;save();open()},600)},2600)});
+ PANELS.nouveautes=open;
+ return{open}})();
 </script>
 <script>(()=>{const ko=[];let cur='';const on=()=>{if(cur)ko.push(cur)};addEventListener('error',on);for(const m of document.querySelectorAll('script[type="text/x-module"]')){cur=m.dataset.f;const s=document.createElement('script');s.textContent=m.textContent+'\n//# sourceURL='+cur;document.body.appendChild(s)}cur='';removeEventListener('error',on);window.__modulesKo=ko;if(ko.length)console.error('Modules en échec :',ko.join(', '));try{hooks.emit('ready')}catch(e){}})()</script>
 

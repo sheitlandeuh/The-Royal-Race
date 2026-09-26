@@ -30,7 +30,7 @@ Propriétaire : Enzo. Échanges et textes du jeu en français.
 - Toute amélioration visuelle se vérifie sur captures réelles (Playwright + Chromium, 1280×800 et 390×844) avant d'être annoncée.
 - Les changements d'équilibrage se vérifient avec le bot (taux de victoire attendu d'un bon joueur à la distance idéale ≈ 35–75 %). Un temps fort doit rester un vrai choix : aucune réponse ne doit être toujours la meilleure (`bot.pair`), et la politique `bot.smart` doit battre « toujours non » et « toujours oui ». Tactiques : `bot.tactics('m2')` — la tactique choisie en lisant le plateau (« lecture ») doit battre chaque tactique fixe. Pour ces tests, simuler un joueur confirmé (`career.data.stats.races=10`), sinon le plateau débutant fausse tout.
 - Aucun contenu factice visible par le joueur (boutons « bientôt », faux chiffres).
-- Messages de commit en français, préfixés par la version (`v0.16 : …`).
+- Messages de commit en français, préfixés par la version (`v2.0 : …`).
 
 ## Feuille de route
 Voir `docs/VISION.md` (promesse, piliers, priorités), `docs/PLAYTEST.md` et `README.md`. Prochaine grande étape : comptes + sauvegarde cloud, économie validée côté serveur (rejouer la course à partir de la graine), courses « fantômes » asynchrones, emballage stores (Capacitor) et achats intégrés.

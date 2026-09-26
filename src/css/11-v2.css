@@ -84,3 +84,10 @@
 .cour-quote{margin:4px 0 0;font:italic 15px Georgia,serif;color:#ffe9c2}.cour-tip{margin:0;font-size:13px;color:#bff0bf}
 .cour-rw{font-size:12px;font-weight:800;color:#ffe09a}.cour-body .action,.cour-body .dom-lock{align-self:flex-start}
 .cour-scene{text-align:center}.tface.big{width:74px;height:74px;font-size:42px;margin:0 auto}.cour-scene .cour-quote{font-size:19px;margin:12px 0 2px}.cour-scene>small{color:#9fb3c2}
+.set-version{text-align:center;opacity:.6;margin-top:14px}
+.cour-body .chip{align-self:flex-start}
+/* ----- nouveautés ----- */
+.news{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:10px}
+.news-it{display:flex;gap:12px;padding:12px;border-radius:14px;background:#ffffff0c;border:1px solid #dcb05a55}.news-it>i{font-style:normal;font-size:30px;flex:0 0 46px;height:46px;display:grid;place-items:center;border-radius:12px;background:#ffffff14}
+.news-it b{font:800 16px Georgia,serif;color:#fff3cf}.news-it p{margin:3px 0 0;font-size:13px;color:#d5e1ea}.news-it small{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;color:#ffd66b}
+.set-version a{color:#ffe09a}

@@ -5,9 +5,9 @@ const MOMENT_TYPES={
  breche:{a:'Plonger',b:'Rester',t:(h,r,m)=>m.lane<20?'Brèche à la corde !':'Ouverture à l’extérieur !',d:()=>'Un trou s’ouvre : tu peux t’y glisser pour courir libre. Plus ton cheval est intelligent, plus il a de chances de passer.'},
  attaque:{a:'Suivre',b:'Laisser filer',t:(h,r)=>`${r} attaque de loin !`,d:m=>`${RACE.dist<=1200?'Course courte : s’il s’échappe maintenant, il n’aura pas le temps de s’user.':RACE.dist>=2000?'Longue course : le suivre coûte, mais un rival qui prend du champ ici se revoit rarement.':'Le suivre coûte de l’énergie ; le laisser filer, c’est parier qu’il s’usera : compare vos réserves.'} Énergie : toi ${Math.round(playerEnergy)} % · lui ≈ ${Math.round(rivalAI[m.r-1].energy/10)*10} %`}};
 /* effets (vitesse ajoutée, multiplicateur de dépense d'énergie, durée en pas de 100 ms) — réglés au bot d'équilibrage */
-const MOMENT_FX={tireA:{speed:-.025,drain:.4,n:30},tireB:{speed:.055,drain:2.1,n:30,dk:3},gapOk:{speed:.04,drain:.7,n:25},gapKo:{speed:-.07,drain:1,n:15},attack:{speed:.07,drain:3,n:45,dk:[-2,0]},follow:{speed:.065,drain:1.8,dk:[-2,0]}};
-// dk : l'effet sur la dépense d'énergie varie avec la distance, ×(distance / 1 600)^dk — un nombre, ou [exposant sous 1 600 m, au-delà]
-const momentFx=k=>{const f=MOMENT_FX[k];if(!f.dk)return{...f};const g=RACE.dist/1600,e=Array.isArray(f.dk)?f.dk[g<1?0:1]:f.dk;return{...f,drain:1+(f.drain-1)*Math.pow(g,e)}};
+const MOMENT_FX={tireA:{speed:-.025,drain:.4,n:30,sk:-2},tireB:{speed:.055,drain:2.1,n:30,dk:3},gapOk:{speed:.04,drain:.7,n:25},gapKo:{speed:-.07,drain:1,n:15},attack:{speed:.07,drain:3,n:45,dk:[-2,0]},follow:{speed:.065,drain:1.8,dk:[-2,0]}};
+// dk : l'effet sur la dépense d'énergie varie avec la distance, ×(distance / 1 600)^dk — un nombre, ou [exposant sous 1 600 m, au-delà] ; sk : idem pour la vitesse
+const momentFx=k=>{const f=MOMENT_FX[k],g=RACE.dist/1600,x=(v,d)=>Math.pow(g,Array.isArray(d)?d[g<1?0:1]:d),o={...f};if(f.dk)o.drain=1+(f.drain-1)*x(g,f.dk);if(f.sk)o.speed=f.speed*x(g,f.sk);return o};
 const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_FX[k].n||0)});const DUR=40,ord=n=>n+(n===1?'er':'e');
  const card=document.createElement('div');card.className='moment';card.hidden=true;card.innerHTML='<b class="mo-title"></b><p></p><div class="mo-time"><i></i></div><div class="mo-btns"><button data-mo="a"><kbd>1</kbd><span></span></button><button data-mo="b"><kbd>2</kbd><span></span></button></div>';
  const news=document.createElement('div');news.className='mo-news';$('#raceScreen').append(card,news);

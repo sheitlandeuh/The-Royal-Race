@@ -13,7 +13,7 @@ const defi=(()=>{
   return{...base,id:'defi',n:'Défi du jour',defi:true,fee:0,purse:0,seed:1+h%89999,ref:60+h%6}}
  // plateau identique pour tous : force de référence fixe (pas celle du cheval du joueur), pas de rival personnel
  function field(M=meeting()){const seed=M.seed,rv=stable.rivals(M.ref,5,seed),R=seeded(seed),used=[stable.silks.main],coats=LIVERY.COATS.map(c=>c.id).sort(()=>R()-.5),T=seeded((seed^0x9e3779b9)>>>0);
-  return{seed,rivals:rv.map((r,i)=>{const l=LIVERY.random(seed+i*131,used);used.push(l.main);l.coat=coats[i];return{...r,name:raceNames[i+1],livery:l,rating:Math.round(r.stats.vit*.24+r.stats.acc*.2+r.stats.end*.18+r.stats.dep*.1+r.stats.tac*.15+r.stats.tem*.13)-7,tac:pace.choose(r.stats,T)}})}}
+  return{seed,rivals:rv.map((r,i)=>{const l=LIVERY.random(seed+i*131,used);used.push(l.main);l.coat=coats[i];return{...r,name:raceNames[i+1],livery:l,rating:ratingOf(r.stats)-7,tac:pace.choose(r.stats,T)}})}}
  // tout plateau construit pendant le défi (sélection d'un autre cheval, RECOURIR…) redevient celui du jour
  hooks.on('field:built',F=>{if(RACE.defi)Object.assign(F,field())});
  function select(){RACE=meeting();currentField=null;buildField();renderCourses()}

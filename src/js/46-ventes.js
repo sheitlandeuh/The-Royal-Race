@@ -21,7 +21,7 @@ const ventes=(()=>{const C=career.data;C.ventes=C.ventes||{day:'',sold:{},bought
   const name=()=>{let n;do{n=`${NA[Math.floor(R()*NA.length)]} ${NB[Math.floor(R()*NB.length)]}`}while(used.includes(n)||n.length>18);used.push(n);return n};
   const mk=(type,o)=>{const caps={},stats={};for(const k of keys){caps[k]=Math.round(Math.min(99,Math.max(55,o.cap+(R()-.5)*o.sp+(o.skew?.[k]||0))));stats[k]=Math.round(Math.min(caps[k]-2,Math.max(30,o.st?o.st+(R()-.5)*o.sp+(o.skew?.[k]||0)*.6:caps[k]*(.48+R()*.07))))}
    const h={type,name:name(),coat:LIVERY.COATS[Math.floor(R()*LIVERY.COATS.length)].id,age:o.age,level:o.level,stats,caps,dist:o.dist||DISTS[Math.floor(R()*4)][0],talent:o.talent||tl[Math.floor(R()*tl.length)],parents:[SIRES[Math.floor(R()*SIRES.length)],DAMS[Math.floor(R()*DAMS.length)]]};
-   h.rating=Math.round(stats.vit*.24+stats.acc*.2+stats.end*.18+stats.dep*.1+stats.tac*.15+stats.tem*.13);h.pot=Math.round(avg(caps));h.value=worth(h.rating,h.pot,L);return h};
+   h.rating=ratingOf(stats);h.pot=Math.round(avg(caps));h.value=worth(h.rating,h.pot,L);return h};
   const long=R()<.5,list=[mk('yearling',{age:2,level:1,cap:86+L*3+R()*6,sp:10}),mk('pret',{age:4,level:6+L*3,cap:ref+21+R()*5,st:ref+R()*5-1,sp:9}),
    mk('specialiste',{age:3,level:3+L*2,cap:ref+24,st:ref+2,sp:8,dist:long?2400:1200,talent:long?'increvable':'fusee',skew:long?{end:9,tem:5,acc:-5,dep:-6}:{acc:8,dep:9,vit:4,end:-10}}),
    mk('vedette',{age:3,level:4+L*2,cap:91+L*2+R()*4,st:ref+3+R()*3,sp:6,talent:['coeur','finisseur','tacticien'][Math.floor(R()*3)]})];

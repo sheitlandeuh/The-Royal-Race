@@ -26,7 +26,7 @@ export const bot = window.bot = (() => {
       else { let c = policy[moments.cur.k] || 'b'; if (typeof c === 'function') c = c(moments.cur); if (c !== 'b') moments.choose(c) }
       runRaceV2(); n++;
     }
-    const r = { rank: finishOrder.indexOf(0) + 1, log: moments.log.map(e => e.k + e.ch + (e.k === 'breche' && e.ch === 'a' ? (e.ok ? '+' : '-') : '')) };
+    const r = { rank: finishOrder.indexOf(0) + 1, aheadBM: finishOrder.indexOf(0) < finishOrder.indexOf(1), log: moments.log.map(e => e.k + e.ch + (e.k === 'breche' && e.ch === 'a' ? (e.ok ? '+' : '-') : '')) };
     leaveRace(); return r;
   }
   function one(policy, meet = 'm2', tactic = 'stalker', N = 50) {
@@ -44,7 +44,7 @@ export const bot = window.bot = (() => {
   const smart = {
     tire: () => RACE.dist <= 1200 ? 'b' : 'a',
     breche: 'a',
-    attaque: c => RACE.dist > 1200 || playerEnergy > rivalAI[c.r - 1].energy + 15 ? 'a' : 'b',
+    attaque: c => RACE.dist !== 1600 || playerEnergy >= rivalAI[c.r - 1].energy ? 'a' : 'b',
   };
   // même graine, choix 'a' puis 'b' sur un seul type de temps fort : à quel point ce choix change-t-il le résultat ?
   async function pair(kind, meet = 'm2', tactic = 'stalker', N = 40) {

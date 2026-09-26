@@ -6,7 +6,7 @@ const STATS=[
  {k:'dep',n:'Départ',d:'Fenêtre de réaction à la sortie des stalles'},
  {k:'tac',n:'Intelligence',d:'Gain d’aspiration et vitesse quand le cheval est enfermé'},
  {k:'tem',n:'Tempérament',d:'Régularité de la foulée et pénalité de faux départ'}];
-const TALENTS={finisseur:{n:'Finisseur',i:'🏁',d:'Sprint final 15 % plus puissant'},increvable:{n:'Increvable',i:'🌧️',d:'Dépense moins d’énergie, surtout sur terrain souple ou lourd'},fusee:{n:'Fusée',i:'🚀',d:'Départ plus facile à réussir et démarrage plus vif'},coeur:{n:'Cœur de champion',i:'❤️',d:'Accélère quand il est devancé dans la ligne droite'},tacticien:{n:'Tacticien',i:'🧠',d:'Profite mieux du sillage, moins gêné quand il est enfermé'},metronome:{n:'Métronome',i:'⏱️',d:'Foulée très régulière, légère économie d’énergie'}};
+const TALENTS={finisseur:{n:'Finisseur',i:'🏁',d:'Sprint final 6 % plus puissant'},increvable:{n:'Increvable',i:'🌧️',d:'Dépense 8 % d’énergie en moins, 16 % sur terrain souple ou lourd'},fusee:{n:'Fusée',i:'🚀',d:'Départ plus facile à réussir et démarrage plus vif (+3 % sur le premier cinquième)'},coeur:{n:'Cœur de champion',i:'❤️',d:'Accélère quand il est devancé dans la ligne droite'},tacticien:{n:'Tacticien',i:'🧠',d:'Profite bien plus du sillage (×2,5), moins gêné quand il est enfermé'},metronome:{n:'Métronome',i:'⏱️',d:'Foulée très régulière, 7 % d’énergie économisée'}};
 const DISTS=[[1200,'Sprinter'],[1600,'Mile'],[2000,'Classique'],[2400,'Tenace']];
 const SESSIONS=[
  {id:'galop',n:'Galop de vitesse',b:'hippodrome',where:'Hippodrome',ico:'⚡',gain:{vit:2.3,acc:.4},fat:18,cost:{feed:400},txt:'Accélérations franches sur la ligne droite.'},
@@ -23,7 +23,10 @@ const CARE=[
  {id:'ration',n:'Ration premium',b:'moulin',where:'Moulin',ico:'🌾',form:8,moral:6,cost:{feed:1200},txt:'Avoine, orge et luzerne : la forme monte.'}];
 const INTENS=[{id:'leger',n:'Léger',g:.6,f:.55},{id:'normal',n:'Normal',g:1,f:1},{id:'intensif',n:'Intensif',g:1.55,f:1.7}];
 const XP_LEVEL=l=>Math.round(90*Math.pow(l,1.2));
-const rating=h=>Math.round(h.stats.vit*.24+h.stats.acc*.2+h.stats.end*.18+h.stats.dep*.1+h.stats.tac*.15+h.stats.tem*.13);
+/* note globale : pondérée par ce que chaque qualité rapporte vraiment en course (mesuré au bot, V2) — la vitesse et l'accélération d'abord.
+   Les plateaux adverses sont calés sur cette note : une note qui surestime une qualité inutile rendrait les courses plus dures sans rendre le cheval plus fort. */
+const RATING_W={vit:.32,acc:.26,end:.18,dep:.1,tac:.08,tem:.06};
+const ratingOf=st=>Math.round(STATS.reduce((a,s)=>a+st[s.k]*RATING_W[s.k],0)),rating=h=>ratingOf(h.stats);
 const stable=(()=>{
  const mk=(id,name,coat,stats,caps,dist,level,talent)=>({id,name,coat,talent,breed:'Pur-sang',age:4,level,xp:0,points:0,stats,caps,dist,form:62,fatigue:8,moral:72,injury:0,races:0,wins:0,places:0,log:[]});
  const fresh=()=>({v:1,created:false,silks:{main:'#1f3f9f',second:'#c8982c',pattern:'losange',cap:'#1f3f9f'},active:'h1',res:null,lastT:Date.now(),
@@ -60,7 +63,7 @@ const stable=(()=>{
  function afterRace(id,rank,field){const h=byId(id);h.races++;if(rank===1)h.wins++;if(rank<=3)h.places++;h.fatigue=clamp(h.fatigue+24,0,100);h.form=clamp(h.form+(rank===1?5:rank<=3?2:-2),0,100);h.moral=clamp(h.moral+(rank===1?10:rank<=3?4:-3),0,100);
   const xp=[140,105,85,65,55,45][rank-1]||40,up=gainXP(h,xp);log(h,`Course : ${rank}${rank===1?'er':'e'} sur ${field}`);save();return{xp,up}}
  // paramètres de course dérivés des statistiques (joueur et adversaires utilisent les mêmes formules)
- function racePerf(st,cond={},dist=1600,pref=1600,tactic='stalker'){const c=1+((cond.form??60)-60)*.0009-Math.max(0,(cond.fatigue??0)-40)*.0016+((cond.moral??65)-65)*.0003,fit=1-Math.min(.02,Math.max(0,pref-dist)/400*.008),fitD=1+Math.max(0,dist-pref)/400*.07;
+ function racePerf(st,cond={},dist=1600,pref=1600,tactic='stalker'){const c=1+((cond.form??60)-60)*.0009-Math.max(0,(cond.fatigue??0)-40)*.0016+((cond.moral??65)-65)*.0003,fit=1-Math.min(.012,Math.max(0,pref-dist)/400*.005),fitD=1+Math.max(0,dist-pref)/400*.09;
   const t={leader:{c:1.01,d:1.25,s:0},stalker:{c:1,d:1,s:0},finisher:{c:.98,d:.86,s:.015}}[tactic]||{c:1,d:1,s:0};
   return{cruise:(.418+st.vit*.0007)*c*fit,sprint:.1+st.acc*.0011+t.s,sprintDrain:.62*(1.4-st.acc*.006),drain:.105*(1.55-st.end*.0085)*fitD,boxed:.27+st.tac*.0006,draft:.008+st.tac*.00012,noise:(100-st.tem)*.00008,window:180+(st.dep-50)*2.2,tactic:t}}
  function rivals(ref,n=5,seed=Date.now()){let x=seed%2147483646+1;const r=()=>(x=(x*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{const base=ref-7+r()*14,st={};for(const s of STATS)st[s.k]=clamp(base+(r()-.5)*22,35,99);return{stats:st,pref:DISTS[Math.floor(r()*4)][0],talent:Object.keys(TALENTS)[Math.floor(r()*6)]}})}

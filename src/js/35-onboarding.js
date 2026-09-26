@@ -34,5 +34,6 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
  goal.onclick=()=>{const a=goal.dataset.a;if(a.startsWith('chest:'))return bar.querySelectorAll('.slots [data-slot]')[+a.slice(6)]?.click();if(a==='ecurie')return openStable();if(a==='defi'){openCourses();return defi.select()}openPanel(a)};
  // la récompense quotidienne attend la fin de la première course (sinon, rien ne doit détourner du premier départ)
  hooks.on('race:leave',()=>{if(races()>0)setTimeout(()=>meta.login(),1600)});
- apply();render();setInterval(render,1500);hooks.on('race:leave',()=>setTimeout(render,50));
+ // premier affichage après le chargement de tous les modules : next() lit le Défi du jour (module 37), encore en zone morte ici
+ apply();setTimeout(render,0);setInterval(render,1500);hooks.on('race:leave',()=>setTimeout(render,50));
  return{apply,next}})();

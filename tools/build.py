@@ -9,6 +9,6 @@ js = [(f, rd('src/js/' + f)) for f in ls('src/js')]
 css = ''.join(rd('src/css/' + f) for f in ls('src/css'))
 html = rd('src/index.html')
 html = html.replace('<!--STYLES-->', '<style>\n' + css + '  </style>', 1)
-html = html.replace('<!--SCRIPTS-->', '<script>\n' + ''.join(f'/* --- {f} --- */\n{c}' for f, c in js) + '</script>', 1)
+html = html.replace('<!--SCRIPTS-->', ''.join(f'<script>/* --- {f} --- */\n{c}</script>\n' for f, c in js), 1)
 open(os.path.join(root, 'index.html'), 'w', encoding='utf-8').write(html)
 print(f'✓ {len(js)} modules · index.html ({len(html)/1024:.0f} Ko)')

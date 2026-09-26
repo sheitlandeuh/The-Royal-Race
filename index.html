@@ -411,6 +411,9 @@
     .jockeys .price{font-size:11.5px;font-weight:800;color:#ffe29a;margin-top:2px}
     .jk-face{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font:900 11px system-ui;border:2px solid #ffffffcc;box-shadow:0 2px 6px #0006;vertical-align:middle;font-style:normal}
     h4 em .jk-face{width:20px;height:20px;font-size:9px}
+/* ===== V2 ===== */
+/* réglages accessibles sur téléphone (le bouton était masqué sous 850 px) */
+@media(max-width:850px){.resources .gear{display:flex;position:absolute;right:0;top:44px;width:36px;height:36px;min-width:36px;padding:0;font-size:18px}}
   </style>
 </head>
 <body>
@@ -465,8 +468,7 @@
   <div class="toast" id="toast">Action effectuée</div>
 </main>
 <script src="assets/vendor/three.min.js"></script>
-<script>
-/* --- 01-core.js --- */
+<script>/* --- 01-core.js --- */
 const state={gold:6000,feed:4000,gems:40,trophies:0,building:null,upgrading:false};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
@@ -477,7 +479,8 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>n.toLocaleString('fr-FR');
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),2200)}
 function sync(){ $('#gold').textContent=fmt(state.gold);$('#feed').textContent=fmt(state.feed);$('#gems').textContent=fmt(state.gems);$('#trophies').textContent=fmt(state.trophies)}
-/* --- 02-village.js --- */
+</script>
+<script>/* --- 02-village.js --- */
 /* ===== Village v2 : carte ancrée + panoramique/zoom + sélection au contour + vie ambiante ===== */
 const VILLAGE={"water":[[0.9827,0.848],[0.2614,0.9596],[0.8876,0.9267],[0.826,0.966],[0.8977,0.9022],[0.2703,0.9713],[0.7392,0.1732],[0.1358,0.8576],[0.1746,0.9192],[0.2584,0.9745],[0.0371,0.6876],[0.2757,0.9617],[0.2661,0.9575],[0.7303,0.1679],[0.2512,0.9564],[0.1884,0.9086],[0.0682,0.7683],[0.8523,0.9394],[0.1352,0.8533],[0.0652,0.7949],[0.8738,0.9373],[0.1758,0.9012],[0.7135,0.0117],[0.0024,0.5951],[0.0078,0.6525],[0.8511,0.2678],[0.0317,0.7046],[0.259,0.9713],[0.7482,0.1126],[0.9581,0.8523],[0.1459,0.9012],[0.8744,0.9416],[0.7739,0.9894],[0.8828,0.9426],[0.9844,0.8374],[0.0377,0.7365],[0.9043,0.9362],[0.2596,0.9819],[0.8493,0.966],[0.7428,0.17],[0.1657,0.899],[0.9641,0.8427],[0.7554,0.1307],[0.747,0.102],[0.9079,0.933],[0.4719,0.5547],[0.7386,0.1722],[0.7261,0.0181],[0.4689,0.5654],[0.8367,0.9596],[0.8774,0.9405],[0.7404,0.1052],[0.7955,0.0404],[0.0371,0.6918],[0.7404,0.1902],[0.0329,0.7173],[0.2578,0.9872],[0.8523,0.9501],[0.9025,0.9022],[0.8547,0.949],[0.3953,0.1031],[0.1286,0.8459],[0.0239,0.6451],[0.741,0.1445],[0.805,0.983],[0.1693,0.9033],[0.1902,0.9086],[0.9647,0.848],[0.8014,0.9713],[0.1471,0.9075],[0.7685,0.1031],[0.1878,0.9182],[0.2237,0.9437],[0.9952,0.8151],[0.0389,0.7354],[0.18,0.8937],[0.9964,0.813],[0.8906,0.9384],[0.8325,0.9628],[0.0335,0.7566],[0.7291,0.1743],[0.2195,0.9522],[0.8008,0.9968],[0.7494,0.1137],[0.244,0.9511],[0.7679,0.9883],[0.8278,0.0404],[0.0233,0.7141],[0.8152,0.9734],[0.9193,0.9107],[0.9779,0.8502],[0.0395,0.7418],[0.8505,0.949],[0.2452,0.9405],[0.0144,0.6302],[0.4928,0.5569],[0.7261,0.0074],[0.7482,0.1615],[0.1495,0.9033],[0.8098,0.9872],[0.0293,0.7163],[0.75,0.1222],[0.2644,0.9596],[0.9037,0.9022],[0.1645,0.8927],[0.0323,0.6961],[0.0377,0.7354],[0.7745,0.2189],[0.0275,0.7184],[0.1441,0.882],[0.0484,0.7354],[0.3977,0.1031],[0.9617,0.8438],[0.2566,0.966],[0.1017,0.8055],[0.1268,0.8427],[0.1675,0.9139],[0.0078,0.6536],[0.7464,0.118],[0.8559,0.9394],[0.9815,0.8417],[0.9833,0.8406],[0.4988,0.5675],[0.735,0.153],[0.1758,0.9129],[0.0407,0.7556],[0.0173,0.6823],[0.1286,0.8395],[0.7422,0.1307],[0.9599,0.8512],[0.1992,0.9352],[0.0676,0.7843],[0.1226,0.847],[0.1908,0.9182],[0.8289,0.0372],[0.8971,0.9224],[0.4677,0.56],[0.3152,0.983],[0.2572,0.9862],[0.1256,0.8523],[0.1382,0.8406],[0.7578,0.1892],[0.89,0.9192],[0.0311,0.6918],[0.8523,0.9607],[0.7362,0.1403],[0.0443,0.7311],[0.7057,0.0096],[0.8283,0.0372],[0.7697,0.1977],[0.2632,0.966],[0.7344,0.152],[0.0712,0.7726],[0.0179,0.6259],[0.0724,0.7821],[0.7362,0.0202],[0.8188,0.9787],[0.3146,0.983],[0.9916,0.8342],[0.8804,0.9437],[0.8547,0.9479],[0.8367,0.9564],[0.7524,0.1626],[0.9946,0.5154],[0.8212,0.9894],[0.1537,0.9065],[0.7482,0.152],[0.817,0.9798],[0.735,0.0159],[0.9982,0.831],[0.9803,0.8247],[0.8194,0.221],[0.0197,0.6706],[0.2028,0.9214],[0.259,0.9617],[0.799,0.9787],[0.058,0.7673],[0.4067,0.102],[0.8505,0.2699],[0.9623,0.8438],[0.8104,0.983],[0.75,0.1275],[0.7428,0.1573],[0.4946,0.5685],[0.4785,0.5749],[0.0407,0.7396],[0.7404,0.1413],[0.7356,0.1488],[0.9055,0.9277],[0.8923,0.9394],[0.1441,0.881],[0.0664,0.7896],[0.7554,0.135],[0.7237,0.0181],[0.14,0.8321],[0.7243,0.0149],[0.0389,0.7301],[0.7984,0.9777],[0.7069,0.1743],[0.7494,0.1541],[0.8062,0.9787],[0.0365,0.7439],[0.7775,0.034],[0.9761,0.8395],[0.1974,0.9447],[0.9886,0.8236],[0.7374,0.1743],[0.8301,0.9649],[0.9839,0.8406],[0.8092,0.9851],[0.2039,0.9277],[0.7452,0.17],[0.7123,0.0149],[0.8146,0.9841],[0.1896,0.9256],[0.494,0.5717],[0.7434,0.1966],[0.1681,0.8905],[0.8702,0.2635],[0.1244,0.8555],[0.0598,0.797],[0.8008,0.9894],[0.174,0.916],[0.7458,0.1637],[0.8272,0.0319],[0.2213,0.9416],[0.1411,0.848],[0.7703,0.9777],[0.741,0.1892],[0.881,0.9416],[0.7506,0.1573],[0.0484,0.7428],[0.8206,0.9756],[0.0646,0.7758],[0.9874,0.8289],[0.0257,0.6727],[0.7967,0.9798],[0.0239,0.6461],[0.7829,0.0436],[0.2446,0.9426],[0.7757,0.101],[0.0305,0.6844],[0.988,0.8204],[0.747,0.1052],[0.8002,0.9713],[0.0299,0.7035],[0.9222,0.8905],[0.0658,0.7843],[0.741,0.0287],[0.8343,0.9692],[0.0682,0.7949],[0.8206,0.9787],[0.1411,0.865],[0.738,0.1679],[0.8786,0.9373],[0.753,0.1594],[0.7177,0.0128],[0.0945,0.8087],[0.741,0.1785],[0.695,0.0074],[0.7871,0.0308],[0.9928,0.8236],[0.7392,0.1116],[0.7434,0.0128],[0.7398,0.1828],[0.2153,0.9341],[0.7626,0.1254],[0.9288,0.881],[0.1926,0.9341],[0.0754,0.7694],[0.8565,0.9639],[0.2596,0.9564],[0.8953,0.9224],[0.0933,0.8108],[0.7386,0.0234],[0.991,0.8172],[0.0395,0.7396],[0.0353,0.6823],[0.0443,0.7269],[0.1465,0.8789],[0.8236,0.9681],[0.7476,0.1775],[0.8014,0.2221],[0.052,0.7598],[0.9091,0.9245],[0.2022,0.9277],[0.2608,0.9681],[0.2721,0.9681],[0.0562,0.7641],[0.2596,0.9586],[0.256,0.9702],[0.1453,0.8874],[0.0742,0.7662],[0.7524,0.1647],[0.8499,0.9671],[0.262,0.966],[0.8032,0.9734],[0.491,0.5579],[0.8158,0.9766],[0.0407,0.7598],[0.1316,0.8417],[0.1382,0.8587],[0.9665,0.8395],[0.7542,0.1892],[0.0437,0.7269],[0.7183,0.0128],[0.8194,0.983],[0.1764,0.9118],[0.049,0.7386],[0.1435,0.915],[0.1334,0.8427],[0.9785,0.8332],[0.8014,0.2104],[0.3403,0.9957],[0.2572,0.9883],[0.0359,0.6897],[0.8762,0.949],[0.1717,0.9214],[0.0263,0.6578],[0.177,0.9044],[0.2608,0.9809],[0.0401,0.7205],[0.1717,0.9129],[0.8529,0.9564],[0.7339,0.0223],[0.7697,0.9947],[0.7984,0.9787],[0.7368,0.1126],[0.805,0.9702],[0.8152,0.2221],[0.2476,0.9469],[0.1531,0.8842],[0.0257,0.6514],[0.7428,0.1052],[0.0664,0.7673],[0.8092,0.0468],[0.8266,0.9671],[0.7476,0.0956],[0.8511,0.933],[0.8361,0.9586],[0.9013,0.9203],[0.802,0.2221],[0.1711,0.9224],[0.7255,0.0266],[0.1065,0.8608],[0.0341,0.7078],[0.756,0.1923],[0.0598,0.7651],[0.7255,0.0074],[0.192,0.916],[0.0197,0.6451],[0.1328,0.8417],[0.2506,0.9575],[0.7488,0.1201],[0.1453,0.9118],[0.0096,0.644],[0.1908,0.9277],[0.0921,0.8013],[0.9922,0.8013],[0.8816,0.9416],[0.8116,0.0414],[0.241,0.9501],[0.741,0.1817],[0.1364,0.8342],[0.1507,0.8948],[0.8062,0.9819],[0.015,0.6536],[0.8176,0.9777],[0.1788,0.9022],[0.7835,0.034],[0.0532,0.7609],[0.0215,0.6865],[0.9815,0.8555],[0.1411,0.8565],[0.1316,0.8661],[0.2488,0.9511],[0.9611,0.848],[0.7871,0.2009],[0.067,0.7726],[0.0269,0.7163],[0.201,0.9235],[0.1501,0.8927],[0.2691,0.9671],[0.7045,0.0064],[0.1722,0.9224],[0.1734,0.9139],[0.1352,0.8491],[0.7249,0.0244],[0.1489,0.8778],[0.0126,0.6472],[0.8182,0.9872],[0.265,0.9554],[0.7548,0.1934],[0.137,0.8374],[0.2225,0.9394],[0.744,0.1169],[0.314,0.9819],[0.0323,0.7014],[0.9904,0.8321],[0.7458,0.118],[0.8511,0.2699],[0.7811,0.0351],[0.0263,0.7173],[0.1711,0.8969],[0.9767,0.8629]],"order":["hippodrome","carriere","haras","clinique","ecurie","chantier","moulin","paddocks"],"size":[1672,941],"hitScale":2,"buildings":{"hippodrome":{"i":1,"x":0.31639,"y":0.0,"w":0.43451,"h":0.42189,"topX":0.51394,"topY":0.04623,"cx":0.54654,"cy":0.21469,"baseY":0.35813},"carriere":{"i":2,"x":0.0326,"y":0.13762,"w":0.3137,"h":0.33475,"topX":0.29174,"topY":0.20138,"cx":0.19309,"cy":0.32124,"baseY":0.40861},"haras":{"i":3,"x":0.32267,"y":0.21892,"w":0.32715,"h":0.37407,"topX":0.48948,"topY":0.28268,"cx":0.485,"cy":0.42698,"baseY":0.52922},"clinique":{"i":4,"x":0.06549,"y":0.356,"w":0.21023,"h":0.26142,"topX":0.19773,"topY":0.41977,"cx":0.17302,"cy":0.49287,"baseY":0.55367},"ecurie":{"i":5,"x":0.72099,"y":0.25717,"w":0.24133,"h":0.25239,"topX":0.8205,"topY":0.32094,"cx":0.84189,"cy":0.3839,"baseY":0.4458},"chantier":{"i":6,"x":0.5936,"y":0.42295,"w":0.24222,"h":0.29809,"topX":0.72305,"topY":0.48672,"cx":0.71966,"cy":0.57367,"baseY":0.65728},"moulin":{"i":7,"x":0.7515,"y":0.51116,"w":0.2485,"h":0.32784,"topX":0.8539,"topY":0.57492,"cx":0.87779,"cy":0.69137,"baseY":0.77524},"paddocks":{"i":8,"x":0.07028,"y":0.54463,"w":0.27422,"h":0.33847,"topX":0.19859,"topY":0.6084,"cx":0.21838,"cy":0.7151,"baseY":0.81934}}};
 const HITMAP_SRC='data:image/png;base64,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';
@@ -572,21 +575,24 @@ $('#infoBtn').onclick=()=>{if(state.buildingId==='haras'){village.deselect();ret
 $('#upgradeBtn').onclick=()=>{const id=state.buildingId||'haras',b=BUILDINGS[id];if(b.race){village.deselect();return openPanel('courses')}if(state.upgrading)return toast('Une amélioration est déjà en cours');if(state.gold<b.cost)return toast('Pas assez d’or');state.gold-=b.cost;state.upgrading=true;state.upgradingId=id;sync();$('#builders').textContent='1/3';$('#upgradeBtn').disabled=true;village.setTimer(id,clockText());toast(`Travaux lancés : ${b.name}`)};
 (()=>{const base=$('.map-base'),hide=()=>setTimeout(()=>$('#splash').classList.add('gone'),350);base.complete?hide():(base.addEventListener('load',hide),base.addEventListener('error',hide));setTimeout(hide,6000)})();
 let seconds=8040;setInterval(()=>{if(!state.upgrading)return;seconds=Math.max(0,seconds-1);village.setTimer(state.upgradingId,clockText())},1000);
-/* --- 03-panels.js --- */
+</script>
+<script>/* --- 03-panels.js --- */
 // panneau générique (bâtiments sans écran dédié)
 const content={};
 function openPanel(key){if(key==='saison')return season.open();if(key==='palmares')return palmares.open();if(key==='boutique')return shop.open();if(key==='events')return tour.open();if(key==='missions')return career.openMissions();if(key==='trophees')return career.openTrophies();if(key==='events')return career.openEvents();if(key==='chevaux'||key==='ecurie')return openStable();if(key==='courses')return openCourses();$('#panel .card').classList.remove('wide');$('#panelTitle').textContent=key.charAt(0).toUpperCase()+key.slice(1);$('#panelBody').innerHTML=content[key]||`<div class="tile"><div class="horse">🏰</div><strong>${key}</strong><p>Bâtiment sélectionné dans votre domaine.</p></div>`;$('#panel').classList.add('open');if(key==='chevaux'||key==='ecurie'){const t=$('#panelBody .tile');if(t){t.outerHTML=`<article class="tile">${championTile('<p>Vitesse</p><div class="bar"><i style="width:88%"></i></div>')}</article>`;paintThumbs()}}if(key==='courses'){const t=$('#panelBody .choice');if(t){t.querySelector('.horse').innerHTML=LIVERY.silkSVG(champion.get(),52);t.querySelector('strong').textContent=HN()+' • Niv. 8'}}const reward=$('[data-reward]');if(reward)reward.onclick=()=>{state.gold+=1500;sync();reward.disabled=true;reward.textContent='RÉCUPÉRÉ';toast('+ 1 500 or')};}
 $$('[data-panel]').forEach(b=>b.onclick=()=>openPanel(b.dataset.panel));
 $$('.nav').forEach(n=>n.onclick=()=>{$$('.nav').forEach(x=>x.classList.remove('active'));n.classList.add('active');if(n.dataset.view==='domaine'){$('#panel').classList.remove('open');village.deselect()}else openPanel(n.dataset.view)});
 $('#closePanel').onclick=()=>$('#panel').classList.remove('open');$('#panel').onclick=e=>{if(e.target===$('#panel'))$('#panel').classList.remove('open')};document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#panel').classList.remove('open');village.deselect()}});sync();
-/* --- 04-race-state.js --- */
+</script>
+<script>/* --- 04-race-state.js --- */
 let playerFinal=false,raceLoop=null,progress=[],visualProgress=[],raceTime=0,playerLane=50,lookDir=0,autoSpeed=.42,startBoostUntil=0,playerEnergy=100,rivalAI=[],raceFinished=[],raceFinishTimes=[],finishOrder=[],raceStartClock=0;state.strategy='stalker';
 const rivalLanes=[46,25,70,58,12],rivalBase=[.432,.405,.448,.415,.424];
 const raceNames=['Royal Thunder','Black Majesty','Éclair Rouge','Silver Crown','Royal Shadow','Golden Star'];
 const race3d=$('#race3d'),RACE_ORIGIN=.235;let threeRace=null;
 let sceneFrame=0,lastScene=0,raceSeed=1,raceRng=Math.random;
 const seeded=seed=>{let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}};
-/* --- 05-race-scene.js --- */
+</script>
+<script>/* --- 05-race-scene.js --- */
 function trackPose(t,lane=0){const straight=520,radius=165,total=straight*2+Math.PI*2*radius,d=(((t%1)+1)%1)*total;let x,z,fx,fz;if(d<straight){x=-straight/2+d;z=radius;fx=1;fz=0}else if(d<straight+Math.PI*radius){const u=(d-straight)/radius,a=Math.PI/2-u;x=straight/2+radius*Math.cos(a);z=radius*Math.sin(a);fx=Math.sin(a);fz=-Math.cos(a)}else if(d<straight*2+Math.PI*radius){const u=d-straight-Math.PI*radius;x=straight/2-u;z=-radius;fx=-1;fz=0}else{const u=(d-straight*2-Math.PI*radius)/radius,a=-Math.PI/2-u;x=-straight/2+radius*Math.cos(a);z=radius*Math.sin(a);fx=Math.sin(a);fz=-Math.cos(a)}const nx=-fz,nz=fx;return{p:new THREE.Vector3(x+nx*lane,0,z+nz*lane),f:new THREE.Vector3(fx,0,fz),n:new THREE.Vector3(nx,0,nz)}}
 function ribbonGeometry(inner,outer,y=.02,segments=320){const pos=[],uv=[],idx=[];for(let i=0;i<=segments;i++){const t=i/segments,a=trackPose(t,inner).p,b=trackPose(t,outer).p;pos.push(a.x,y,a.z,b.x,y,b.z);uv.push(0,t*34,1,t*34)}for(let i=0;i<segments;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
 function makeLabel(text,w=256,h=110){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#071a2d';x.fillRect(5,5,w-10,h-10);x.strokeStyle='#e0b249';x.lineWidth=9;x.strokeRect(5,5,w-10,h-10);x.fillStyle='#fff7dc';x.font='900 46px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText(text,w/2,h/2);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
@@ -596,7 +602,8 @@ function enhancePodium(group){const navy=new THREE.MeshStandardMaterial({color:0
 function createStartingStalls(scene){const root=new THREE.Group(),steel=new THREE.MeshStandardMaterial({color:0xd7dddd,metalness:.78,roughness:.25}),navy=new THREE.MeshStandardMaterial({color:0x102d4b,metalness:.3,roughness:.42}),doors=[],laneValues=[12,28,44,56,72,88];for(let i=0;i<6;i++){const p=trackPose(RACE_ORIGIN,(laneValues[i]-50)*.38),stall=new THREE.Group();stall.position.copy(p.p);stall.rotation.y=Math.atan2(p.f.x,p.f.z);for(const x of[-2.65,2.65])for(const z of[-3.5,0,3.5]){const post=new THREE.Mesh(new THREE.BoxGeometry(.25,8.4,.25),steel);post.position.set(x,4.2,z);stall.add(post)}for(const x of[-2.65,2.65])for(const y of[1.1,2.5,4,5.5,7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,7.2),steel);rail.position.set(x,y,0);stall.add(rail)}const roof=new THREE.Mesh(new THREE.BoxGeometry(5.7,.42,7.6),navy);roof.position.y=8.45;stall.add(roof);const number=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(String(i+1),120,120),transparent:true}));number.position.set(0,7.35,3.75);number.scale.set(1.4,1.4,1);stall.add(number);const gate=new THREE.Group();gate.position.set(0,0,3.58);for(let x=-2.35;x<=2.36;x+=.67){const bar=new THREE.Mesh(new THREE.BoxGeometry(.14,6.8,.14),steel);bar.position.set(x,3.4,0);gate.add(bar)}for(const y of[.2,3.4,6.7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(5.1,.18,.18),steel);rail.position.set(0,y,0);gate.add(rail)}stall.add(gate);doors.push(gate);root.add(stall)}root.userData.doors=doors;scene.add(root);return root}
 function renderRaceIntro(q,now){if(q.lastIntro&&coach.open&&q.startPhase==='cinematic'&&now-q.introStart>=5200)q.introStart+=now-q.lastIntro;q.lastIntro=now;const elapsed=now-q.introStart,overlay=$('#startSequence'),count=$('#startCount'),hint=$('#startHint');overlay.classList.add('show');overlay.classList.remove('waiting');const par=elapsed>=2200&&elapsed<4200&&raceFX.parade(q,now,(elapsed-2200)/2000);overlay.classList.toggle('parade',!!par);if(par){count.textContent=HN();count.style.fontSize='clamp(30px,6vw,64px)';hint.textContent='AU ROND DE PRÉSENTATION'}else if(elapsed<4200){const t=RACE_ORIGIN+.06+Math.min(1,elapsed/2200)*.82,p=trackPose(t,-105),look=trackPose(t+.075,0).p;q.camera.position.set(p.p.x,48+Math.sin(elapsed*.0015)*8,p.p.z);q.camera.lookAt(look.x,0,look.z);count.textContent='THE ROYAL RACE';count.style.fontSize='clamp(34px,7vw,82px)';hint.textContent='SURVOL DE L’HIPPODROME'}else{const player=trackPose(RACE_ORIGIN,(playerLane-50)*.38),desired=player.p.clone().addScaledVector(player.f,-30);desired.y=10.5,q.camera.position.lerp(desired,.055);const aim=player.p.clone().addScaledVector(player.f,12);aim.y=3;q.camera.lookAt(aim);count.style.fontSize='';const c=elapsed<5200?'':elapsed<6200?'3':elapsed<7200?'2':elapsed<8200?'1':'GO';count.textContent=c||'EN STALLES';hint.textContent=elapsed<5200?'MISE EN PLACE':elapsed<8200?'PRÉPARE-TOI':'PARTEZ !';if(elapsed>=5200&&$('#goBtn').hidden){$('#goBtn').hidden=false;coach.tip('start','Au <b>GO</b>, touche <b>PARTEZ !</b> le plus vite possible. Trop tôt = pénalité, trop tard = départ lent.','#goBtn')}if(elapsed>=8200&&q.startPhase!=='waiting'){sound.bell();q.startPhase='waiting';q.goTime=now;overlay.classList.add('waiting')}}raceFX.render(q);return true}
 function launchFromStalls(){const q=threeRace;if(!q||q.startPhase==='running')return;const now=performance.now();if(q.startPhase!=='waiting'){q.falseStartPenalty=Math.round(300+(racePlayer?racePlayer.noise/.00008*8:150));$('#startCount').textContent='TROP TÔT';$('#startHint').textContent='PÉNALITÉ +0,45 S';return}const reaction=now-q.goTime+(q.falseStartPenalty||0),RW=racePlayer?racePlayer.window:180;$('#goBtn').hidden=true;q.startPhase='running';q.stalls.userData.doors.forEach(door=>{door.rotation.x=-Math.PI/2;door.position.y=.15});sound.gates();sound.say('Et c’est parti !',true);buzz(30);if(reaction<RW)career.bump('perfect');RS.reaction=reaction;RS.window=RW;hooks.emit('race:go',reaction,RW);startBoostUntil=now+(reaction<RW?2800:reaction<RW*1.78?1800:0);autoSpeed=reaction<RW?.59:reaction<RW*1.78?.52:reaction<RW*2.9?.44:.35;raceStartClock=now;initRivalAI();$('#startCount').textContent=reaction<RW?'PARFAIT !':reaction<RW*1.78?'EXCELLENT !':reaction<RW*2.9?'BON DÉPART':'DÉPART LENT';$('#startHint').textContent=`RÉACTION : ${Math.round(reaction)} MS`;setTimeout(()=>{$('#startSequence').classList.remove('show');if(raceLoop)$('#sprintBtn').disabled=false},850);$('#raceComment').textContent=reaction<RW*1.78?'Tu jaillis parfaitement des stalles !':'La course est lancée';clearInterval(raceLoop);raceLoop=setInterval(runRaceV2,100)}
-/* --- 06-livery.js --- */
+</script>
+<script>/* --- 06-livery.js --- */
 /* ===== Livrées : robe du cheval, casaque, toque — recoloration réaliste des sprites (course + podium) ===== */
 const LIVERY=(()=>{
  const META={"gallop":{"frames":[{"x0":0,"x1":272,"jersey":[62,104,210,259],"cap":[107,77,160,103]},{"x0":272,"x1":543,"jersey":[336,111,484,261],"cap":[382,83,434,110]},{"x0":543,"x1":814,"jersey":[608,117,755,266],"cap":[654,89,707,116]},{"x0":814,"x1":1086,"jersey":[879,129,1026,226],"cap":[917,90,992,128]},{"x0":1086,"x1":1358,"jersey":[1148,122,1301,269],"cap":[1195,83,1265,121]},{"x0":1358,"x1":1629,"jersey":[1419,111,1570,272],"cap":[1469,83,1521,110]},{"x0":1629,"x1":1900,"jersey":[1696,111,1835,280],"cap":[1739,83,1791,110]},{"x0":1900,"x1":2172,"jersey":[1964,125,2110,269],"cap":[1989,86,2079,124]}],"coatCdf":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0001,0.0003,0.0006,0.0011,0.002,0.0031,0.0052,0.0087,0.0145,0.0233,0.0339,0.0451,0.0569,0.0685,0.0788,0.0888,0.0994,0.1104,0.1206,0.1306,0.1402,0.1506,0.1606,0.1713,0.1825,0.194,0.2051,0.2173,0.2297,0.2426,0.2562,0.2705,0.2857,0.3009,0.3156,0.33,0.3452,0.3598,0.3744,0.389,0.404,0.4197,0.4352,0.4502,0.4655,0.4806,0.4964,0.5122,0.5279,0.5441,0.5597,0.5758,0.5923,0.6088,0.6249,0.6403,0.6553,0.6702,0.6844,0.6985,0.7132,0.727,0.7407,0.7536,0.7662,0.7783,0.7902,0.8016,0.8126,0.8234,0.8337,0.8431,0.8528,0.862,0.8707,0.879,0.8867,0.8938,0.9011,0.908,0.915,0.9215,0.9277,0.9336,0.9393,0.9448,0.9499,0.9546,0.9588,0.9626,0.9663,0.9697,0.9727,0.9755,0.9777,0.9798,0.9816,0.9833,0.9846,0.9858,0.987,0.9881,0.989,0.9897,0.9904,0.991,0.9915,0.992,0.9924,0.9927,0.9931,0.9935,0.9938,0.9941,0.9943,0.9946,0.9948,0.9949,0.9952,0.9954,0.9955,0.9957,0.9959,0.9961,0.9962,0.9963,0.9965,0.9967,0.9969,0.997,0.9971,0.9973,0.9973,0.9975,0.9976,0.9977,0.9978,0.9979,0.998,0.9981,0.9982,0.9983,0.9983,0.9984,0.9985,0.9986,0.9986,0.9987,0.9987,0.9988,0.9989,0.999,0.999,0.999,0.9991,0.9992,0.9993,0.9993,0.9994,0.9994,0.9994,0.9994,0.9995,0.9995,0.9996,0.9996,0.9996,0.9996,0.9996,0.9997,0.9997,0.9997,0.9997,0.9997,0.9998,0.9998,0.9998,0.9998,0.9998,0.9998,0.9998,0.9998,0.9998,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,0.9999,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0]},"podium":{"frames":[{"x0":0,"x1":362,"jersey":[95,88,251,201],"cap":[145,9,203,51]},{"x0":362,"x1":724,"jersey":[493,90,632,204],"cap":[532,12,601,57]},{"x0":724,"x1":1086,"jersey":[801,98,931,209],"cap":[843,21,903,57]},{"x0":1086,"x1":1448,"jersey":[1171,85,1325,204],"cap":[1223,7,1275,45]},{"x0":1448,"x1":1810,"jersey":[1536,84,1652,207],"cap":[1585,11,1642,47]},{"x0":1810,"x1":2172,"jersey":[1913,87,2059,204],"cap":[1964,7,2019,43]}]},"coatLuts":[[[27,12,6],[30,14,6],[36,19,7],[38,22,11],[38,25,16],[39,27,18],[43,28,18],[47,29,17],[51,30,17],[56,31,16],[60,32,15],[62,32,15],[63,34,17],[64,35,17],[67,36,15],[70,36,14],[71,37,15],[71,38,17],[71,39,20],[70,41,23],[69,42,27],[71,42,26],[77,42,22],[80,43,21],[79,44,23],[75,46,29],[73,47,34],[77,47,31],[82,47,27],[82,48,28],[78,50,33],[80,50,35],[87,50,30],[91,50,26],[95,51,22],[97,51,22],[96,52,27],[94,54,32],[95,55,33],[100,56,30],[103,56,32],[101,58,37],[100,60,40],[105,61,39],[110,61,38],[111,62,39],[110,64,42],[110,66,43],[113,67,41],[116,68,41],[117,69,46],[115,71,53],[115,73,57],[116,74,59],[119,76,59],[124,77,57],[129,78,54],[135,80,51],[138,83,54],[136,86,65],[136,91,75],[141,99,86],[148,113,103],[151,122,114]],[[17,13,10],[17,14,11],[18,15,12],[19,16,13],[19,17,14],[20,18,15],[21,18,16],[22,19,16],[23,20,16],[24,20,16],[25,21,17],[25,21,18],[26,22,19],[26,23,19],[26,23,20],[27,24,21],[28,24,22],[29,24,22],[30,25,22],[31,25,22],[31,26,23],[31,27,24],[31,27,25],[32,28,25],[34,28,26],[34,29,27],[34,29,27],[35,30,27],[36,31,28],[36,31,29],[37,32,31],[37,33,32],[38,34,32],[40,34,32],[41,35,33],[43,35,34],[44,36,34],[44,37,35],[44,38,37],[44,39,38],[45,40,39],[45,41,41],[46,42,42],[48,43,43],[50,44,43],[52,45,43],[54,46,44],[56,48,45],[58,49,46],[59,50,48],[60,52,51],[61,54,53],[62,55,54],[63,57,55],[65,59,58],[67,61,61],[69,63,63],[72,65,66],[74,68,69],[77,71,73],[81,74,77],[89,82,85],[101,97,103],[108,106,114]],[[34,13,2],[39,16,3],[47,21,5],[52,25,6],[56,27,7],[59,29,8],[64,30,8],[69,31,7],[73,33,8],[75,35,9],[76,36,11],[78,37,13],[81,38,13],[83,39,14],[84,40,15],[85,42,14],[88,42,12],[90,43,13],[90,44,17],[90,45,19],[92,46,19],[92,47,19],[92,48,21],[94,49,22],[96,50,21],[97,51,22],[99,52,22],[104,52,20],[107,52,19],[106,54,21],[105,55,25],[106,56,27],[109,57,28],[112,58,26],[115,59,25],[116,60,28],[117,61,31],[120,62,31],[122,63,33],[122,64,36],[124,66,35],[128,67,33],[129,68,34],[129,70,38],[127,72,42],[127,73,45],[128,75,47],[130,76,48],[134,77,47],[138,78,44],[141,79,41],[145,80,42],[146,81,46],[146,83,50],[147,86,51],[148,88,54],[151,90,57],[155,92,59],[157,95,60],[157,98,65],[159,102,72],[168,109,77],[183,120,81],[192,127,83]],[[27,21,18],[31,26,23],[38,35,32],[45,42,38],[51,47,42],[56,51,44],[60,55,48],[62,58,54],[65,61,59],[68,64,62],[72,67,63],[75,70,65],[78,73,68],[81,75,71],[83,78,75],[85,81,81],[88,84,84],[91,86,85],[94,89,85],[96,91,88],[98,93,91],[100,95,94],[102,98,96],[105,100,98],[107,102,99],[110,104,102],[113,106,105],[115,108,108],[118,111,110],[121,113,111],[123,115,114],[125,118,116],[127,121,118],[128,123,121],[130,125,125],[133,126,129],[135,128,131],[136,130,133],[138,132,134],[140,134,136],[142,136,138],[144,138,141],[146,139,143],[148,141,146],[150,143,147],[152,145,148],[154,147,149],[156,149,151],[157,151,153],[158,154,155],[160,156,158],[162,158,161],[165,160,162],[168,162,164],[171,164,168],[172,167,172],[174,170,175],[177,174,177],[180,177,180],[184,181,184],[189,186,190],[197,194,198],[212,208,210],[220,216,217]],[[21,11,4],[23,12,5],[26,14,7],[28,16,10],[29,18,11],[32,19,11],[35,20,10],[36,21,11],[37,22,13],[39,23,12],[41,23,12],[41,24,13],[39,26,16],[38,27,19],[40,27,19],[42,28,18],[44,28,17],[46,29,16],[48,29,16],[49,30,16],[49,30,18],[50,31,18],[50,32,19],[49,33,21],[48,34,25],[49,34,24],[52,35,22],[55,35,20],[57,35,20],[57,36,23],[55,38,27],[55,38,29],[59,39,27],[62,39,25],[64,40,23],[64,41,23],[64,41,26],[64,42,30],[65,43,32],[65,44,34],[66,45,35],[70,45,33],[74,46,32],[74,47,35],[74,49,38],[75,50,40],[75,51,43],[74,53,45],[77,54,43],[83,55,38],[88,56,37],[86,58,42],[83,60,50],[81,62,57],[82,64,59],[86,66,59],[91,68,59],[95,70,61],[100,72,62],[106,75,63],[110,79,65],[117,89,77],[130,110,103],[138,123,119]],[[45,23,7],[53,29,10],[66,41,18],[71,49,29],[73,54,37],[82,58,35],[91,60,32],[96,62,35],[98,65,39],[101,68,42],[104,71,43],[108,74,43],[113,77,43],[117,79,44],[120,82,46],[124,84,46],[129,86,45],[133,88,46],[134,90,50],[135,92,54],[138,93,55],[143,95,53],[146,96,52],[146,99,54],[147,101,58],[150,102,59],[152,104,61],[152,107,64],[153,109,65],[157,110,65],[160,112,66],[162,114,68],[163,116,71],[163,117,74],[164,119,76],[167,120,77],[169,122,77],[170,123,77],[173,125,76],[175,127,78],[173,129,83],[170,132,91],[170,134,96],[175,135,95],[180,136,92],[183,138,91],[187,140,92],[190,141,94],[193,143,94],[197,145,93],[200,147,94],[201,150,98],[200,153,103],[197,156,111],[198,159,116],[204,162,116],[209,165,118],[209,169,126],[206,175,139],[206,181,150],[209,187,159],[216,196,170],[224,208,183],[228,214,190]]]};
@@ -676,7 +683,8 @@ const LIVERY=(()=>{
  return{COATS,COLORS,PATTERNS,DEFAULT,ready,gallop,portrait,silkSVG,random,pattern:pat,coatLut:i=>META.coatLuts[i][36],coatSwatch:i=>{const l=META.coatLuts[i][40];return `rgb(${l[0]},${l[1]},${l[2]})`}};
 })();
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-/* --- 07-stable.js --- */
+</script>
+<script>/* --- 07-stable.js --- */
 /* ===== Écurie : chevaux, statistiques, condition, entraînement — sauvegardé dans ce navigateur ===== */
 const STATS=[
  {k:'vit',n:'Vitesse',d:'Vitesse de croisière et vitesse de pointe'},
@@ -750,7 +758,8 @@ setInterval(()=>{stable.tick();stable.save()},60e3);
 const champion=(()=>{const L=[];return{get(){const h=stable.active();return{...stable.silks,name:h.name,coat:h.coat}},exists:()=>stable.created,
  set(v){stable.silks={main:v.main,second:v.second,pattern:v.pattern,cap:v.cap};const h=stable.active();h.name=v.name;h.coat=v.coat;stable.created=true;stable.save();L.forEach(f=>f(this.get()))},on:f=>L.push(f),emit(){L.forEach(f=>f(this.get()))}}})();
 {const s0=sync;sync=function(){s0();stable.save()}}sync();
-/* --- 08-horse3d.js --- */
+</script>
+<script>/* --- 08-horse3d.js --- */
 /* ===== Cheval + jockey en 3D — anatomie sculptée par surfaces implicites (union lisse d'ellipsoïdes et de cônes arrondis),
    maillée une seule fois au chargement (« surface nets »), ombrage de pelage (occlusion ambiante cuite, poil, reflets), galop animé ===== */
 const HORSE3D=(()=>{
@@ -892,7 +901,8 @@ const HORSE3D=(()=>{
    const d=_b.sub(_a),L=d.length();r.position.copy(_a);r.scale.set(L,1,1);r.quaternion.setFromUnitVectors(X1,d.divideScalar(L))})}
  return{build,pose,geo,dispose(root){root.userData.mats.forEach(m=>m.dispose());root.userData.texs.forEach(t=>t.dispose())}}})();
 if(window.THREE)setTimeout(()=>{try{HORSE3D.geo()}catch(e){}},3500);
-/* --- 09-race-fx.js --- */
+</script>
+<script>/* --- 09-race-fx.js --- */
 /* ===== Course — réalisme : ciel, horizon photo, gazon, décors photo, chevaux au galop, ombres, mottes, post-traitement ===== */
 let racePlayer=null;
 const raceFX=(()=>{
@@ -999,7 +1009,8 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   P.mat.uniforms.uRes.value.copy(fx.size);P.mat.uniforms.uTime.value=now*.001;P.mat.uniforms.uBlur.value=fx.blur;r.render(P.scene,P.cam)}
  return{build,horse,podium,parade,render,ground,liveries,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
 })();
-/* --- 10-race.js --- */
+</script>
+<script>/* --- 10-race.js --- */
 function initThreeRace(){if(threeRace||!window.THREE)return false;const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xc4d6de,300,1000);const camera=new THREE.PerspectiveCamera(64,1,.08,1800),renderer=new THREE.WebGLRenderer({canvas:race3d,antialias:true,powerPreference:'high-performance',precision:'highp'});renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;const hemi=new THREE.HemisphereLight(0xdcebff,0x3a4a26,1.3);scene.add(hemi);const sun=new THREE.DirectionalLight(0xfff0d2,3.3);sun.position.set(-260,360,180);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-500;sun.shadow.camera.right=500;sun.shadow.camera.top=500;sun.shadow.camera.bottom=-500;sun.shadow.camera.far=1100;scene.add(sun);
  raceFX.ground(scene,renderer);
  const railMat=new THREE.MeshStandardMaterial({color:0xf7f5e8,roughness:.55}),goldMat=new THREE.MeshStandardMaterial({color:0xd2a23b,roughness:.55}),navyMat=new THREE.MeshStandardMaterial({color:0x102d4b,roughness:.65});function rail(offset){for(let i=0;i<160;i++){const a=trackPose(i/160,offset),b=trackPose((i+1)/160,offset),mid=a.p.clone().add(b.p).multiplyScalar(.5),len=a.p.distanceTo(b.p);const bar=new THREE.Mesh(new THREE.BoxGeometry(.38,.34,len+.25),railMat);bar.position.set(mid.x,1.15,mid.z);bar.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),b.p.clone().sub(a.p).normalize());scene.add(bar);if(i%4===0){const post=new THREE.Mesh(new THREE.BoxGeometry(.48,1.5,.48),railMat);post.position.copy(a.p);post.position.y=.7;scene.add(post)}}}rail(-20);rail(20);
@@ -1079,7 +1090,8 @@ const rank=finishOrder.indexOf(0)+1,win=rank===1,A=raceAnalysis(rank);if(A.lines
  $('#fbGain').innerHTML=`+${fmt(prize)} or${CR.streakBonus?` <small>(série ×${1+CR.streakBonus})</small>`:''} · ${CR.d>0?'+':''}${CR.d} trophées · +${AR.xp} XP${AR.up?` · NIVEAU ${stable.active().level} !`:''}${CR.promoted?` · PROMU EN LIGUE ${CR.promoted.n.toUpperCase()} !`:CR.relegated?` · Retour en ligue ${CR.relegated.n}`:''}${CR.chest?`<br>🎁 Coffre ${CR.chest.n} gagné !`:CR.chestFull?'<br>🎁 Coffres pleins : ouvre-en un pour en gagner d’autres':''}`;
  $('#fbStars').innerHTML=`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}${A.adv?`<div class="an-adv">🎩 ${A.adv[1]} <button class="action" data-adv="${A.adv[0]}">ENTRAÎNER</button></div>`:''}`;
  {const rm=rival.after();$('#fbGain').innerHTML+=`<br>🎩 ${rm}`;const tm=tour.after(rank);if(tm)$('#fbGain').innerHTML+=`<br><span class="tourmsg">${tm}</span>`;tour.resultBtn();palmares.onRace(rank,A.stars)}currentField=null;const first=raceFinishTimes[finishOrder[0]];$('#finishRows').innerHTML=finishOrder.map((idx,pos)=>{const gap=raceFinishTimes[idx]-first;return `<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${raceFinishTimes[idx].toFixed(2)} s</td><td>${pos?`+${gap.toFixed(2)} s`:'—'}</td></tr>`}).join('');$('#raceComment').textContent='Classement officiel validé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=win?'🏆':'🎖️';$('#resultTitle').textContent=win?'Victoire royale !':`${rank}e place`;$('#resultText').textContent=win?HN()+' monte sur la première marche du podium.':`${HN()} termine ${rank}e après une course disputée.`;hooks.emit('race:end',finishOrder.indexOf(0)+1)}
-/* --- 11-studio.js --- */
+</script>
+<script>/* --- 11-studio.js --- */
 $('#quitRace').onclick=leaveRace;$('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steer(-1);$('#moveRight').onclick=()=>steer(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;$('#goBtn').onclick=launchFromStalls;document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key.toLowerCase()==='f')launchFromStalls();if(e.key==='ArrowLeft')steer(-1);if(e.key==='ArrowRight')steer(1);if(e.key===' ')sprint();if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});
 /* ===== Atelier du champion ===== */
 const HN=()=>champion.get().name||'Mon champion';
@@ -1118,7 +1130,8 @@ function championTile(extra=''){const c=champion.get();return `<div class="champ
 function paintThumbs(){LIVERY.ready.then(()=>{const p=LIVERY.portrait(champion.get());$$('.champ-thumb').forEach(cv=>{const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const s=cv.width/p.width*1.35;x.drawImage(p,(cv.width-p.width*s)/2,-4,p.width*s,p.height*s)})})}
 document.addEventListener('click',e=>{if(e.target.closest('[data-studio]')){$('#panel').classList.remove('open');studio.open()}});
 LIVERY.ready.then(()=>{if(!champion.exists())setTimeout(()=>studio.open(true),900)}).catch(()=>{});
-/* --- 12-stable-ui.js --- */
+</script>
+<script>/* --- 12-stable-ui.js --- */
 /* ===== Interface de l’écurie et des engagements ===== */
 const stUI={horse:null,tab:'train',int:'normal',filter:null};
 const livOf=h=>({...stable.silks,name:h.name,coat:h.coat});
@@ -1186,7 +1199,8 @@ function renderCourses(){stable.tick();const H=stable.data.horses,h=stable.activ
  $('#raceJoin').onclick=()=>startRace();if(gear.owned.length>1)coach.tip('gear','Adapte l’<b>équipement</b> au terrain : les pastilles vertes indiquent ce qui aide ton cheval aujourd’hui.','.tack');hooks.emit('courses:render')}
 $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.runner){if(RACE.tour&&t.dataset.runner!==tour.horse)return toast('Tournoi en cours : ton cheval reste engagé jusqu’à la fin');stable.setActive(t.dataset.runner);champion.emit();buildField();renderCourses()}else if(t.dataset.tactic){state.strategy=t.dataset.tactic;renderCourses()}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-adv]');if(!b)return;leaveRace();openStable({tab:'train'});stUI.int='normal';setTimeout(()=>{const c=$(`[data-train=${b.dataset.adv}]`);c?.closest('.ses')?.scrollIntoView({block:'center'});c?.closest('.ses')?.classList.add('flash')},200)});
-/* --- 13-settings.js --- */
+</script>
+<script>/* --- 13-settings.js --- */
 /* ===== Réglages : qualité graphique, animations, son, sauvegarde ===== */
 const settings=(()=>{let S={q:'auto',anim:true,sfx:.8,music:.45,voice:true};try{Object.assign(S,JSON.parse(localStorage.getItem('trr.settings')||'{}'))}catch(e){}
  const save=()=>{try{localStorage.setItem('trr.settings',JSON.stringify(S))}catch(e){}};
@@ -1209,7 +1223,8 @@ $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-q]'
 $('#panelBody').addEventListener('change',e=>{if(e.target.id==='setAnim')settings.set('anim',e.target.checked);if(e.target.id==='setVoice')settings.set('voice',e.target.checked)});
 $('#panelBody').addEventListener('input',e=>{if(e.target.id==='setSfx')settings.set('sfx',+e.target.value);if(e.target.id==='setMusic')settings.set('music',+e.target.value)});
 $('.resource.gear').addEventListener('click',openSettings);
-/* --- 14-career.js --- */
+</script>
+<script>/* --- 14-career.js --- */
 /* ===== Carrière : ligues, programme des courses, missions du jour, événement de la semaine ===== */
 const LEAGUES=[{id:'bronze',n:'Bronze',min:0,col:'#c9834a',reward:{gold:0}},{id:'argent',n:'Argent',min:300,col:'#c9d3dc',reward:{gold:10000,gems:20}},
  {id:'or',n:'Or',min:900,col:'#f3c64a',reward:{gold:25000,gems:60}},{id:'royale',n:'Royale',min:1800,col:'#b98cff',reward:{gold:60000,gems:150}}];
@@ -1257,7 +1272,8 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
 /* ---------- programme des courses ---------- */
 function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m);return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<small>${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(m.purse)}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
 $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-meet]');if(!b)return;if(b.dataset.meet==='tour'){RACE=tour.meeting();stable.setActive(tour.horse);champion.emit()}else RACE={...MEETINGS.find(m=>m.id===b.dataset.meet)};buildField();renderCourses()});
-/* --- 15-sound.js --- */
+</script>
+<script>/* --- 15-sound.js --- */
 /* ===== Son : galop, foule, cloche de départ, fanfare, interface, musique douce, speaker (tout synthétisé, aucun fichier) ===== */
 const sound=(()=>{let A=null,master,sfx,mus,crowd,crowdGain,noiseBuf,musicTimer=0,gallopT=0;
  function init(){if(A)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;A=new C();master=A.createGain();master.connect(A.destination);sfx=A.createGain();mus=A.createGain();sfx.connect(master);mus.connect(master);volumes();
@@ -1284,7 +1300,8 @@ const sound=(()=>{let A=null,master,sfx,mus,crowd,crowdGain,noiseBuf,musicTimer=
  document.addEventListener('click',e=>{if(e.target.closest('button'))click()});
  return{volumes,gallop,crowdStart,crowdLevel,crowdStop,bell,gates,coin,fanfare,music,say,init,get ctx(){return A},get musicBus(){return mus},get sfxBus(){return sfx},noise,thud,tone}})();
 const buzz=p=>{try{navigator.vibrate?.(p)}catch(e){}};
-/* --- 16-tutorial.js --- */
+</script>
+<script>/* --- 16-tutorial.js --- */
 /* ===== Tutoriel : conseils de l’entraîneur, affichés une seule fois ===== */
 const coach=(()=>{const el=document.createElement('div');el.className='coach';el.innerHTML='<div class="coach-face">🎩</div><div class="coach-body"><b>Maître Armand, entraîneur</b><p></p><button class="action green">COMPRIS</button></div>';el.hidden=true;$('#game').appendChild(el);
  // une seule attente à la fois : deux conseils demandés pendant qu'un panneau est ouvert ne doivent pas s'afficher l'un sur l'autre
@@ -1299,7 +1316,8 @@ champion.on(()=>{setTimeout(()=>{coach.tip('welcome',`Bienvenue au domaine ! <b>
 if(champion.exists()&&career.data.stats?.races>=1)setTimeout(()=>coach.tip('missions','Nouveau : 3 missions quotidiennes, des ligues et le Derby du Royaume chaque semaine. Touche le parchemin pour commencer.','[data-panel=missions]'),1800);
 career.badges();{const s1=sync;sync=function(){s1();career.badges()}}
 apply();
-/* --- 17-meta.js --- */
+</script>
+<script>/* --- 17-meta.js --- */
 /* ===== Méta-jeu : coffres, séries de victoires, récompense quotidienne, adéquation cheval/course, barre d'accueil ===== */
 const CHESTS={bois:{n:'en bois',min:15,col:'#a8733f',ico:'🧰'},argent:{n:'d’argent',min:60,col:'#c9d3dc',ico:'🎁'},or:{n:'d’or',min:180,col:'#f3c64a',ico:'💰'},royal:{n:'royal',min:480,col:'#b98cff',ico:'👑'}};
 const LOGIN=[{gold:2000},{feed:2500},{gems:10},{gold:5000},{elixir:1},{feed:6000},{chest:'or'}];
@@ -1341,7 +1359,8 @@ const meta=(()=>{const C=career.data;C.chests=C.chests||[null,null,null,null];C.
  setInterval(render,20e3);champion.on(render);
  return{onRace,render,suit,addChest,login,get elixirs(){return C.elixirs},useElixir(){if(C.elixirs<1)return false;C.elixirs--;save();return true},get streak(){return C.streak}}})();
 meta.render();if(career.data.stats?.races>0)meta.login();{const s2=sync;sync=function(){s2();meta.render()}}
-/* --- 18-season.js --- */
+</script>
+<script>/* --- 18-season.js --- */
 /* ===== Route des étoiles : pass de saison gratuit (28 jours), alimenté par les étoiles gagnées en course ===== */
 const SEASON_TIERS=Array.from({length:20},(_,i)=>{const t=i+1;return t===20?{pattern:'soleil',label:'Motif « Soleil royal »'}:t%5===0?{chest:t===15?'royal':'or'}:t%4===0?{elixir:1}:t%3===0?{gems:5+t}:t%2===0?{feed:1500+t*150}:{gold:2000+t*250}});
 const season=(()=>{const C=career.data,sid=()=>Math.floor(Date.now()/864e5/28),left=()=>{const e=(sid()+1)*28*864e5;return Math.ceil((e-Date.now())/864e5)};
@@ -1360,7 +1379,8 @@ const season=(()=>{const C=career.data,sid=()=>Math.floor(Date.now()/864e5/28),l
   $('#panel').classList.add('open');const cur=$('.tier.ok:not(.got)')||$('.tier:not(.ok)');cur?.scrollIntoView({inline:'center',block:'nearest'})}
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(b)claim(+b.dataset.tier)});
  badge();return{add,open,badge,unlocked:p=>C.unlocks.includes(p)}})();
-/* --- 19-breeding.js --- */
+</script>
+<script>/* --- 19-breeding.js --- */
 /* ===== Élevage au Haras Royal : croiser deux chevaux pour obtenir un poulain qui hérite potentiel, talent et robe ===== */
 const STABLE_MAX=6,BREED_COST={gold:6000,feed:2500},BREED_MIN=120;
 const breeding=(()=>{const C=career.data;C.breed=C.breed||null;let pick=[];
@@ -1391,7 +1411,8 @@ const breeding=(()=>{const C=career.data;C.breed=C.breed||null;let pick=[];
  function badge(){const bl=$('.bld[data-id=haras]');if(!bl)return;bl.classList.toggle('ready',!!(C.breed&&Date.now()>=C.breed.ends))}
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.parent){const id=b.dataset.parent;pick=pick.includes(id)?pick.filter(x=>x!==id):[...pick.slice(-1),id];open()}else if(b.id==='breedGo')start();else if(b.dataset.rush){const c=+b.dataset.rush;if(state.gems<c)return toast('Pas assez de gemmes');state.gems-=c;sync();C.breed.ends=Date.now();save();open()}});
  setInterval(badge,30e3);badge();return{open,badge}})();
-/* --- 20-rival.js --- */
+</script>
+<script>/* --- 20-rival.js --- */
 /* ===== Le rival : le Comte de Valmont et son champion Black Majesty, présents à chaque course ===== */
 const VALMONT={name:'Black Majesty',owner:'Comte de Valmont',livery:{coat:'noir',main:'#17181b',second:'#c8982c',pattern:'etoile',cap:'#c8982c'},talent:'tacticien'};
 const rival=(()=>{const C=career.data;C.rival=C.rival||{w:0,l:0,lvl:0,met:false};const R=C.rival;
@@ -1403,7 +1424,8 @@ const rival=(()=>{const C=career.data;C.rival=C.rival||{w:0,l:0,lvl:0,met:false}
  function after(){const me=finishOrder.indexOf(0),him=finishOrder.indexOf(1);R.met=true;R.justLvl=false;let msg='';
   if(me<him){R.w++;state.gold+=800;msg=`Tu as devancé Black Majesty ! +800 or (${R.w}–${R.l})`;if(R.w%3===0){R.lvl++;R.justLvl=true}}else{R.l++;msg=`Black Majesty t’a devancé (${R.w}–${R.l})`}save();sync();return msg}
  return{inject,after,taunt,get rec(){return R}}})();
-/* --- 21-gear.js --- */
+</script>
+<script>/* --- 21-gear.js --- */
 /* ===== Sellerie : équipement choisi avant chaque course (fers, œillères, selle) — des choix simples, lisibles, liés au terrain ===== */
 const GEAR=[
  {id:'std',n:'Fers standard',i:'🧲',price:0,d:'Neutres : aucun bonus, aucun défaut.',fit:()=>0},
@@ -1428,7 +1450,8 @@ const gear=(()=>{const C=career.data;C.gear=C.gear||{owned:['std'],sel:'std'};co
   return `<button data-gear="${g.id}" class="${G.sel===g.id?'on':''}${lock?' locked':''}" title="${g.d}"><i>${g.i}</i><b>${g.n}</b><small>${g.d}</small>${f>0?'<em class="suit ideal">✓ Conseillé ici</em>':f<0?'<em class="suit risk">⚠ Déconseillé ici</em>':''}${own?'':`<span class="price">${lock?'🔒 Ligue '+LEAGUES[g.league].n:'🪙 '+fmt(g.price)}</span>`}</button>`}).join('')}</div>`}
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-gear]');if(!b)return;if(pick(b.dataset.gear))renderCourses()});
  return{apply,block,get sel(){return byId(G.sel)},get owned(){return G.owned}}})();
-/* --- 22-tournament.js --- */
+</script>
+<script>/* --- 22-tournament.js --- */
 /* ===== Tournoi royal du jour : 3 manches (qualifications, demi-finale, finale) avec le même cheval — la fatigue se cumule ===== */
 const TOUR_ROUNDS=['Qualifications','Demi-finale','Finale'],TOUR_GEMS=10;
 const tour=(()=>{const C=career.data;C.tour=C.tour||{day:'',used:false,cups:0,a:null,best:0};const T=C.tour;let pickId=null,armed=false;
@@ -1474,7 +1497,8 @@ const tour=(()=>{const C=career.data;C.tour=C.tour||{day:'',used:false,cups:0,a:
  nb.onclick=()=>{leaveRace();openCourses()};
  function resultBtn(){nb.hidden=!T.a;if(T.a)nb.textContent=`🏆 ${TOUR_ROUNDS[T.a.round].toUpperCase()}`}
  badge();return{meeting,after,open,card,badge,resultBtn,conf,get active(){return T.a},get cups(){return T.cups},get horse(){return T.a&&T.a.horse}}})();
-/* --- 23-palmares.js --- */
+</script>
+<script>/* --- 23-palmares.js --- */
 /* ===== Palmarès : succès à collectionner (récompensés en gemmes), vitrine des coupes et statistiques de carrière ===== */
 const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd:0,dists:[],streak:0,foals:0,lvl:1,horses:1};const A=C.pal;
  const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
@@ -1513,7 +1537,8 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
   $('#panel').classList.add('open')}
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-ach]');if(b)claim(b.dataset.ach)});
  check(true);return{open,onRace,check,badge}})();
-/* --- 24-village-life.js --- */
+</script>
+<script>/* --- 24-village-life.js --- */
 /* ===== Vie du domaine : des chevaux montés galopent sur la piste du village.
    Leurs images sont rendues une seule fois à partir du modèle 3D (8 orientations × 8 temps de galop), éclairées comme la peinture. ===== */
 const FREE_COATS=['bai','alezan','gris','noir'];
@@ -1574,7 +1599,8 @@ const villageLife=(()=>{
    ctx.globalAlpha=1;ctx.drawImage(sheets[S.s],S.fr*FW,S.d*FH,FW,FH,x-w/2,y-h*.8,w,h)}ctx.globalAlpha=1}
  champion.on?.(()=>{sheets=null});
  return{draw,get ready(){return!!(sheets&&sheets.length)},get coach(){return COACH}}})();
-/* --- 25-shop.js --- */
+</script>
+<script>/* --- 25-shop.js --- */
 /* ===== Boutique royale : on échange les gemmes gagnées en jeu contre de l'or, du fourrage, des coffres, des élixirs.
    Un cadeau gratuit par jour et une offre du jour à prix réduit donnent une raison de passer chaque jour. Aucun achat réel. ===== */
 const shop=(()=>{const C=career.data;C.shop=C.shop||{day:'',gift:false,deal:false};const S=C.shop;
@@ -1604,7 +1630,8 @@ const shop=(()=>{const C=career.data;C.shop=C.shop||{day:'',gift:false,deal:fals
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-ware]');if(b)buy(b.dataset.ware)});
  $$('[data-buy]').forEach(b=>b.onclick=e=>{e.stopPropagation();open({Or:'gold1',Fourrage:'feed1',Gemmes:null}[b.dataset.buy])});
  badge();return{open,badge}})();
-/* --- 26-release.js --- */
+</script>
+<script>/* --- 26-release.js --- */
 /* ===== Solidité avant sortie : ressources toujours enregistrées, copie de secours, export/import de partie,
    erreurs attrapées proprement, perte du contexte 3D gérée, installation hors ligne (PWA) ===== */
 const KEYS=['trr.stable','trr.progress','trr.champion','trr.settings'];
@@ -1634,7 +1661,8 @@ $('#race3d')?.addEventListener('webglcontextlost',e=>{e.preventDefault();if($('#
 $('#race3d')?.addEventListener('webglcontextrestored',()=>{try{threeRace&&threeRace.renderer.setSize(1,1,false);threeRace.lastW=0}catch(e){}});
 // 6) jeu installable et jouable hors ligne (sur un vrai hébergement https)
 if('serviceWorker' in navigator&&/^https:|^http:\/\/localhost/.test(location.href)&&window.top===window){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
-/* --- 27-moments.js --- */
+</script>
+<script>/* --- 27-moments.js --- */
 /* ===== Temps forts : jusqu’à 3 décisions tactiques par course, à prendre en 4 secondes ===== */
 /* Déterministe : tirage sur un flux dérivé de la graine (le flux des adversaires reste inchangé) + choix du joueur enregistrés au pas près (M.log) */
 const MOMENT_TYPES={
@@ -1697,7 +1725,8 @@ const replay=(()=>{const b=document.createElement('button');b.className='action'
  function show(){const h=stable.active();if(RACE.tour){b.hidden=true;return}b.hidden=false;const tired=h.injury||h.fatigue>=90;b.dataset.mode=tired?'swap':'again';b.innerHTML=tired?`CHANGER DE CHEVAL<small>${escapeHTML(h.name)} doit se reposer</small>`:`RECOURIR<small>🌾 ${fmt(RACE.fee)} · ${escapeHTML(h.name)}</small>`}
  b.onclick=()=>{leaveRace();if(b.dataset.mode==='swap')return openCourses();currentField=null;buildField();startRace()};
  return{show}})();
-/* --- 28-pace.js --- */
+</script>
+<script>/* --- 28-pace.js --- */
 /* ===== Rythme de course : la tactique de chaque adversaire est connue avant le départ =====
    Un seul cheval aux avant-postes mène sans être contesté et s'économise ; dès qu'ils sont deux ou plus,
    ils se disputent la tête et s'usent. Lire le plateau et choisir sa tactique en conséquence devient un vrai choix. */
@@ -1737,7 +1766,8 @@ hooks.on('courses:render',()=>{const F=currentField;if(!F)return;
   $$('#panelBody .runners tr').forEach((tr,i)=>{const td=tr.children[1];if(td)td.insertAdjacentHTML('beforeend',' '+pace.chip(i?F.rivals[i-1].tac:state.strategy))});
   const I=pace.info(),box=`<div class="pace pace-${I.k}"><b>RYTHME PRÉVU : ${I.label.toUpperCase()}</b><p>${I.txt}</p></div>`;$('#panelBody .tactics')?.insertAdjacentHTML('beforebegin',box);
   if($('#panelBody .pace'))coach.tip('pace','Regarde la <b>tactique des adversaires</b> : s’ils sont plusieurs à vouloir mener, la course sera rapide et ils s’useront. Choisis ta tactique en conséquence.','#panelBody .pace')});
-/* --- 29-ambiance.js --- */
+</script>
+<script>/* --- 29-ambiance.js --- */
 /* ===== Ambiances de course : la météo suit le terrain (souple = ciel couvert, lourd = pluie), les grandes courses se courent au coucher du soleil ===== */
 const AMBIANCES={
  jour:{n:'Plein soleil',i:'☀️',zen:[.035,.14,.46],mid:[.08,.28,.68],hor:[.42,.6,.78],sunC:[1,.86,.62],sunK:1,sun:[0xfff0d2,3.3,-260,360,180],hemi:[0xdcebff,0x3a4a26,1.3],fog:[0xc4d6de,300,1000],tint:0xffffff,board:0xdedede,horizon:0xf2f2f2,exp:1},
@@ -1769,7 +1799,8 @@ hooks.on('race:start',()=>{if(threeRace)ambiance.apply(threeRace)});
 hooks.on('race:header',()=>{const A=ambiance.info();$('.race-head small').textContent+=` • ${A.i} ${A.n}`});
 /* écran des courses : la météo du jour sur chaque carte */
 hooks.on('courses:render',()=>{$$('#panelBody .meet[data-meet]').forEach(b=>{const m=b.dataset.meet==='tour'?RACE.tour&&RACE:MEETINGS.find(x=>x.id===b.dataset.meet);const s=b.querySelector('small');if(m&&s){const A=ambiance.info(m);s.insertAdjacentHTML('afterbegin',`<i class="amb" title="${A.n}">${A.i}</i> `)}})});
-/* --- 30-photo.js --- */
+</script>
+<script>/* --- 30-photo.js --- */
 /* ===== Lecture de course (tous les partants sur la mini-carte) et arrivée serrée au ralenti (photo-finish) ===== */
 const photo=(()=>{const map=$('.race-map'),dots=Array.from({length:5},()=>{const b=document.createElement('b');b.className='rdot';map.appendChild(b);return b});
  const banner=document.createElement('div');banner.className='pf-banner';banner.textContent='ARRIVÉE SERRÉE !';$('#povWorld').append(banner);$('#povWorld').insertAdjacentHTML('beforeend','<i class="lbox top"></i><i class="lbox bot"></i>');
@@ -1794,7 +1825,8 @@ hooks.on('race:end',()=>$('#fbStars').insertAdjacentHTML('afterbegin',photo.verd
 /* tableau d'arrivée : écarts dans le vocabulaire des courses (une longueur ≈ 0,17 s à cette allure) */
 const ecart=g=>{if(g<.03)return'nez';if(g<.08)return'courte tête';if(g<.15)return'tête';if(g<.3)return'encolure';const L=Math.round(g/.17*4)/4;if(L>12)return'loin';const w=Math.floor(L),f=['','¼','½','¾'][Math.round((L-w)*4)%4];return `${w||''}${w&&f?' ':''}${f} long.`};
 hooks.on('race:end',()=>{$$('#finishRows tr').forEach((tr,i)=>{if(!i)return;const prev=raceFinishTimes[finishOrder[i-1]],cur=raceFinishTimes[finishOrder[i]],td=tr.children[3];if(td)td.innerHTML=`${td.textContent} <small class="lg">${ecart(cur-prev)}</small>`})});
-/* --- 31-heure.js --- */
+</script>
+<script>/* --- 31-heure.js --- */
 /* ===== Heure du domaine : la lumière du village suit l'heure réelle du joueur (matin, jour, soir, nuit) ===== */
 const heure=(()=>{const map=$('#map'),tod=document.createElement('div');tod.className='map-tod';map.appendChild(tod);
  const lamps=document.createElement('div');lamps.className='map-lamps';map.appendChild(lamps);
@@ -1806,7 +1838,8 @@ const heure=(()=>{const map=$('#map'),tod=document.createElement('div');tod.clas
  function apply(){const d=new Date(),p=PHASES.includes(forced)?forced:phaseAt(d.getHours()+d.getMinutes()/60);if(document.body.dataset.tod!==p)document.body.dataset.tod=p}
  const PHASES=['matin','jour','soir','nuit'];apply();setInterval(apply,5*60e3);
  return{get phase(){return document.body.dataset.tod},apply}})();
-/* --- 32-village-gl.js --- */
+</script>
+<script>/* --- 32-village-gl.js --- */
 /* ===== Domaine en rendu UHD (WebGL2) =====
    La peinture n'est plus affichée telle quelle : un shader la redessine à la résolution exacte de l'écran, quel que soit le zoom
    (interpolation Catmull-Rom + netteté + grain peint synthétique), et l'anime : vent dans les arbres, eau qui coule et scintille,
@@ -1920,7 +1953,8 @@ void main(){
  requestAnimationFrame(frame);
  // snap(t, 'nuit') : dessine une image à l'instant t (s) et à l'heure voulue — pour les captures de vérification
  return{get ready(){return ready},set off(v){off=!!v},snap:(t,k)=>draw(t,k&&TOD[k])}})();
-/* --- 33-village-vie.js --- */
+</script>
+<script>/* --- 33-village-vie.js --- */
 /* ===== Domaine vivant : réverbères, lucioles, papillons, fontaine, particules de saison =====
    Dessinés sur leur propre calque (au-dessus des chevaux) pour que les lumières restent vives la nuit.
    La saison suit la date réelle : pétales au printemps, pollen l'été, feuilles mortes l'automne, neige l'hiver (?saison=hiver pour tester). */
@@ -1982,7 +2016,8 @@ const villageVie=(()=>{
  requestAnimationFrame(frame);
  // snap(ms) : dessine une image à l'instant voulu (vérification sur capture)
  return{season,snap:draw,balloon:()=>{balloon.next=0}}})();
-/* --- 34-playtest.js --- */
+</script>
+<script>/* --- 34-playtest.js --- */
 /* ===== Enregistreur de session de test joueur =====
    Actif seulement avec ?test dans l'adresse (?test=Prénom pour nommer la session). Rien ne quitte l'appareil :
    le journal reste dans ce navigateur (trr.playtest) et l'animateur l'exporte à la fin (copier ou télécharger).
@@ -2030,7 +2065,8 @@ const playtest=(()=>{const q=new URLSearchParams(location.search);if(!q.has('tes
   if(b.dataset.pt==='close')box.hidden=true});
  log('session',{version:'0.16',nouvellePartie:!champion.exists()});
  return{on:true,log,summary}})();
-/* --- 35-onboarding.js --- */
+</script>
+<script>/* --- 35-onboarding.js --- */
 /* ===== Premières minutes : les systèmes se débloquent un par un, un objectif est toujours visible =====
    Un nouveau joueur ne voit d'abord que le domaine et la course. Chaque déblocage est annoncé par Maître Armand.
    Les joueurs déjà avancés (7 courses ou plus) voient tout, comme avant. */
@@ -2067,9 +2103,11 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
  goal.onclick=()=>{const a=goal.dataset.a;if(a.startsWith('chest:'))return bar.querySelectorAll('.slots [data-slot]')[+a.slice(6)]?.click();if(a==='ecurie')return openStable();if(a==='defi'){openCourses();return defi.select()}openPanel(a)};
  // la récompense quotidienne attend la fin de la première course (sinon, rien ne doit détourner du premier départ)
  hooks.on('race:leave',()=>{if(races()>0)setTimeout(()=>meta.login(),1600)});
- apply();render();setInterval(render,1500);hooks.on('race:leave',()=>setTimeout(render,50));
+ // premier affichage après le chargement de tous les modules : next() lit le Défi du jour (module 37), encore en zone morte ici
+ apply();setTimeout(render,0);setInterval(render,1500);hooks.on('race:leave',()=>setTimeout(render,50));
  return{apply,next}})();
-/* --- 36-replay.js --- */
+</script>
+<script>/* --- 36-replay.js --- */
 /* ===== Rejeu de course : graine + plateau + paramètres du joueur + actions datées au pas près =====
    Chaque course terminée est enregistrée (10 dernières, trr.replays) puis rejouée aussitôt, sans affichage, pour vérifier
    qu'on retrouve exactement le même classement et les mêmes temps. C'est la base des courses fantômes et de la validation
@@ -2101,7 +2139,8 @@ const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o
    return{ok:same,order:finishOrder.slice(),expected:r.result.order,times,expectedTimes:r.result.times}}
   finally{raceLoop=null;({progress,visualProgress,raceFinished,raceFinishTimes,finishOrder,rivalAI,raceTime,playerEnergy,playerFinal,playerLane,autoSpeed,raceSeed,raceRng}=keep);keep.lanes.forEach((v,i)=>rivalLanes[i]=v);Object.assign(RS,keep.RS);RACE=keep.RACE;currentField=keep.currentField;racePlayer=keep.racePlayer;state.strategy=keep.strategy;completeRace=keep.complete;sound.say=keep.say;try{delete navigator.vibrate}catch(e){}runRaceV2.said=keep.said;runRaceV2.tipd=keep.tipd;busy=false}}
  return{get list(){return load()},get busy(){return busy},verify,last:()=>load().slice(-1)[0]}})();
-/* --- 37-defi.js --- */
+</script>
+<script>/* --- 37-defi.js --- */
 /* ===== Défi du jour : la même course pour tous les joueurs, contre son propre fantôme =====
    Graine et plateau tirés de la date (identiques sur tous les appareils : base du futur classement en ligne).
    On la retente autant qu'on veut ; le meilleur essai du jour court à côté, en fantôme translucide.
@@ -2154,7 +2193,8 @@ const defi=(()=>{
  // écart au fantôme, affiché en course
  gap=document.createElement('div');gap.className='ghost-gap';$('#raceScreen').appendChild(gap);
  return{meeting,field,select,today,get done(){return !!today().first}}})();
-/* --- 38-partage.js --- */
+</script>
+<script>/* --- 38-partage.js --- */
 /* ===== Partager son temps du Défi du jour : une carte image (1080×1350) envoyée par le partage natif du téléphone =====
    Si le partage de fichiers n'existe pas (PC), l'image est téléchargée. Aucune donnée personnelle : nom du cheval, casaque, temps. */
 const partage=(()=>{
@@ -2184,7 +2224,8 @@ const partage=(()=>{
  // bouton sous le bilan du défi
  hooks.on('race:end',()=>{if(!RACE.defi||!defi.today().best)return;$('#fbGain').insertAdjacentHTML('beforeend','<br><button class="action" id="defiShare">📤 PARTAGER MON TEMPS</button>');$('#defiShare').onclick=e=>{e.stopPropagation();share()}});
  return{card,share}})();
-/* --- 39-pause.js --- */
+</script>
+<script>/* --- 39-pause.js --- */
 /* ===== Pause de course et manette =====
    Pause : automatique quand le jeu passe en arrière-plan (appel, notification, autre appli, autre onglet), ou à la demande
    (bouton ⏸, Échap, P, Start). La simulation s'arrête net (même nombre de pas : le rejeu reste identique) ; on repart après 3-2-1.
@@ -2223,7 +2264,8 @@ const pauseRace=(()=>{
   if(E[4])look(-1);if(E[5])look(1)}
  requestAnimationFrame(poll);
  return{pause,resume,get paused(){return paused}}})();
-/* --- 40-musique.js --- */
+</script>
+<script>/* --- 40-musique.js --- */
 /* ===== Musique de course adaptative (synthétisée, aucun fichier) =====
    Couches ajoutées selon la tension : pulsation grave dès le départ, charleston à mi-course, nappe et tempo plus vif
    dans la dernière ligne droite, doubles croches pendant le sprint. Accent sonore à chaque temps fort.
@@ -2254,7 +2296,8 @@ const raceMusic=(()=>{let timer=0,next=0,step=0,nb=null;
  // accent sur un temps fort : montée rapide de deux notes
  hooks.on('moment:open',k=>{const a=A();if(!a||!timer)return;const t=a.currentTime+.02,f=k==='attaque'?[330,494]:k==='breche'?[392,587]:[294,440];f.forEach((fq,i)=>{const o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.value=fq;g.gain.setValueAtTime(0,t+i*.09);g.gain.linearRampToValueAtTime(.05,t+i*.09+.01);g.gain.exponentialRampToValueAtTime(.001,t+i*.09+.16);o.connect(g).connect(bus());o.start(t+i*.09);o.stop(t+i*.09+.18)})});
  return{start,stop,level}})();
-/* --- 41-tele.js --- */
+</script>
+<script>/* --- 41-tele.js --- */
 /* ===== Replay télévisé : revoir la course qui vient de se terminer, caméra de bord de piste =====
    On rejoue l'enregistrement (graine + actions) en temps réel dans la scène 3D, sans aucun effet sur la partie :
    les événements du jeu sont mis en sourdine (sauf le lancement, nécessaire au moteur), missions et voix aussi.
@@ -2285,7 +2328,8 @@ const tele=(()=>{let on=false,loop=0,rec=null,i=0,keep=null,speed=1;
  hooks.on('race:start',()=>{btn.hidden=true});hooks.on('race:end',()=>{btn.hidden=!replays.last()});
  // step(n) : avance le replay de n pas (vérification sur capture)
  return{start,stop,step:n=>{for(let k=0;k<n&&on;k++)tickTv()},get on(){return on}}})();
-/* --- 42-installer.js --- */
+</script>
+<script>/* --- 42-installer.js --- */
 /* ===== Installer le jeu sur l'écran d'accueil (application web) =====
    Proposé une seule fois au bon moment (au retour de la 3e course, quand le joueur a accroché), puis disponible dans les réglages.
    Android / Chrome / Edge : vraie fenêtre d'installation du système. iPhone / iPad (Safari) : la marche à suivre, le système ne proposant pas de bouton.
@@ -2306,7 +2350,8 @@ const installer=(()=>{const KEY='trr.install';let S={};try{S=JSON.parse(localSto
  new MutationObserver(()=>{if(!$('#panel').classList.contains('open')||$('#panelTitle').textContent!=='Réglages'||$('#panelBody .set-install')||!available())return;
   $('#panelBody .set')?.insertAdjacentHTML('afterbegin','<section class="set-install"><h4>APPLICATION</h4><button class="action green" id="installBtn">📲 INSTALLER LE JEU SUR L’ÉCRAN D’ACCUEIL</button></section>');$('#installBtn').onclick=()=>{$('#panel').classList.remove('open');show()}}).observe($('#panel'),{attributes:true,attributeFilter:['class'],subtree:false});
  return{show,get available(){return !!available()},installed}})();
-/* --- 43-speaker.js --- */
+</script>
+<script>/* --- 43-speaker.js --- */
 /* ===== Le speaker de l'hippodrome : commentaire en direct aux points clés, puis la leçon de rythme à l'arrivée =====
    Le texte varie (hasard d'affichage uniquement : Math.random ne touche jamais la simulation). Voix si « Speaker » est activé. */
 const speaker=(()=>{const el=document.createElement('div');el.className='speaker';$('#raceScreen').appendChild(el);
@@ -2331,7 +2376,8 @@ const speaker=(()=>{const el=document.createElement('div');el.className='speaker
   else t=`${n} chevaux se sont disputé la tête${meLead?', toi compris':''} : le meilleur d’entre eux a fini ${top}${top===1?'er':'e'}. ${top>=3?'Le rythme rapide a profité aux chevaux venus de l’arrière.':'Il a malgré tout résisté.'}`;
   $('#fbStars').insertAdjacentHTML('beforeend',`<div class="pace-lesson"><b>🎙️ Le rythme de la course</b><span>${t}</span></div>`)});
  return{show}})();
-/* --- 44-jockeys.js --- */
+</script>
+<script>/* --- 44-jockeys.js --- */
 /* ===== Jockeys : un choix avant chaque course, une équipe à constituer, des jockeys qui progressent =====
    Chaque jockey a une spécialité qui modifie les paramètres de course du joueur (appliquée avant l'enregistrement du rejeu :
    la course reste rejouable à l'identique). Il gagne un niveau toutes les 5 courses montées (niveau 5 au plus) : sa spécialité
@@ -2364,5 +2410,6 @@ const jockeys=(()=>{const C=career.data;C.jockeys=C.jockeys||{owned:['paul'],sel
  hooks.on('race:header',()=>{const j=byId(J.sel);$('#autoGallop span').textContent=`${HN()} · ${j.n}`});
  return{get sel(){return byId(J.sel)},lvl,block,byId,get owned(){return J.owned}}})();
 </script>
+
 </body>
 </html>

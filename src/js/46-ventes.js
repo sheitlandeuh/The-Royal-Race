@@ -53,7 +53,7 @@ const ventes=(()=>{const C=career.data;C.ventes=C.ventes||{day:'',sold:{},bought
  // ---------- écrans ----------
  const T=()=>$('#panelTitle').textContent==='Ventes aux enchères';
  const face=(k)=>k==='player'?`<span class="auc-face me">${LIVERY.silkSVG(stable.silks,28)}</span>`:`<span class="auc-face">${BIDDERS[k].i}</span>`,who=k=>k==='player'?'Toi':BIDDERS[k].n;
- function lotCard(h,inAuc){const s=V.sold[h.id],est=`${h.est[0]}–${h.est[1]}`;
+ function lotCard(h,inAuc){const s=V.sold[h.id],est=h.est[0]===h.est[1]?`${h.est[0]}`:`${h.est[0]}–${h.est[1]}`;
   return `<article class="lot${h.type==='vedette'?' star':''}${s&&s.to!=='live'?' sold':''}" data-lot="${h.id}"><div class="lot-pic"><canvas width="150" height="190" data-lotpic="${h.id}"></canvas><span class="lot-n">LOT ${h.id.slice(3)}</span></div>
    <div class="lot-info"><em class="lot-type t-${h.type}">${h.type==='vedette'?'⭐ ':''}${LOT_TYPES[h.type].n}</em><b>${escapeHTML(h.name)}</b><small>${h.age} ans · Niv. ${h.level} · ${coatName(h.coat)} · par ${escapeHTML(h.parents[0])} et ${escapeHTML(h.parents[1])}</small>
    <div class="lot-kpi"><div><span class="note">${h.rating}</span><small>note</small></div><div><b>${est}</b><small>potentiel estimé</small></div><div><b>${distName(h.dist)}</b><small>${fmt(h.dist)} m</small></div></div>

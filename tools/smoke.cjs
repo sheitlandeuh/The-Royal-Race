@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const URL = process.env.URL || 'http://localhost:8765/index.html';
 const shotsDir = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 const MODULES = ['hooks', 'stable', 'career', 'meta', 'season', 'breeding', 'rival', 'gear', 'tour', 'palmares', 'shop', 'moments', 'pace', 'ambiance', 'photo',
-  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'pauseRace', 'tele', 'installer', 'speaker', 'jockeys', 'domaine', 'ventes'];
+  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'pauseRace', 'tele', 'installer', 'speaker', 'jockeys', 'domaine', 'ventes', 'legendes'];
 const CHAMPION = { name: 'Éclair de Lune', coat: 'alezan', main: '#c21c27', second: '#f4f2ec', pattern: 'chevrons', cap: '#f4f2ec' };
 // chaque profil : état de départ (localStorage) + éventuellement du code joué dans le jeu avant de recharger la page
 const PROFILES = {

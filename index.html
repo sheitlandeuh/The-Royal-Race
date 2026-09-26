@@ -462,6 +462,18 @@
 .auc-log{list-style:none;margin:0;padding:0;width:100%;font-size:13px;color:#c9d7e2;min-height:60px}.auc-log li{display:flex;align-items:center;gap:6px;padding:3px 0;justify-content:center}.auc-log li:first-child{color:#fff;font-weight:700}.auc-log .auc-face{width:22px;height:22px;flex-basis:22px;font-size:13px}
 .auc-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}.auc-btns .action{flex:1;min-width:150px}.auc-btns small{width:100%}
 @media(max-width:850px){.auc{grid-template-columns:1fr}.lots{grid-template-columns:1fr}.lot-pic{flex-basis:92px}.lot-pic canvas{width:92px;height:118px}.auc-price{font-size:34px}}
+/* ----- Légendes ----- */
+.legends{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:14px}
+.legend{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 10px;border-radius:16px;background:#ffffff0a;border:1px solid #ffffff22;text-align:center}
+.legend.shown{background:linear-gradient(170deg,#f3c64a1c,#ffffff06);border-color:#dcb05a88}
+.legend-frame{padding:6px;border-radius:12px;background:linear-gradient(145deg,#fff2b0,#c98b17 45%,#8a5a0c);box-shadow:0 8px 18px #0008,inset 0 0 0 2px #fff5}
+.legend-frame canvas{display:block;border-radius:8px;background:radial-gradient(circle at 50% 30%,#2e5170,#0b1d30);width:120px;height:148px}
+.legend b{font:800 16px Georgia,serif;color:#fff3cf;margin-top:6px}.legend em{font-style:normal;font-size:12px;font-weight:800;color:#ffd66b}.legend small{font-size:11px;color:#9fb3c2}
+.lg-where{position:absolute;top:8px;right:8px;font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#ffffff18;color:#c9d7e2}.legend.shown .lg-where{background:#55c75633;color:#bff0bf}
+.legend-pop .legend-frame canvas{width:176px;height:216px}.lg-name{font:800 26px Georgia,serif;color:#fff3cf;margin:10px 0 0}.lg-title{margin:2px 0 6px;font-weight:900;color:#ffd66b}
+.action.legend-btn{background:linear-gradient(#b98cff,#6a3fb8);border-color:#3c1f6e}
+.legend-pop .legend-frame{display:inline-block}
+@media(max-width:850px){.legends{grid-template-columns:1fr 1fr;gap:8px}.legend{padding:10px 6px}.legend .legend-frame canvas{width:96px;height:118px}}
   </style>
 </head>
 <body>
@@ -1204,7 +1216,7 @@ function renderStable(flash){stable.tick();const H=stable.data.horses,h=stable.b
   <section class="st-box"><h4>CONDITION</h4>${gauges}<h4 style="margin-top:14px">APTITUDE DE DISTANCE</h4><div class="dist">${DISTS.map(([d,n])=>`<span style="left:${dpos(d)}%">${n}</span>`).join('')}<i style="left:${dpos(h.dist)}%"></i></div></section></div>
  ${tabs}${body}`;
  $$('.st-pick canvas').forEach((cv,i)=>drawPortrait(cv,H[i],1.6,-2));drawPortrait($('#stPortrait'),h,1.3,-6);
- if(flash)requestAnimationFrame(()=>$$('.stat .cur').forEach((el,i)=>{el.style.width=h.stats[STATS[i].k]+'%'}))}
+ if(flash)requestAnimationFrame(()=>$$('.stat .cur').forEach((el,i)=>{el.style.width=h.stats[STATS[i].k]+'%'}));hooks.emit('stable:render',h)}
 function flyText(el,txt){const r=el.getBoundingClientRect(),f=document.createElement('div');f.className='flyup';f.textContent=txt;f.style.left=r.left+r.width/2-40+'px';f.style.top=r.top-8+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),1500)}
 $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t||!$('#panel .card').classList.contains('wide'))return;const h=stable.byId(stUI.horse);
  if(t.dataset.pick){stUI.horse=t.dataset.pick;renderStable()}
@@ -1420,13 +1432,14 @@ const season=(()=>{const C=career.data,sid=()=>Math.floor(Date.now()/864e5/28),l
 const BREED_COST={gold:6000,feed:2500},BREED_MIN=120,breedMin=(l=dfx('haras'))=>Math.round(BREED_MIN*(1-.12*(l-1))),foalBonus=(l=dfx('haras'))=>(l-1)*1.5;
 const breeding=(()=>{const C=career.data;C.breed=C.breed||null;let pick=[];
  const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
- const H=id=>stable.byId(id),avg=(a,b,k,o)=>(a[o][k]+b[o][k])/2;
- function preview(a,b){const o={};for(const s of STATS){const c=avg(a,b,s.k,'caps');o[s.k]=[Math.round(Math.min(100,c-4+foalBonus())),Math.round(Math.min(100,c+6+foalBonus()))]}return o}
- const ok=h=>h.level>=5&&h.fatigue<60&&!h.injury;
+ // parents possibles : les chevaux de l'écurie et les Légendes à la retraite (47-legendes), qui transmettent un peu plus de potentiel
+ const cand=()=>[...stable.data.horses,...(C.legendes||[]).map(l=>({...l,legend:true}))],H=id=>cand().find(h=>h.id===id),avg=(a,b,k,o)=>(a[o][k]+b[o][k])/2,lb=(a,b)=>a&&b&&(a.legend||b.legend)?2:0;
+ function preview(a,b){const o={};for(const s of STATS){const c=avg(a,b,s.k,'caps');o[s.k]=[Math.round(Math.min(100,c-4+foalBonus()+lb(a,b))),Math.round(Math.min(100,c+6+foalBonus()+lb(a,b)))]}return o}
+ const ok=h=>h.legend||h.level>=5&&h.fatigue<60&&!h.injury;
  function start(){const[a,b]=pick.map(H);if(pick.length<2)return toast('Choisis deux chevaux');if(!ok(a)||!ok(b))return toast('Les parents doivent être niveau 5+, reposés et en bonne santé');
   if(stable.data.horses.length>=stableMax())return toast(`Écurie pleine (${stableMax()} places) : libère un cheval ou agrandis l’écurie`);if(state.gold<BREED_COST.gold||state.feed<BREED_COST.feed)return toast('Ressources insuffisantes');
-  state.gold-=BREED_COST.gold;state.feed-=BREED_COST.feed;a.fatigue=Math.min(100,a.fatigue+30);b.fatigue=Math.min(100,b.fatigue+30);stable.save();sync();
-  const min=breedMin();C.breed={a:a.id,b:b.id,an:a.name,bn:b.name,ends:Date.now()+min*6e4,seed:Date.now()%99991,hb:foalBonus()};save();pick=[];open();toast(`Le poulain naîtra dans ${min>=60?Math.floor(min/60)+' h'+(min%60?' '+min%60:''):min+' min'}`);badge()}
+  state.gold-=BREED_COST.gold;state.feed-=BREED_COST.feed;if(!a.legend)a.fatigue=Math.min(100,a.fatigue+30);if(!b.legend)b.fatigue=Math.min(100,b.fatigue+30);stable.save();sync();
+  const min=breedMin();C.breed={a:a.id,b:b.id,an:a.name,bn:b.name,ends:Date.now()+min*6e4,seed:Date.now()%99991,hb:foalBonus()+lb(a,b)};save();pick=[];open();toast(`Le poulain naîtra dans ${min>=60?Math.floor(min/60)+' h'+(min%60?' '+min%60:''):min+' min'}`);badge()}
  function birth(){const B=C.breed;if(!B||Date.now()<B.ends)return;const a=H(B.a),b=H(B.b);let x=B.seed;const r=()=>(x=(x*16807)%2147483647)/2147483647;
   const caps={},stats={};for(const s of STATS){const c=((a?a.caps[s.k]:80)+(b?b.caps[s.k]:80))/2;caps[s.k]=Math.round(Math.min(100,c-4+r()*10+(B.hb||0)));stats[s.k]=Math.round(caps[s.k]*(.5+r()*.08))}
   const tl=Object.keys(TALENTS),talent=r()<.45?a?.talent:r()<.82?b?.talent:tl[Math.floor(r()*tl.length)],coat=r()<.4?a?.coat:r()<.8?b?.coat:LIVERY.COATS[Math.floor(r()*6)].id;
@@ -1435,12 +1448,12 @@ const breeding=(()=>{const C=career.data;C.breed=C.breed||null;let pick=[];
   const f=stable.addHorse({name,coat:coat||'bai',stats,caps,dist,level:1,talent:talent||'metronome'});if(f){f.age=2;f.parents=[B.an,B.bn];stable.save()}C.breed=null;save();badge();sound.fanfare();buzz([40,40,80]);
   $('#panelTitle').textContent='Naissance au Haras !';$('#panel .card').classList.remove('wide');$('#panelBody').innerHTML=`<div class="chest-pop open"><canvas class="foal" width="260" height="300"></canvas><p style="font:800 22px Georgia,serif;color:#fff3cf;margin:4px 0">${escapeHTML(name)}</p><p class="hint">Fils/fille de ${escapeHTML(B.an)} et ${escapeHTML(B.bn)} · ${TALENTS[f.talent].i} ${TALENTS[f.talent].n} · potentiel ${Math.round(Object.values(caps).reduce((s,v)=>s+v,0)/6)}</p><button class="action green" id="foalGo">VOIR À L’ÉCURIE</button></div>`;
   $('#panel').classList.add('open');drawPortrait($('.foal'),f,1.1,0);$('#foalGo').onclick=()=>{stUI.horse=f.id;openStable()}}
- function open(){birth();if($('#panelTitle').textContent==='Naissance au Haras !')return;$('#panelTitle').textContent='Haras Royal — élevage';$('#panel .card').classList.add('wide');const HS=stable.data.horses,B=C.breed;
+ function open(){birth();if($('#panelTitle').textContent==='Naissance au Haras !')return;$('#panelTitle').textContent='Haras Royal — élevage';$('#panel .card').classList.add('wide');const HS=cand(),B=C.breed;
   if(B){const min=Math.max(0,Math.ceil((B.ends-Date.now())/6e4)),cost=Math.max(1,Math.ceil(min/6));$('#panelBody').innerHTML=`<div class="chest-pop"><div class="chest-big" style="--c:#8fd46a">🐣</div><p>Le poulain de <b>${escapeHTML(B.an)}</b> et <b>${escapeHTML(B.bn)}</b> naîtra dans <b>${min>=60?Math.floor(min/60)+' h '+(min%60):min} min</b>.</p><button class="action green" data-rush="${cost}">NAISSANCE IMMÉDIATE · 💎 ${cost}</button></div>`;$('#panel').classList.add('open');return}
   const[a,b]=pick.map(H),pv=a&&b?preview(a,b):null;
-  $('#panelBody').innerHTML=`<p class="hint">Croise deux de tes chevaux (niveau 5+, reposés). Le poulain hérite du <b>potentiel moyen des parents</b> (±5), de l’un de leurs <b>talents</b> et souvent de leur <b>robe</b>. Il commence niveau 1 : à toi de l’entraîner jusqu’au sommet.</p>
-  <div class="st-horses">${HS.map(h=>`<button class="st-pick${pick.includes(h.id)?' on':''}" data-parent="${h.id}" ${ok(h)?'':'disabled'}><canvas width="84" height="112"></canvas><div><b>${escapeHTML(h.name)}</b><small>Niv. ${h.level} · ${TALENTS[h.talent].i} ${TALENTS[h.talent].n}</small><br><small>Potentiel ${Math.round(Object.values(h.caps).reduce((s,v)=>s+v,0)/6)}${ok(h)?'':' · indisponible'}</small></div></button>`).join('')}</div>
-  <section class="st-box breed"><h4>POULAIN ESPÉRÉ ${pv?'':'<em>choisis deux parents</em>'}</h4>${pv?STATS.map(s=>`<div class="stat"><span>${s.n}</span><div class="trk"><i class="cap" style="width:${pv[s.k][1]}%"></i><i class="cur" style="width:${pv[s.k][0]}%;opacity:.45"></i></div><b>${pv[s.k][0]}–${pv[s.k][1]}</b><span></span></div>`).join('')+`<p class="hint">Talent : ${TALENTS[a.talent].i} ${TALENTS[a.talent].n} ou ${TALENTS[b.talent].i} ${TALENTS[b.talent].n} (parfois un nouveau) · Écurie : ${HS.length}/${stableMax()}</p>`:''}
+  $('#panelBody').innerHTML=`<p class="hint">Croise deux de tes chevaux (niveau 5+, reposés) ou tes <b>Légendes</b> à la retraite, qui transmettent un peu plus de potentiel. Le poulain hérite du <b>potentiel moyen des parents</b> (±5), de l’un de leurs <b>talents</b> et souvent de leur <b>robe</b>. Il commence niveau 1 : à toi de l’entraîner jusqu’au sommet.</p>
+  <div class="st-horses">${HS.map(h=>`<button class="st-pick${pick.includes(h.id)?' on':''}" data-parent="${h.id}" ${ok(h)?'':'disabled'}><canvas width="84" height="112"></canvas><div><b>${escapeHTML(h.name)}</b><small>${h.legend?'🎖️ Légende':`Niv. ${h.level}`} · ${TALENTS[h.talent].i} ${TALENTS[h.talent].n}</small><br><small>Potentiel ${Math.round(Object.values(h.caps).reduce((s,v)=>s+v,0)/6)}${ok(h)?'':' · indisponible'}</small></div></button>`).join('')}</div>
+  <section class="st-box breed"><h4>POULAIN ESPÉRÉ ${pv?'':'<em>choisis deux parents</em>'}</h4>${pv?STATS.map(s=>`<div class="stat"><span>${s.n}</span><div class="trk"><i class="cap" style="width:${pv[s.k][1]}%"></i><i class="cur" style="width:${pv[s.k][0]}%;opacity:.45"></i></div><b>${pv[s.k][0]}–${pv[s.k][1]}</b><span></span></div>`).join('')+`<p class="hint">Talent : ${TALENTS[a.talent].i} ${TALENTS[a.talent].n} ou ${TALENTS[b.talent].i} ${TALENTS[b.talent].n} (parfois un nouveau)${lb(a,b)?' · 🎖️ sang de Légende : potentiel +2':''} · Écurie : ${stable.data.horses.length}/${stableMax()}</p>`:''}
   <div class="race-entry"><button class="action green" id="breedGo" ${pv?'':'disabled'}>🐣 LANCER L’ÉLEVAGE · 🪙 ${fmt(BREED_COST.gold)} · 🌾 ${fmt(BREED_COST.feed)} · ${breedMin()>=60?Math.floor(breedMin()/60)+' h'+(breedMin()%60?' '+breedMin()%60:''):breedMin()+' min'}</button></div></section>`;
   $$('#panelBody .st-pick canvas').forEach((cv,i)=>drawPortrait(cv,HS[i],1.6,-2));$('#panel').classList.add('open')}
  function badge(){const bl=$('.bld[data-id=haras]');if(!bl)return;bl.classList.toggle('ready',!!(C.breed&&Date.now()>=C.breed.ends))}
@@ -2435,8 +2448,9 @@ const BATIMENTS={
  moulin:{max:5,k:.8,t:.8,fx:l=>[`${DOMAIN_FX.moulin(l)} 🌾 produits par heure`,`Réserve : ${fmt(DOMAIN_FX.moulin(l)*10)} 🌾`]},
  paddocks:{max:5,k:.8,t:.9,fx:l=>[l>1?`Récupération de la fatigue +${(l-1)*20} %`:'Récupération : 9 points de fatigue par heure',`Repos au pré : fatigue −${Math.round(30*DOMAIN_FX.paddocks(l))}`]},
  carriere:{max:5,k:1,t:1,fx:l=>[l>1?`Gains d’entraînement +${(l-1)*5} %`:'Gains d’entraînement de base']},
- chantier:{max:3,fx:l=>l?[`${SALLE_OR[l]} 🪙 de visiteurs par heure`,`Réserve : ${fmt(SALLE_OR[l]*10)} 🪙`]:['Pas encore construite']}};
-const SALLE_OR=[0,90,180,320];
+ chantier:{max:3,fx:l=>l?[`${SALLE_OR[l]} 🪙 de visiteurs par heure`,`${SALLE_SLOTS[l]} Légendes exposées : +20 🪙 par heure chacune`]:['Pas encore construite']}};
+// Salle des trophées : or des visiteurs par heure, places pour les Légendes (47-legendes)
+const SALLE_OR=[0,90,180,320],SALLE_SLOTS=[0,3,6,10];
 const dureeTxt=m=>m<1?`${Math.max(1,Math.round(m*60))} s`:m<60?`${Math.round(m)} min`:`${Math.floor(m/60)} h${Math.round(m%60)?' '+String(Math.round(m%60)).padStart(2,'0'):''}`;
 const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod:{}};const D=C.domaine;
  // les niveaux lus au démarrage (01-core) et ceux de la sauvegarde ne font qu'un seul objet
@@ -2453,7 +2467,7 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
   else if(id==='chantier'){if(dlv('haras')<to+1)return `Haras niveau ${to+1} requis`}
   else if(to>dlv('haras')+1)return `Haras niveau ${to-1} requis`;return null}
  // ---------- production (moulin : fourrage, Salle des trophées : or) ----------
- const PROD={moulin:{res:'feed',ico:'🌾',rate:l=>DOMAIN_FX.moulin(l)},chantier:{res:'gold',ico:'🪙',rate:l=>SALLE_OR[l]||0}};
+ const PROD={moulin:{res:'feed',ico:'🌾',rate:l=>DOMAIN_FX.moulin(l)},chantier:{res:'gold',ico:'🪙',rate:l=>(SALLE_OR[l]||0)+20*Math.min((C.legendes||[]).length,SALLE_SLOTS[l]||0)}};
  const cap=id=>PROD[id].rate(dlv(id))*10;
  function settle(id){const P=D.prod[id]=D.prod[id]||{t:Date.now(),stock:0},now=Date.now();P.stock=Math.min(cap(id),P.stock+PROD[id].rate(dlv(id))*Math.max(0,now-P.t)/36e5);P.t=now;return P}
  const stock=id=>Math.floor(settle(id).stock);
@@ -2476,7 +2490,7 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  const ACT={haras:['ÉLEVAGE',()=>breeding.open()],hippodrome:['COURIR',()=>openCourses()],clinique:['SOINS',()=>openStable({tab:'care',filter:'clinique'})],ecurie:['CHEVAUX',()=>openStable()],
   moulin:['RATION',()=>openStable({tab:'care',filter:'moulin'})],paddocks:['ENTRAÎNER',()=>openStable({tab:'train',filter:'paddocks'})],carriere:['ENTRAÎNER',()=>openStable({tab:'train',filter:'carriere'})],chantier:['INFOS',()=>open('chantier')]};
  function action(id){if(PROD[id]&&dlv(id)&&unlocked()&&stock(id)>=1)return[`RÉCOLTER<br>${PROD[id].ico} ${fmt(stock(id))}`,()=>collect(id,$('#infoBtn'))];
-  if(id==='chantier'&&dlv(id))return['VITRINE',()=>palmares.open()];return ACT[id]}
+  if(id==='chantier'&&dlv(id))return['LÉGENDES',()=>legendes.open()];return ACT[id]}
  function card(id){sel=id;const l=dlv(id),w=busy(id),why=block(id),to=l+1,fx=BATIMENTS[id].fx(l).filter(Boolean);
   $('#selIcon').textContent=icon(id);$('#selTitle').textContent=name(id);
   $('#selDesc').innerHTML=`${l?`<b>Niveau ${l}</b> · `:''}${escapeHTML(fx[0]||BUILDINGS[id].desc)}${w?`<span class="sel-prog"><i style="width:${Math.min(100,(Date.now()-w.start)/(w.ends-w.start)*100)}%"></i></span>`:''}`;
@@ -2515,7 +2529,7 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  check();refresh();
  // pour les tests : tout au niveau maximal
  const debug={max(){ORDER.forEach(id=>{D.lv[id]=BATIMENTS[id].max});D.work=[];save();refresh()}};
- return{open,start,finishNow,collect,stock,cap,builders,free,block,cost,minutes,name,refresh,debug,get work(){return D.work}}})();
+ return{open,start,finishNow,collect,stock,cap,rate:id=>PROD[id].rate(dlv(id)),builders,free,block,cost,minutes,name,refresh,debug,get work(){return D.work}}})();
 </script>
 <script type="text/x-module" data-f="46-ventes.js">/* ===== Ventes aux enchères : chaque jour, 4 lots de chevaux à disputer au Comte de Valmont et à deux autres acheteurs =====
    Catalogue tiré de la date et de la ligue (le même pour tous les joueurs d'une ligue). Le vrai potentiel est caché : la visite
@@ -2605,6 +2619,48 @@ const ventes=(()=>{const C=career.data;C.ventes=C.ventes||{day:'',sold:{},bought
  hooks.on('vente:fin',(id,to,price)=>{if(!T()||!$('#panel').classList.contains('open'))toast(to==='player'?`Adjugé ! ${A.horse?.name||'Ton cheval'} rejoint ton écurie`:to?`Lot vendu à ${BIDDERS[to].n} pour ${fmt(price)} or`:'Lot retiré')});
  PANELS.ventes=open;
  return{open,lots,start,bid,get live(){return A},get bought(){return V.bought||0}}})();
+</script>
+<script type="text/x-module" data-f="47-legendes.js">/* ===== Retraite et Légendes : un cheval qui a fait sa carrière entre dans l'histoire du domaine =====
+   Après 10 courses (ou au niveau 12), un cheval peut prendre sa retraite : il libère sa place à l'écurie et devient une Légende.
+   Les Légendes restent disponibles au Haras comme reproducteurs (potentiel du poulain +2), et sont exposées dans la Salle des
+   trophées (chantier royal construit) : chaque Légende exposée attire des visiteurs (+20 or par heure, voir 45-domaine).
+   Les données vivent dans career.data.legendes (lues aussi par l'élevage et le domaine sans dépendre de ce module). */
+const legendes=(()=>{const C=career.data;C.legendes=C.legendes||[];const L=C.legendes;
+ const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
+ const can=h=>h.races>=10||h.level>=12;
+ const title=l=>l.wins>=25?'Légende des pistes':l.wins>=10?'Grand champion':l.places>=10?'Cheval de cœur':'Fidèle compagnon';
+ const slots=()=>SALLE_SLOTS[dlv('chantier')]||0;
+ // pourquoi ce cheval ne peut-il pas (encore) partir à la retraite ?
+ function why(h){if(!can(h))return `Retraite possible après 10 courses (${h.races}/10) ou au niveau 12`;if(h.id===stable.data.active)return 'Engage un autre cheval avant sa retraite';
+  if(h.id===tour.horse)return 'Il dispute le Tournoi royal';if(stable.data.horses.length<2)return 'Il te faut au moins un autre cheval';return null}
+ function retire(id){const h=stable.byId(id);if(!h||h.id!==id||why(h))return false;
+  const snap={id:'L:'+h.id,name:h.name,coat:h.coat,talent:h.talent,dist:h.dist,stats:{...h.stats},caps:{...h.caps},level:h.level,races:h.races,wins:h.wins,places:h.places,age:h.age,parents:h.parents||null,rare:!!h.rare,at:Date.now()};
+  if(!stable.removeHorse(id))return false;try{domaine.stock('chantier')}catch(e){}L.push(snap);save();hooks.emit('legende',snap);sound.fanfare();buzz([40,60,40]);ceremony(snap);return true}
+ // cérémonie d'adieu
+ function ceremony(l){const n=L.indexOf(l)+1,shown=n<=slots();$('#panelTitle').textContent='Une Légende est née';$('#panel .card').classList.remove('wide');
+  $('#panelBody').innerHTML=`<div class="chest-pop open legend-pop"><div class="legend-frame"><canvas width="220" height="270" class="lg-pic"></canvas></div><p class="lg-name">${escapeHTML(l.name)}</p><p class="lg-title">🎖️ ${title(l)}</p>
+   <p class="hint">${l.races} courses · ${l.wins} victoire${l.wins>1?'s':''} · ${l.places} podium${l.places>1?'s':''} · niveau ${l.level}</p>
+   <p class="hint">${shown?'Il rejoint la <b>Salle des trophées</b> : les visiteurs viendront l’admirer (+20 or par heure).':dlv('chantier')?'La Salle des trophées est pleine : agrandis-la pour l’exposer. Il coule des jours heureux au pré.':'Il coule des jours heureux au pré. Construis la <b>Salle des trophées</b> au chantier royal pour l’exposer.'} Il reste disponible au Haras comme reproducteur.</p>
+   <button class="action green" data-lg-go>VOIR LES LÉGENDES</button></div>`;$('#panel').classList.add('open');drawPortrait($('.lg-pic'),l,1.2,0)}
+ // Salle des trophées : vitrine des coupes et galerie des Légendes
+ function open(){const lv=dlv('chantier'),S=slots(),cups=tour.cups||0;$('#panelTitle').textContent=lv?'Salle des trophées':'Légendes du domaine';$('#panel .card').classList.add('wide');
+  const rate=lv?domaine.rate('chantier'):0;
+  $('#panelBody').innerHTML=`<p class="hint">${lv?`Salle des trophées niveau ${lv} · <b>${Math.min(L.length,S)}/${S}</b> Légendes exposées · visiteurs : <b>+${fmt(rate)} 🪙 par heure</b>.`:'Construis la <b>Salle des trophées</b> au chantier royal (Haras niveau 2) pour exposer tes Légendes et attirer des visiteurs.'} Un cheval peut prendre sa retraite après 10 courses ou au niveau 12 (bouton dans l’écurie).</p>
+   <div class="cabinet"><div class="shelf">${cups?Array.from({length:Math.min(cups,12)},()=>'<i>🏆</i>').join('')+(cups>12?`<b>×${cups}</b>`:''):'<small>Aucune coupe pour l’instant : remporte un Tournoi royal.</small>'}</div></div>
+   ${L.length?`<div class="legends">${L.map((l,i)=>`<article class="legend${i<S?' shown':''}"><div class="legend-frame"><canvas width="150" height="185" data-lg="${i}"></canvas></div><b>${escapeHTML(l.name)}</b><em>🎖️ ${title(l)}</em>
+    <small>${l.races} courses · ${l.wins} victoires · ${l.places} podiums</small><small>${TALENTS[l.talent].i} ${TALENTS[l.talent].n} · ${distName(l.dist)} · retraite le ${new Date(l.at).toLocaleDateString('fr-FR')}</small><span class="lg-where">${i<S?'Exposée':'Au pré'}</span></article>`).join('')}</div>`
+    :'<p class="hint" style="text-align:center;margin-top:18px">Aucune Légende pour l’instant. Tes champions y entreront à la fin de leur carrière.</p>'}`;
+  $('#panel').classList.add('open');$$('#panelBody canvas[data-lg]').forEach(cv=>drawPortrait(cv,L[+cv.dataset.lg],1.2,-2))}
+ // bouton dans l'écurie
+ hooks.on('stable:render',h=>{const row=$('#panelBody .st-row');if(!row||!h)return;const w=why(h);if(!can(h)&&h.races<5)return;
+  row.insertAdjacentHTML('beforeend',`<button class="action legend-btn" data-retire="${h.id}" ${w?`disabled title="${w}"`:''}>🎖️ RETRAITE</button>`);if(w&&can(h))row.insertAdjacentHTML('afterend',`<p class="hint" style="margin:6px 0 0">🎖️ ${w}.</p>`)});
+ $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.retire){const h=stable.byId(b.dataset.retire);if(!b.dataset.armed){b.dataset.armed=1;b.textContent=`CONFIRMER : ${h.name} prend sa retraite`;setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='🎖️ RETRAITE'}},4000);return}retire(b.dataset.retire)}
+  else if(b.hasAttribute('data-lg-go'))open()});
+ PANELS.legendes=open;
+ // pour les tests
+ const debug={fill(){if(L.length)return;[['Tonnerre d’Antan','noir','finisseur',2000],['Reine des Prés','gris','increvable',2400]].forEach(([n,c,t,d],i)=>L.push({id:'L:t'+i,name:n,coat:c,talent:t,dist:d,stats:{vit:84,acc:82,end:80,dep:75,tac:78,tem:80},caps:{vit:96,acc:94,end:95,dep:90,tac:92,tem:92},level:18,races:40,wins:18+i*9,places:28,age:7,parents:null,rare:false,at:Date.now()-864e5*(20-i)}));save()}};
+ return{open,retire,why,can,title,slots,debug,get list(){return L}}})();
 </script>
 <script>(()=>{const ko=[];let cur='';const on=()=>{if(cur)ko.push(cur)};addEventListener('error',on);for(const m of document.querySelectorAll('script[type="text/x-module"]')){cur=m.dataset.f;const s=document.createElement('script');s.textContent=m.textContent+'\n//# sourceURL='+cur;document.body.appendChild(s)}cur='';removeEventListener('error',on);window.__modulesKo=ko;if(ko.length)console.error('Modules en échec :',ko.join(', '));try{hooks.emit('ready')}catch(e){}})()</script>
 

@@ -7,9 +7,13 @@ const LIVERY=(()=>{
  const COLORS=[['Bleu roi','#1f3f9f'],['Marine','#15264a'],['Ciel','#5aa4e3'],['Rouge','#c21c27'],['Bordeaux','#6c1428'],['Rose','#e4679d'],
   ['Vert','#17824c'],['Vert anglais','#0f3b29'],['Jaune','#f3c41a'],['Or','#c8982c'],['Orange','#ee6914'],['Violet','#5a2a88'],
   ['Blanc','#f4f2ec'],['Gris','#8b9097'],['Noir','#17181b'],['Chocolat','#5e341c']];
- const PATTERNS=[['uni','Uni'],['losange','Losange'],['bandes','Rayures'],['cercle','Cerclé'],['chevrons','Chevrons'],['croix','Croix'],['etoile','Étoile'],['manches','Manches'],['brassards','Brassards'],['pois','Pois'],['soleil','Soleil royal']];
+ const PATTERNS=[['uni','Uni'],['losange','Losange'],['bandes','Rayures'],['cercle','Cerclé'],['chevrons','Chevrons'],['croix','Croix'],['etoile','Étoile'],['manches','Manches'],['brassards','Brassards'],['pois','Pois'],['soleil','Soleil royal'],['echarpe','Écharpe'],['damier','Damier'],['eclair','Éclair'],['couronne','Couronne']];
+ // motifs à débloquer (Route des étoiles, campagne de la Couronne) : jamais portés par les adversaires tirés au hasard
+ const LOCKS={soleil:['Saison','Palier 20 de la Route des étoiles'],echarpe:['Couronne','Chapitre 1 de la Couronne'],eclair:['Couronne','Chapitre 3 de la Couronne'],damier:['Couronne','Chapitre 5 de la Couronne'],couronne:['Couronne','Victoire au Grand Prix de la Couronne']};
  const DEFAULT={name:'Royal Thunder',coat:'bai',main:'#1f3f9f',second:'#c8982c',pattern:'losange',cap:'#1f3f9f'};
  const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+ const pip=(u,v,P)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const[a,b]=P[i],[e,f]=P[j];if((b>v)!==(f>v)&&u<(e-a)*(v-b)/(f-b)+a)c=!c}return c};
+ const BOLT=[[.6,.06],[.36,.47],[.5,.47],[.4,.94],[.68,.4],[.54,.4],[.68,.06]];
  function star(u,v,r){const a=Math.atan2(v,u),d=Math.hypot(u,v),k=Math.PI/5,m=((a%(2*k))+2*k)%(2*k)-k;return d*Math.cos(m)/Math.cos(k)<r*(.55+.45*Math.abs(Math.cos(2.5*a+Math.PI/2)))}
  function pat(id,u,v){switch(id){
   case 'losange':return Math.abs(u-.5)/.21+Math.abs(v-.42)/.27<1;
@@ -22,6 +26,10 @@ const LIVERY=(()=>{
   case 'brassards':return Math.abs(u-.5)>.27&&v>.44&&v<.6;
   case 'pois':{const fu=u*6.5,fv=v*5.2,cu=fu-Math.floor(fu)-.5,cv=fv-Math.floor(fv)-.5,sh=Math.floor(fv)%2?.5:0;const cu2=((fu+sh)%1)-.5;return Math.hypot(cu2,cv)<.26}
   case 'soleil':{const a=Math.atan2(v-.42,u-.5),d=Math.hypot(u-.5,v-.42);return d<.1||Math.floor((a/Math.PI+1)*8)%2===0&&d<.62}
+  case 'echarpe':return Math.abs((u-.5)*1.05-(v-.5))<.12;
+  case 'damier':return (Math.floor(u*5)+Math.floor(v*5))%2===1;
+  case 'eclair':return pip(u,v,BOLT);
+  case 'couronne':{if(u<.27||u>.73||v>.6)return false;const top=Math.min(...[.3,.5,.7].map(p=>.46-.16*Math.max(0,1-Math.abs(u-p)/.1)));return v>=top}
   default:return false}}
  // ---------- chargement des planches + masques ----------
  const img=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src});
@@ -67,13 +75,17 @@ const LIVERY=(()=>{
    case 'etoile':p=`<path d="M40 30 L43.5 39.5 L53.5 39.8 L45.6 46 L48.4 55.7 L40 50 L31.6 55.7 L34.4 46 L26.5 39.8 L36.5 39.5Z" fill="${s}"/>`;break;
    case 'manches':p=R(0,0,23,80)+R(57,0,23,80);break;case 'brassards':p=R(0,33,23,7)+R(57,33,23,7);break;
    case 'soleil':p=`<circle cx="40" cy="42" r="7" fill="${s}"/>`+Array.from({length:8},(_,k)=>{const a=k/8*Math.PI*2;return `<path d="M40 42 L${40+40*Math.cos(a)} ${42+40*Math.sin(a)} L${40+40*Math.cos(a+.39)} ${42+40*Math.sin(a+.39)}Z" fill="${s}"/>`}).join('');break;
-   case 'pois':for(const[x,y]of[[30,28],[50,28],[40,40],[28,52],[52,52],[40,64],[14,40],[66,40]])p+=`<circle cx="${x}" cy="${y}" r="3.6" fill="${s}"/>`;break}
+   case 'pois':for(const[x,y]of[[30,28],[50,28],[40,40],[28,52],[52,52],[40,64],[14,40],[66,40]])p+=`<circle cx="${x}" cy="${y}" r="3.6" fill="${s}"/>`;break;
+   case 'echarpe':p=`<path d="M6 26 L18 14 L74 70 L62 82Z" fill="${s}"/>`;break;
+   case 'damier':for(let x=0;x<80;x+=14)for(let y=10;y<84;y+=14)if((x/14+(y-10)/14)%2)p+=R(x,y,14,14);break;
+   case 'eclair':p=`<path d="M47 18 L31 46 L40 46 L33 74 L53 40 L44 40 L53 18Z" fill="${s}"/>`;break;
+   case 'couronne':p=`<path d="M27 52 L27 34 L33 42 L40 29 L47 42 L53 34 L53 52Z" fill="${s}"/>`+R(27,54,26,5);break}
   return `<svg viewBox="0 0 80 84" width="${size}" height="${size}" aria-hidden="true"><defs><clipPath id="${id}"><path d="${body}"/></clipPath><linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient></defs>
 <g clip-path="url(#${id})"><path d="${body}" fill="${m}"/>${p}<path d="${body}" fill="url(#${id}g)"/></g><path d="${body}" fill="none" stroke="#0007" stroke-width="1.6"/>
 <path d="M30 13 Q40 19 50 13 L48 9 Q40 14 32 9Z" fill="${liv.cap}" stroke="#0006"/><ellipse cx="40" cy="7" rx="9" ry="6" fill="${liv.cap}" stroke="#0007" stroke-width="1.4"/><path d="M31 8 Q40 2 49 8" stroke="${s}" stroke-width="2.2" fill="none"/></svg>`}
  function random(seed,avoid=[]){let x=seed*9301+49297;const r=()=>(x=(x*16807)%2147483647)/2147483647;
   const pick=a=>a[Math.floor(r()*a.length)];let main,second;do{main=pick(COLORS)[1]}while(avoid.includes(main));do{second=pick(COLORS)[1]}while(second===main);
-  return{name:'',coat:pick(COATS).id,main,second,pattern:pick(PATTERNS)[0],cap:r()<.5?main:second}}
- return{COATS,COLORS,PATTERNS,DEFAULT,ready,gallop,portrait,silkSVG,random,pattern:pat,coatLut:i=>META.coatLuts[i][36],coatSwatch:i=>{const l=META.coatLuts[i][40];return `rgb(${l[0]},${l[1]},${l[2]})`}};
+  return{name:'',coat:pick(COATS).id,main,second,pattern:pick(PATTERNS.filter(p=>!LOCKS[p[0]]))[0],cap:r()<.5?main:second}}
+ return{COATS,COLORS,PATTERNS,LOCKS,DEFAULT,ready,gallop,portrait,silkSVG,random,pattern:pat,coatLut:i=>META.coatLuts[i][36],coatSwatch:i=>{const l=META.coatLuts[i][40];return `rgb(${l[0]},${l[1]},${l[2]})`}};
 })();
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

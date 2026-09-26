@@ -9,6 +9,7 @@ const UNLOCKS=[
  {k:'ligues',at:3,sel:['[data-panel=trophees]','[data-panel=saison]'],n:'Ligues et Route des étoiles',txt:'Tes trophées te font monter de <b>ligue</b> (de nouvelles courses s’ouvrent), tes étoiles de course font avancer la <b>Route des étoiles</b>.'},
  {k:'defi',at:3,sel:['#panelBody [data-defi]'],n:'Défi du jour',txt:'Chaque jour, <b>la même course pour tous les joueurs</b>. Retente-la autant que tu veux : ton meilleur essai court à côté de toi, en fantôme.'},
  {k:'jockeys',at:4,sel:['#panelBody .jockeys-block'],n:'Jockeys',txt:'Tu peux maintenant <b>engager des jockeys</b> : départ éclair, finisseur, tacticienne… Choisis-le selon la course, avant le départ. Ils progressent en montant.'},
+ {k:'couronne',at:4,sel:['[data-panel=couronne]','#panelBody .cour-meet'],n:'La Couronne',txt:'Le Comte de Valmont te lance un défi : <b>six Grands Prix</b> jusqu’au Grand Prix de la Couronne. Chaque chapitre a son objectif et ses récompenses, dont des motifs de casaque exclusifs. Touche la couronne.'},
  {k:'ventes',at:6,sel:['.nav[data-view=ventes]'],n:'Ventes aux enchères',txt:'Chaque jour, <b>4 chevaux</b> sont mis aux enchères. Le Comte de Valmont et deux autres acheteurs s’y disputent les meilleurs : lis le potentiel estimé, et ne paie pas plus qu’il ne vaut.'},
  {k:'tournoi',at:5,sel:['.nav[data-view=events]','[data-panel=events]','[data-panel=palmares]'],n:'Tournoi royal',txt:'Chaque jour, un <b>tournoi</b> à élimination directe. Et chaque semaine, un cheval rare à gagner.'},
  {k:'boutique',at:7,sel:['[data-panel=boutique]','.resource .plus','#panelBody h4:has(+ .tack)','#panelBody .tack'],n:'Boutique et sellerie',txt:'La <b>boutique</b> accepte tes gemmes, et la <b>sellerie</b> permet d’équiper ton cheval selon le terrain.'}];
@@ -30,6 +31,7 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
   const pts=n>=2&&stable.data.horses.find(x=>x.points>0);if(pts)return[`Répartis les points de niveau de ${pts.name}`,'ecurie'];
   if(n>=3&&!defi.done)return['Relève le Défi du jour','defi'];
   if(n>=3){const L=career.league(),nx=LEAGUES[L+1];if(nx)return[`Ligue ${nx.n} : encore ${fmt(Math.max(0,nx.min-state.trophies))} trophées`,'trophees']}
+  try{const g=couronne.goal();if(g)return g}catch(e){}
   const R=rival.rec;if(R.w<=R.l)return[`Prends l’avantage sur Black Majesty (${R.w} – ${R.l})`,'courses'];
   return[n>=5?'Remporte le Tournoi royal du jour':'Enchaîne les victoires','courses']}
  function render(){const[t,a]=next();if(goal.dataset.a!==a||goal.textContent!=='🎯 '+t){goal.textContent='🎯 '+t;goal.dataset.a=a}}

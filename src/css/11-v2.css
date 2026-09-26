@@ -49,3 +49,15 @@
 .auc-log{list-style:none;margin:0;padding:0;width:100%;font-size:13px;color:#c9d7e2;min-height:60px}.auc-log li{display:flex;align-items:center;gap:6px;padding:3px 0;justify-content:center}.auc-log li:first-child{color:#fff;font-weight:700}.auc-log .auc-face{width:22px;height:22px;flex-basis:22px;font-size:13px}
 .auc-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}.auc-btns .action{flex:1;min-width:150px}.auc-btns small{width:100%}
 @media(max-width:850px){.auc{grid-template-columns:1fr}.lots{grid-template-columns:1fr}.lot-pic{flex-basis:92px}.lot-pic canvas{width:92px;height:118px}.auc-price{font-size:34px}}
+/* ----- Légendes ----- */
+.legends{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:14px}
+.legend{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 10px;border-radius:16px;background:#ffffff0a;border:1px solid #ffffff22;text-align:center}
+.legend.shown{background:linear-gradient(170deg,#f3c64a1c,#ffffff06);border-color:#dcb05a88}
+.legend-frame{padding:6px;border-radius:12px;background:linear-gradient(145deg,#fff2b0,#c98b17 45%,#8a5a0c);box-shadow:0 8px 18px #0008,inset 0 0 0 2px #fff5}
+.legend-frame canvas{display:block;border-radius:8px;background:radial-gradient(circle at 50% 30%,#2e5170,#0b1d30);width:120px;height:148px}
+.legend b{font:800 16px Georgia,serif;color:#fff3cf;margin-top:6px}.legend em{font-style:normal;font-size:12px;font-weight:800;color:#ffd66b}.legend small{font-size:11px;color:#9fb3c2}
+.lg-where{position:absolute;top:8px;right:8px;font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#ffffff18;color:#c9d7e2}.legend.shown .lg-where{background:#55c75633;color:#bff0bf}
+.legend-pop .legend-frame canvas{width:176px;height:216px}.lg-name{font:800 26px Georgia,serif;color:#fff3cf;margin:10px 0 0}.lg-title{margin:2px 0 6px;font-weight:900;color:#ffd66b}
+.action.legend-btn{background:linear-gradient(#b98cff,#6a3fb8);border-color:#3c1f6e}
+.legend-pop .legend-frame{display:inline-block}
+@media(max-width:850px){.legends{grid-template-columns:1fr 1fr;gap:8px}.legend{padding:10px 6px}.legend .legend-frame canvas{width:96px;height:118px}}

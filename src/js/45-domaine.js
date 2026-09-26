@@ -11,8 +11,9 @@ const BATIMENTS={
  moulin:{max:5,k:.8,t:.8,fx:l=>[`${DOMAIN_FX.moulin(l)} 🌾 produits par heure`,`Réserve : ${fmt(DOMAIN_FX.moulin(l)*10)} 🌾`]},
  paddocks:{max:5,k:.8,t:.9,fx:l=>[l>1?`Récupération de la fatigue +${(l-1)*20} %`:'Récupération : 9 points de fatigue par heure',`Repos au pré : fatigue −${Math.round(30*DOMAIN_FX.paddocks(l))}`]},
  carriere:{max:5,k:1,t:1,fx:l=>[l>1?`Gains d’entraînement +${(l-1)*5} %`:'Gains d’entraînement de base']},
- chantier:{max:3,fx:l=>l?[`${SALLE_OR[l]} 🪙 de visiteurs par heure`,`Réserve : ${fmt(SALLE_OR[l]*10)} 🪙`]:['Pas encore construite']}};
-const SALLE_OR=[0,90,180,320];
+ chantier:{max:3,fx:l=>l?[`${SALLE_OR[l]} 🪙 de visiteurs par heure`,`${SALLE_SLOTS[l]} Légendes exposées : +20 🪙 par heure chacune`]:['Pas encore construite']}};
+// Salle des trophées : or des visiteurs par heure, places pour les Légendes (47-legendes)
+const SALLE_OR=[0,90,180,320],SALLE_SLOTS=[0,3,6,10];
 const dureeTxt=m=>m<1?`${Math.max(1,Math.round(m*60))} s`:m<60?`${Math.round(m)} min`:`${Math.floor(m/60)} h${Math.round(m%60)?' '+String(Math.round(m%60)).padStart(2,'0'):''}`;
 const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod:{}};const D=C.domaine;
  // les niveaux lus au démarrage (01-core) et ceux de la sauvegarde ne font qu'un seul objet
@@ -29,7 +30,7 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
   else if(id==='chantier'){if(dlv('haras')<to+1)return `Haras niveau ${to+1} requis`}
   else if(to>dlv('haras')+1)return `Haras niveau ${to-1} requis`;return null}
  // ---------- production (moulin : fourrage, Salle des trophées : or) ----------
- const PROD={moulin:{res:'feed',ico:'🌾',rate:l=>DOMAIN_FX.moulin(l)},chantier:{res:'gold',ico:'🪙',rate:l=>SALLE_OR[l]||0}};
+ const PROD={moulin:{res:'feed',ico:'🌾',rate:l=>DOMAIN_FX.moulin(l)},chantier:{res:'gold',ico:'🪙',rate:l=>(SALLE_OR[l]||0)+20*Math.min((C.legendes||[]).length,SALLE_SLOTS[l]||0)}};
  const cap=id=>PROD[id].rate(dlv(id))*10;
  function settle(id){const P=D.prod[id]=D.prod[id]||{t:Date.now(),stock:0},now=Date.now();P.stock=Math.min(cap(id),P.stock+PROD[id].rate(dlv(id))*Math.max(0,now-P.t)/36e5);P.t=now;return P}
  const stock=id=>Math.floor(settle(id).stock);
@@ -52,7 +53,7 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  const ACT={haras:['ÉLEVAGE',()=>breeding.open()],hippodrome:['COURIR',()=>openCourses()],clinique:['SOINS',()=>openStable({tab:'care',filter:'clinique'})],ecurie:['CHEVAUX',()=>openStable()],
   moulin:['RATION',()=>openStable({tab:'care',filter:'moulin'})],paddocks:['ENTRAÎNER',()=>openStable({tab:'train',filter:'paddocks'})],carriere:['ENTRAÎNER',()=>openStable({tab:'train',filter:'carriere'})],chantier:['INFOS',()=>open('chantier')]};
  function action(id){if(PROD[id]&&dlv(id)&&unlocked()&&stock(id)>=1)return[`RÉCOLTER<br>${PROD[id].ico} ${fmt(stock(id))}`,()=>collect(id,$('#infoBtn'))];
-  if(id==='chantier'&&dlv(id))return['VITRINE',()=>palmares.open()];return ACT[id]}
+  if(id==='chantier'&&dlv(id))return['LÉGENDES',()=>legendes.open()];return ACT[id]}
  function card(id){sel=id;const l=dlv(id),w=busy(id),why=block(id),to=l+1,fx=BATIMENTS[id].fx(l).filter(Boolean);
   $('#selIcon').textContent=icon(id);$('#selTitle').textContent=name(id);
   $('#selDesc').innerHTML=`${l?`<b>Niveau ${l}</b> · `:''}${escapeHTML(fx[0]||BUILDINGS[id].desc)}${w?`<span class="sel-prog"><i style="width:${Math.min(100,(Date.now()-w.start)/(w.ends-w.start)*100)}%"></i></span>`:''}`;
@@ -91,4 +92,4 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  check();refresh();
  // pour les tests : tout au niveau maximal
  const debug={max(){ORDER.forEach(id=>{D.lv[id]=BATIMENTS[id].max});D.work=[];save();refresh()}};
- return{open,start,finishNow,collect,stock,cap,builders,free,block,cost,minutes,name,refresh,debug,get work(){return D.work}}})();
+ return{open,start,finishNow,collect,stock,cap,rate:id=>PROD[id].rate(dlv(id)),builders,free,block,cost,minutes,name,refresh,debug,get work(){return D.work}}})();

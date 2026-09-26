@@ -28,7 +28,7 @@ function renderStable(flash){stable.tick();const H=stable.data.horses,h=stable.b
   <section class="st-box"><h4>CONDITION</h4>${gauges}<h4 style="margin-top:14px">APTITUDE DE DISTANCE</h4><div class="dist">${DISTS.map(([d,n])=>`<span style="left:${dpos(d)}%">${n}</span>`).join('')}<i style="left:${dpos(h.dist)}%"></i></div></section></div>
  ${tabs}${body}`;
  $$('.st-pick canvas').forEach((cv,i)=>drawPortrait(cv,H[i],1.6,-2));drawPortrait($('#stPortrait'),h,1.3,-6);
- if(flash)requestAnimationFrame(()=>$$('.stat .cur').forEach((el,i)=>{el.style.width=h.stats[STATS[i].k]+'%'}))}
+ if(flash)requestAnimationFrame(()=>$$('.stat .cur').forEach((el,i)=>{el.style.width=h.stats[STATS[i].k]+'%'}));hooks.emit('stable:render',h)}
 function flyText(el,txt){const r=el.getBoundingClientRect(),f=document.createElement('div');f.className='flyup';f.textContent=txt;f.style.left=r.left+r.width/2-40+'px';f.style.top=r.top-8+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),1500)}
 $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t||!$('#panel .card').classList.contains('wide'))return;const h=stable.byId(stUI.horse);
  if(t.dataset.pick){stUI.horse=t.dataset.pick;renderStable()}

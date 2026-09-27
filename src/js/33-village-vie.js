@@ -35,7 +35,7 @@ const villageVie=(()=>{
    else{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.scale(1,Math.abs(Math.cos(p.a*1.3))*.8+.2);ctx.globalAlpha=.85*(1-k*.6);ctx.fillStyle=p.c;ctx.beginPath();ctx.ellipse(0,0,p.r,p.r*.5,0,0,6.283);ctx.fill();ctx.restore()}}}
  function frame(now){requestAnimationFrame(frame);if($('#raceScreen').classList.contains('open')||document.hidden||document.body.classList.contains('no-anim')||reduce){last=now;if(W)ctx.clearRect(0,0,W,H);return}draw(now)}
  function draw(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=Math.max(last,now);
-  resize();ctx.clearRect(0,0,W,H);const V=village.view;if(!V.vw)return;const T=document.body.dataset.tod;
+  resize();ctx.clearRect(0,0,W,H);const V=village.view;if(!V.vw||world.classList.contains('d3-on'))return;const T=document.body.dataset.tod;
   night+=((T==='nuit'?1:0)-night)*Math.min(1,dt*1.5);eve+=((T==='soir'?1:0)-eve)*Math.min(1,dt*1.5);
   const sc=V.w/3344,P=(u,v)=>[V.x+u*V.w,V.y+v*V.h],lit=Math.min(1,night+eve*.55),t=now/1000;
   ctx.globalCompositeOperation='lighter';

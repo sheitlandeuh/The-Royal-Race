@@ -26,7 +26,7 @@ const village=(()=>{
   const timer=document.createElement('div');timer.className='bld-timer';Object.assign(timer.style,{left:m.topX*100+'%',top:m.topY*100+'%'});
   const btn=document.createElement('button');btn.className='bld-hit';btn.setAttribute('aria-label',b.name);Object.assign(btn.style,{left:(m.x+m.w*.2)*100+'%',top:(m.y+m.h*.2)*100+'%',width:m.w*60+'%',height:m.h*60+'%'});
   btn.addEventListener('click',()=>select(id));
-  map.append(el,tag,timer,btn);els[id]={el,tag,timer,m}}
+  map.append(el,tag,timer,btn);els[id]={el,tag,timer,hit:btn,m}}
  function layers(id){const e=els[id];if(!e||e.loaded)return;e.loaded=true;e.el.querySelectorAll('img[data-src]').forEach(i=>{i.src=i.dataset.src;i.removeAttribute('data-src')});e.el.style.setProperty('--halo',`url("assets/village/${id}-halo.webp")`)}
  (window.requestIdleCallback||setTimeout)(()=>setTimeout(()=>VILLAGE.order.forEach(layers),9000),{timeout:12000});
  // --- carte de collision au pixel près (index du bâtiment encodé dans l'image) ---
@@ -62,7 +62,7 @@ const village=(()=>{
  function spawnFlock(){const dir=Math.random()<.5?1:-1,v=.08+Math.random()*.55,n=3+Math.floor(Math.random()*4);birds=Array.from({length:n},(_,i)=>({u:dir>0?-.05-i*.012:1.05+i*.012,v:v+(i%2?1:-1)*i*.007,du:dir*(.000032+Math.random()*.000006),dv:(Math.random()-.5)*.000008,f:Math.random()*6.28}))}
  const toScreen=(u,v)=>[cam.x+u*MW*cam.z,cam.y+v*MH*cam.z];
  let last=performance.now();
- function tick(now){requestAnimationFrame(tick);const busy=$('#raceScreen').classList.contains('open')||document.hidden||document.body.classList.contains('no-anim');if(busy){last=now;if(document.body.classList.contains('no-anim'))ctx.clearRect(0,0,vw,vh);return}const dt=Math.min(50,now-last);last=now;ctx.clearRect(0,0,vw,vh);if(reduce)return;const z=cam.z*cam.k;
+ function tick(now){requestAnimationFrame(tick);const busy=$('#raceScreen').classList.contains('open')||document.hidden||document.body.classList.contains('no-anim')||world.classList.contains('d3-on');if(busy){last=now;if(document.body.classList.contains('no-anim'))ctx.clearRect(0,0,vw,vh);return}const dt=Math.min(50,now-last);last=now;ctx.clearRect(0,0,vw,vh);if(reduce)return;const z=cam.z*cam.k;
   // reflets
   ctx.fillStyle='#fff';for(const g of glints){const a=Math.pow(Math.max(0,Math.sin(now*.0017*g.s+g.p)),10);if(a<.05)continue;const[x,y]=toScreen(g.u,g.v);if(x<-5||y<-5||x>vw+5||y>vh+5)continue;const r=(.9+a*1.6)*Math.max(.7,z);ctx.globalAlpha=a*.85;ctx.beginPath();ctx.ellipse(x,y,r*1.8,r*.55,0,0,6.283);ctx.fill();ctx.globalAlpha=a*.5;ctx.fillRect(x-.5,y-r*1.6,1,r*3.2)}
   // fumées de cheminées
@@ -82,7 +82,7 @@ const village=(()=>{
   try{villageLife.draw(ctx,now,dt,toScreen,MW*cam.z/3344,vw,vh)}catch(e){}}
  layout();requestAnimationFrame(tick);
  function onSelect(){}
- return{select,deselect,layout,get selected(){return selected},get view(){return{x:cam.x,y:cam.y,w:MW*cam.z,h:MH*cam.z,vw,vh,z:cam.z}},setTimer(id,text){const t=els[id].timer;t.innerHTML=`🔨 <b>${text}</b>`;t.dataset.on=1;t.classList.toggle('show',selected!==id)},clearTimer(id){const t=els[id].timer;delete t.dataset.on;t.classList.remove('show')},
+ return{select,deselect,layout,get selected(){return selected},get els(){return els},get view(){return{x:cam.x,y:cam.y,w:MW*cam.z,h:MH*cam.z,vw,vh,z:cam.z}},setTimer(id,text){const t=els[id].timer;t.innerHTML=`🔨 <b>${text}</b>`;t.dataset.on=1;t.classList.toggle('show',selected!==id)},clearTimer(id){const t=els[id].timer;delete t.dataset.on;t.classList.remove('show')},
  setTag(id,name,lvl){const t=els[id].tag,i=t.querySelector('i');t.querySelector('em').textContent=name;i.hidden=lvl==null;if(lvl!=null)i.textContent=lvl},set onSelect(f){onSelect=f}};
 })();
 // carte d'un bâtiment sélectionné : remplie par 45-domaine (niveau, travaux, action du bâtiment)

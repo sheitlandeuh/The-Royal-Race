@@ -91,3 +91,9 @@
 .news-it{display:flex;gap:12px;padding:12px;border-radius:14px;background:#ffffff0c;border:1px solid #dcb05a55}.news-it>i{font-style:normal;font-size:30px;flex:0 0 46px;height:46px;display:grid;place-items:center;border-radius:12px;background:#ffffff14}
 .news-it b{font:800 16px Georgia,serif;color:#fff3cf}.news-it p{margin:3px 0 0;font-size:13px;color:#d5e1ea}.news-it small{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;color:#ffd66b}
 .set-version a{color:#ffe09a}
+/* domaine en 3D (50-domaine3d) : le canvas remplace la peinture, étiquettes et bulles placées par projection */
+#domain3d{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#world:not(.d3-on) #domain3d{display:none}
+.d3-on #map,.d3-on #villageGL,.d3-on #ambient,.d3-on #villageGlow{visibility:hidden}
+#d3ui{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+#d3ui .bld-harvest{pointer-events:auto}

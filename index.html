@@ -3886,6 +3886,8 @@ const domaine3d = (() => {
   function frame(now) {
     raf = requestAnimationFrame(frame); if (!on) return;
     if ($('#raceScreen').classList.contains('open') || document.hidden) { last = now; return }
+    // un panneau couvre le domaine : quelques images par seconde suffisent (batterie des téléphones)
+    if ($('#panel').classList.contains('open') && !pts.size && now - last < 150) return;
     const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const t = now / 1000;
     raceWorld.uniforms.uTime.value = t; light();
     if (!drag && !pinch && (Math.abs(W3.vx) + Math.abs(W3.vz) > .2)) { pan(W3.vx, W3.vz); W3.vx *= .92; W3.vz *= .92 }
@@ -3910,7 +3912,10 @@ const domaine3d = (() => {
     v = !!v && supported(); if (v === on) return on;
     if (v) {
       try {
-        if (!R) { const cv = document.createElement('canvas'); cv.id = 'domain3d'; world.prepend(cv); R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' }); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05; R.shadowMap.enabled = !!QUALITY[settings.level()].shadow; R.shadowMap.type = THREE.PCFSoftShadowMap; input(cv) }
+        if (R && R.getContext().isContextLost()) { R.domElement.remove(); R = null }
+        if (!R) { const cv = document.createElement('canvas'); cv.id = 'domain3d'; world.prepend(cv); R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' }); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05; R.shadowMap.enabled = !!QUALITY[settings.level()].shadow; R.shadowMap.type = THREE.PCFSoftShadowMap; input(cv);
+          // contexte WebGL perdu (mémoire du téléphone) : retour à la peinture, sans jamais provoquer de perte nous-mêmes
+          cv.addEventListener('webglcontextlost', e => { e.preventDefault(); set(false); settings.set('d3', false); try { toast('Domaine 3D indisponible : retour à la peinture') } catch (x) { } }) }
         R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1));
         if (!built) { const t0 = performance.now(); build(); T.ms = Math.round(performance.now() - t0); if (world.clientWidth < world.clientHeight * .8) { W3.dist = 280; W3.tz = -4 } } light(); camera()
       } catch (e) { console.warn('domaine 3D', e); return on = false }

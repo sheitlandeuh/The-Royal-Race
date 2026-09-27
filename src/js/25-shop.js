@@ -22,7 +22,7 @@ const shop=(()=>{const C=career.data;C.shop=C.shop||{day:'',gift:false,deal:fals
   <div class="wares top"><article class="ware gift${S.gift?' done':''}"><i>🎁</i><b>Cadeau du jour</b><small>${txt(g)}</small><button class="action green" data-ware="gift" ${S.gift?'disabled':''}>${S.gift?'REVIENS DEMAIN':'GRATUIT'}</button></article>${card(deal(),S.deal)}</div>
   <h4 class="shop-h">OR & FOURRAGE</h4><div class="wares">${items().filter(x=>x.got.gold||x.got.feed).map(x=>card(x)).join('')}</div>
   <h4 class="shop-h">COFFRES & ÉLIXIRS</h4><div class="wares">${items().filter(x=>!x.got.gold&&!x.got.feed).map(x=>card(x)).join('')}</div>`;
-  $('#panel').classList.add('open');if(focus){const el=$(`#panelBody [data-ware=${focus}]`);el?.closest('.ware')?.scrollIntoView({block:'center'})}badge()}
+  $('#panel').classList.add('open');hooks.emit('shop:render');if(focus){const el=$(`#panelBody [data-ware=${focus}]`);el?.closest('.ware')?.scrollIntoView({block:'center'})}badge()}
  function badge(){roll();const b=$('[data-panel=boutique] .badge');if(b){b.hidden=S.gift;b.textContent='1'}}
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-ware]');if(b)buy(b.dataset.ware)});
  $$('[data-buy]').forEach(b=>b.onclick=e=>{e.stopPropagation();open({Or:'gold1',Fourrage:'feed1',Gemmes:null}[b.dataset.buy])});

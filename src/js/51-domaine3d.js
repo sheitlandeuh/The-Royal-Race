@@ -204,7 +204,7 @@ const domaine3d = (() => {
     T.pick = pick;
     fences([rect(112, 4, 27, 13)], new THREE.Matrix4(), fenceP);
     if (fenceP.length) { const f = new THREE.Mesh(kit.merge(fenceP), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6 })); f.castShadow = true; f.receiveShadow = true; S.add(f) }
-    decor(season, Q);
+    decor(season, Q); decos();
     buildHorses();
     built = true
   }
@@ -267,6 +267,42 @@ const domaine3d = (() => {
     const u = (t - B_.t0) / 22, cx = B_.dir * (-260 + u * 520);
     for (let i = 0; i < B_.n; i++) { const row = Math.ceil(i / 2), side = i % 2 ? 1 : -1, x = cx - B_.dir * row * 5, z = B_.z + side * row * 4, y = B_.y + Math.sin(t * 1.3 + i) * .8, f = Math.sin(t * 9 + i * 1.7) * 1.2, o = i * 9;
       P.set([x - B_.dir * 1.2, y + f, z - 1.8, x + B_.dir * .6, y, z, x - B_.dir * 1.2, y + f, z + 1.8], o) } B_.g.attributes.position.needsUpdate = true
+  }
+  // ---------- décors achetés à la Boutique (52-decors) : career.data.deco.owned ----------
+  let decoSig = '', swans = [];
+  const decoOwned = () => { try { return ((career.data.deco || {}).owned || []).slice().sort() } catch (e) { return [] } };
+  function decos() {
+    const own = decoOwned(); decoSig = own.join(','); if (T.deco) { S.remove(T.deco); T.deco.traverse(o => { if (o.geometry) o.geometry.dispose() }) } swans = [];
+    const g = new THREE.Group(), kit = K(), mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .7 }), gold = new THREE.MeshStandardMaterial({ color: 0xe0b447, metalness: .85, roughness: .28 }); T.deco = g; S.add(g);
+    const put = (P, x, z, ry = 0, m = mat) => { const o = mesh(P, m); o.position.set(x, 0, z); o.rotation.y = ry; g.add(o); return o };
+    for (const id of own) {
+      const P = [];
+      if (id === 'roseraie') { // arches de roses et massifs
+        for (const [x, z, r] of [[-40, 30, 0], [-40, 50, 0], [-50, 40, Math.PI / 2], [-30, 40, Math.PI / 2]]) { P.push({ g: new THREE.TorusGeometry(2.4, .18, 6, 18, Math.PI), m: M(x + 40, 0, z - 40, r), c: 0x3f6a2a }); for (let k = 0; k <= 8; k++) { const a = k / 8 * Math.PI; P.push({ g: new THREE.IcosahedronGeometry(.42, 0), m: M(x + 40 + Math.cos(a) * 2.4 * Math.cos(r), Math.sin(a) * 2.4, z - 40 - Math.cos(a) * 2.4 * Math.sin(r)), c: k % 2 ? 0xe0567a : 0xf4f0ea }) } }
+        for (const [x, z] of [[-6, -6], [6, -6], [-6, 6], [6, 6], [0, 0]]) { P.push({ g: new THREE.CylinderGeometry(2.6, 2.8, .5, 16), m: M(x, .25, z), c: 0x6b4a2e }); for (let k = 0; k < 9; k++) { const a = k / 9 * 6.28; P.push({ g: new THREE.IcosahedronGeometry(.75, 1), m: M(x + Math.cos(a) * 1.6, .9, z + Math.sin(a) * 1.6), c: [0xc8324a, 0xe0567a, 0xf4f0ea][k % 3] }) } }
+        put(P, -40, 40) }
+      else if (id === 'kiosque') { // kiosque à musique octogonal
+        P.push({ g: new THREE.CylinderGeometry(5.2, 5.6, 1, 8), m: M(0, .5, 0), c: C.trim }, { g: new THREE.CylinderGeometry(6.2, 4.6, 3.2, 8, 1, true), m: M(0, 7.6, 0), c: C.navy }, { g: new THREE.ConeGeometry(6.4, 3.6, 8), m: M(0, 10.8, 0), c: C.navy }, { g: new THREE.ConeGeometry(.5, 2.2, 8), m: M(0, 13.6, 0), c: C.gold });
+        for (let k = 0; k < 8; k++) { const a = k / 8 * 6.28 + .39; P.push({ g: new THREE.CylinderGeometry(.22, .28, 5.2, 8), m: M(Math.cos(a) * 4.7, 3.6, Math.sin(a) * 4.7), c: C.trim }, { g: bx(3.4, .5, .25), m: M(Math.cos(a) * 4.9, 1.7, Math.sin(a) * 4.9, -a + Math.PI / 2 + .39), c: C.gold }) }
+        put(P, 30, 42) }
+      else if (id === 'cygnes') { // étang aux cygnes
+        const wm = new THREE.MeshStandardMaterial({ color: 0x3f6f86, roughness: .05, metalness: .45 }), pond = new THREE.Mesh(new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2), wm); pond.scale.set(10, 1, 13); pond.position.set(-38, .12, 88); g.add(pond);
+        P.push({ g: new THREE.TorusGeometry(1, .06, 6, 40).rotateX(Math.PI / 2).scale(10.4, 1, 13.4), m: M(0, .12, 0), c: 0xb8ad8a }); for (let k = 0; k < 26; k++) { const a = k / 26 * 6.28; P.push({ g: new THREE.ConeGeometry(.3, 2 + (k % 3) * .6, 4), m: M(Math.cos(a) * 10.8, 1, Math.sin(a) * 13.8), c: 0x5e7a34 }) } put(P, -38, 88);
+        for (let k = 0; k < 3; k++) { const sP = [{ g: new THREE.SphereGeometry(1, 12, 8).scale(1.2, .55, .7), m: M(0, .5, 0), c: 0xffffff }, { g: new THREE.CylinderGeometry(.14, .2, 1.8, 6).rotateZ(-.25), m: M(.95, 1.35, 0), c: 0xffffff }, { g: new THREE.SphereGeometry(.28, 8, 6), m: M(1.15, 2.25, 0), c: 0xffffff }, { g: new THREE.ConeGeometry(.12, .45, 6).rotateZ(-Math.PI / 2), m: M(1.5, 2.2, 0), c: 0xe0782d }];
+          const sw = mesh(sP, mat); g.add(sw); swans.push({ o: sw, a: k * 2.1, r: 5 + k * 1.6, sp: .12 + k * .03 }) } }
+      else if (id === 'statue') { // statue équestre dorée, cabrée, sur son socle
+        P.push({ g: bx(5, 4, 8), m: M(0, 2, 0), c: C.stone }, { g: bx(5.4, .5, 8.4), m: M(0, 4.1, 0), c: C.gold }, { g: bx(6, .8, 9), m: M(0, .4, 0), c: C.stone }); put(P, 30, 88);
+        const h = HORSE3D.build({ coat: 'palomino', main: '#000', second: '#000', pattern: 'uni', cap: '#000', name: 'Statue' }, { lod: 1, free: true }); h.scale.setScalar(2.6); h.position.set(30.5, 4.3, 88); h.rotation.set(0, Math.PI / 2 + .3, .42); g.add(h);
+        HORSE3D.ready(1).then(() => { HORSE3D.pose(h, 0, 0, 0, 0, .28); h.traverse(o => { if (o.isMesh) { o.material = gold; o.castShadow = true } }) }) }
+      else if (id === 'obelisque') { P.push({ g: bx(4.4, 2, 4.4), m: M(0, 1, 0), c: C.stone }, { g: new THREE.CylinderGeometry(.9, 1.5, 17, 4).rotateY(Math.PI / 4), m: M(0, 10.5, 0), c: 0xe6dcc6 }, { g: new THREE.ConeGeometry(1.25, 2.2, 4).rotateY(Math.PI / 4), m: M(0, 20.1, 0), c: C.gold }, { g: bx(2.2, 1.4, .2), m: M(0, 4, 1.2), c: C.gold }); put(P, -42, -40) }
+      else if (id === 'arc') { // arc de triomphe à l'entrée de l'avenue
+        for (const s of [-1, 1]) P.push({ g: bx(4.5, 15, 4.5), m: M(s * 7.6, 7.5, 0), c: 0xe9e0cc }, { g: bx(5.2, 1, 5.2), m: M(s * 7.6, .5, 0), c: C.stone });
+        P.push({ g: bx(20, 4.5, 4.8), m: M(0, 16.5, 0), c: 0xe9e0cc }, { g: bx(20.6, .7, 5.2), m: M(0, 19, 0), c: C.gold }, { g: bx(10, 2.2, .3), m: M(0, 16.4, 2.5), c: C.navy }, { g: new THREE.ConeGeometry(1.6, 2.6, 5), m: M(0, 20.8, 0), c: C.gold });
+        const a = put(P, -6, 110); a.castShadow = true }
+      else if (id === 'lanternes') { const lp = [];
+        for (const r of [ROADS[2], ROADS[3], ROADS[6], ROADS[5]]) { const q = catmull(r, 10); for (let i = 2; i < q.length - 1; i += 3) { const [x, z] = q[i], [x2, z2] = q[i + 1], dx = x2 - x, dz = z2 - z, L = Math.hypot(dx, dz) || 1; for (const sd of [1, -1]) { const lx = x - dz / L * 5 * sd, lz = z + dx / L * 5 * sd; lp.push({ g: new THREE.CylinderGeometry(.12, .16, 3.6, 6), m: M(lx, 1.8, lz), c: 0x222222 }, { g: bx(.6, .75, .6), m: M(lx, 3.9, lz), c: 0xffd08a, glow: 1 }) } } }
+        const lm = T.lampMat; g.add(mesh(lp, lm)) }
+    }
   }
   function glowTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,220,160,.55)'); g.addColorStop(1, 'rgba(255,200,120,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c) }
   // arbres : forêt de conifères autour du domaine, feuillus et peupliers entre les bâtiments (jamais sur une allée, un bâtiment ou l'eau)
@@ -410,6 +446,8 @@ const domaine3d = (() => {
       if (!chk) continue; let l = 1; try { l = dlv(id) } catch (e) { } if (l !== b.lv) rebuild(id) }
     if (chk && JSON.stringify(mineList()) !== mineSig) buildMine();
     if (sails) sails.rotation.z -= dt * .9;
+    if (chk && decoOwned().join(',') !== decoSig) decos();
+    for (const w of swans) { w.a += dt * w.sp; w.o.position.set(-38 + Math.cos(w.a) * w.r, .1, 88 + Math.sin(w.a) * w.r * 1.25); w.o.rotation.y = -w.a - Math.PI / 2 }
     stepHorses(dt, t); stepLife(dt, t); camera(); R.render(S, cam); placeUI()
   }
   function rebuild(id) {

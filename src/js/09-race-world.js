@@ -143,7 +143,8 @@ const raceWorld = (() => {
   // ---------- drapeaux au vent ----------
   function flagMesh(c1, c2, w = 7, h = 4.5) {
     const g = new THREE.PlaneGeometry(w, h, 12, 1).translate(w / 2, 0, 0), cv = document.createElement('canvas'); cv.width = 64; cv.height = 40; const x = cv.getContext('2d');
-    x.fillStyle = new THREE.Color(c1).getStyle(); x.fillRect(0, 0, 64, 40); x.fillStyle = new THREE.Color(c2).getStyle(); x.fillRect(0, 16, 64, 8); x.fillRect(26, 0, 8, 40);
+    // bannière : fond uni, liseré et médaillon (pas de croix, pour ne ressembler à aucun drapeau national)
+    x.fillStyle = new THREE.Color(c1).getStyle(); x.fillRect(0, 0, 64, 40); x.fillStyle = new THREE.Color(c2).getStyle(); x.fillRect(0, 34, 64, 6); x.fillRect(0, 0, 64, 3); x.beginPath(); x.arc(24, 18, 9, 0, 6.3); x.fill(); x.fillStyle = new THREE.Color(c1).getStyle(); x.beginPath(); x.arc(24, 18, 5.5, 0, 6.3); x.fill(); x.fillStyle = new THREE.Color(c2).getStyle(); x.beginPath(); x.moveTo(19, 20); x.lineTo(20, 13); x.lineTo(22.5, 16.5); x.lineTo(24, 12); x.lineTo(25.5, 16.5); x.lineTo(28, 13); x.lineTo(29, 20); x.fill();
     const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
     const mat = new THREE.MeshStandardMaterial({ map: t, side: THREE.DoubleSide, roughness: .8 });
     mat.onBeforeCompile = s => { Object.assign(s.uniforms, U); s.vertexShader = 'uniform float uTime;\n' + s.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\nfloat fk=position.x/${w.toFixed(1)};transformed.z+=sin(uTime*5.+position.x*.9)*fk*${(w * .09).toFixed(2)};transformed.y-=fk*fk*${(h * .12).toFixed(2)};`); s.vertexShader = s.vertexShader.replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nobjectNormal=normalize(objectNormal+vec3(0.,0.,cos(uTime*5.+position.x*.9)*.6));') };
@@ -225,5 +226,6 @@ const raceWorld = (() => {
     const lp = trackPose(RACE_ORIGIN + Math.min(100, lead) / 100, 0).p; U.uLead.value = lp.z > 150 ? lp.x : -9999;
     if (W.screen) drawScreen(W.screen, now)
   }
-  return { build, update, merge, hillH, get uniforms() { return U } }
+  // boîte à outils partagée avec le domaine en 3D (50-domaine3d)
+  return { build, update, merge, hillH, get uniforms() { return U }, kit: { merge, M4, rng, fluffy, treeGeos, leafMat, flagMesh, noise2, box } }
 })();

@@ -19,11 +19,11 @@ const villageLife=(()=>{
   const step=()=>{try{const job=jobs.shift();if(!job){if(h){sc.remove(h);HORSE3D.dispose(h)}r.dispose();r=null;cv.width=cv.height=1;// pas de forceContextLoss : Chrome bloque WebGL pour le site après plusieurs pertes de contexte provoquées
     sheets=out;busy=false;
      runners=[0,1,2,3].map(i=>({s:i,th:i*TOT*.23+80,sp:.07+i*.004,lane:1.02-i*.012,f:Math.random()*8}));return}
-    const[k,d]=job;if(k!==cur){if(h){sc.remove(h);HORSE3D.dispose(h)}cur=k;h=HORSE3D.build(livs[k],{number:1});sc.add(h);const S=document.createElement('canvas');S.width=FW*(FR+2);S.height=FH*DIRS;out[k]=S;x=S.getContext('2d');
-     // cheval en liberté : sans jockey, sans selle ni rênes
-     if(livs[k].free){const U=h.userData;U.jk.visible=false;U.reins.forEach(o=>{o.visible=false});U.body.children[1].visible=false;U.body.children[2].visible=false}}
+    // cheval en liberté : sans jockey, sans selle ni rênes (option free du modèle)
+    const[k,d]=job;if(k!==cur){if(h){sc.remove(h);HORSE3D.dispose(h)}cur=k;h=HORSE3D.build(livs[k],{number:1,lod:1,free:!!livs[k].free});sc.add(h);const S=document.createElement('canvas');S.width=FW*(FR+2);S.height=FH*DIRS;out[k]=S;x=S.getContext('2d')}
     h.rotation.y=d/DIRS*Math.PI*2;const free=livs[k].free;for(let f=0;f<FR+2;f++){if(f<FR)HORSE3D.pose(h,f/FR,free?.32:1);else HORSE3D.pose(h,f===FR?0:.3,.04);r.render(sc,cam);x.drawImage(cv,f*FW,d*FH)}idle(step)}catch(e){console.warn('village horses',e);sheets=[];busy=false}};
-  idle(step)}
+  // le maillage se calcule dans un Worker : on attend qu'il soit prêt avant de photographier les chevaux
+  HORSE3D.ready(1).then(()=>idle(step))}
  // carrière : deux cavaliers au petit galop sur la piste de sable (ellipse inclinée comme la peinture)
  const ARENA={cx:.175,cy:.326,rx:.066,ry:.033,rot:-.2},riders=[{s:2,a:0},{s:3,a:Math.PI}];
  const onArena=a=>{const c=Math.cos(a),n=Math.sin(a),R=ARENA;return[R.cx+R.rx*c*Math.cos(R.rot)-R.ry*n*Math.sin(R.rot),R.cy+R.rx*c*Math.sin(R.rot)+R.ry*n*Math.cos(R.rot)]};

@@ -11,7 +11,7 @@ export async function run({ quick = false } = {}) {
   career.data.stats.races = 10; // joueur confirmé (le plateau débutant fausserait l'équilibrage)
   try {
     // 1. modules présents
-    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes'];
+    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes', 'HORSE3D', 'raceWorld', 'domaine3d'];
     const missing = mods.filter(m => { try { return typeof eval(m) === 'undefined' } catch (e) { return true } });
     pass('Modules chargés', !missing.length, missing.length ? 'manquants : ' + missing.join(', ') : `${mods.length} modules`); await tick();
 
@@ -78,6 +78,14 @@ export async function run({ quick = false } = {}) {
       pass('Ventes : même catalogue pour une ligue', a === b, `${ventes.lots().length} lots · ${ventes.lots().map(l => l.type).join(', ')}`) }
 
     // 11. chargement : aucun module en échec
+    // 3D : cheval articulé (maillage du Worker, 18 os) ; domaine 3D sélectionnable, repli sur la peinture sans perdre les étiquettes
+    { const g = await HORSE3D.ready(2), h = HORSE3D.build(champion.get(), { lod: 2 }), u = h.userData, ok = !u.pending && g.H.attributes.position.count > 2000 && u.B.length === 18 && !!u.jm;
+      HORSE3D.pose(h, .3, 1, 1); HORSE3D.dispose(h); pass('Cheval 3D articulé', ok, `${g.H.attributes.position.count} sommets · ${u.B ? u.B.length : 0} os · jockey ${u.jm ? 'oui' : 'non'}`) }
+    if (typeof domaine3d !== 'undefined' && domaine3d.supported()) {
+      const was = domaine3d.on; domaine3d.set(true); village.select('haras'); const inUI = !!document.querySelector('#d3ui .bld-tag'), sel = village.selected === 'haras'; village.deselect();
+      domaine3d.set(false); const back = !document.querySelector('#d3ui') && document.querySelectorAll('#map .bld-tag').length === VILLAGE.order.length; domaine3d.set(was);
+      pass('Domaine 3D : sélection, retour à la peinture', inUI && sel && back, `étiquettes en 3D ${inUI ? 'oui' : 'non'} · sélection ${sel ? 'oui' : 'non'} · rendues à la peinture ${back ? 'oui' : 'non'}`)
+    }
     pass('Tous les modules se sont chargés', !(window.__modulesKo || []).length, (window.__modulesKo || []).join(', ') || 'aucun échec');
 
     // 12. aucun contenu factice visible

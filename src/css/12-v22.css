@@ -10,3 +10,6 @@
 .jc-r{margin-top:6px;font-size:12px;color:#c9d7e2}.jc-r b.ok{color:#8fe08a}.jc-r b.mid{color:#ffd66b}.jc-r b.bad{color:#ff9a8a}
 @media(max-width:850px){.jump-card{bottom:auto;top:112px}}
 @media(max-height:500px){.jump-card{bottom:84px;padding:6px 10px 7px}.jc-b button{min-height:40px}.jc-r{display:none}}
+/* domaine 3D : nom de tes chevaux au-dessus d'eux (toucher = fiche) */
+.d3-horse{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;padding:4px 10px;border-radius:999px;border:1.5px solid #f1c75a;background:#071a2de0;color:#fff4d2;font:800 12px/1 ui-sans-serif,system-ui;white-space:nowrap;box-shadow:0 4px 12px #0008;cursor:pointer}
+.d3-horse:hover{background:#0d2a47}

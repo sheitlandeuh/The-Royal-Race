@@ -424,20 +424,29 @@ const HORSE3D = (() => {
     const reins = [1, -1].map(() => { const r = new THREE.Mesh(P.rein, leather); root.add(r); return r });
     Object.assign(u, u2, { JB: JB_, jg, reins, whip, jm })
   }
+  // ---------- allures : phases des jambes (antérieur gauche, antérieur droit, postérieur gauche, postérieur droit), part d'appui, amplitude, flexion ----------
+  const GAITS = { pas: { ph: [.25, .75, 0, .5], st: .62, A: [.26, .24], kf: [.95, .75], bob: .012, roll: .015, nod: .07, nodF: 2 },
+    trot: { ph: [0, .5, .5, 0], st: .45, A: [.36, .33], kf: [1.25, .95], bob: .03, roll: .02, nod: .03, nodF: 2 },
+    galop: { ph: [.52, .4, .12, 0], st: .34, A: [.55, .5], kf: [1.5, 1.05], bob: .045, roll: .05, nod: .12, nodF: 1 } };
   // ---------- galop (4 temps) ----------
   const X1 = new THREE.Vector3(1, 0, 0), BIT = new THREE.Vector3(), HAND = new THREE.Vector3();
   // p : phase du galop (0..1), run : allure (0 arrêt, ~.3 pas / trot, 1 galop), drive : poussée du jockey (cravache > .5), graze : tête baissée pour brouter,
   // jmp : phase d'un saut d'obstacle (0 appel → 1 réception ; < 0 = pas de saut)
   function pose(root, p, run = 1, drive = 0, graze = 0, jmp = -1) {
-    const u = root.userData; u.p = p; u.run = run; u.graze = graze; if (u.pending) return; const B = u.B, JB_ = u.JB, TAU = Math.PI * 2, st = .34;
-    B[0].position.y = 1.3 + Math.sin(p * TAU * 2) * .045 * run; B[0].rotation.z = Math.sin(p * TAU + .6) * .05 * run;
-    B[1].rotation.z = Math.sin(p * TAU + 2.2) * .12 * run - .03 * run - graze * 1.1; B[2].rotation.z = -Math.sin(p * TAU + 2.2) * .05 * run + .02 - graze * .5;
-    const tz = -.2 - Math.sin(p * TAU) * .12 * run - run * .75; B[3].rotation.z = tz * .5; B[4].rotation.z = tz * .35 - Math.sin(p * TAU - .8) * .1 * run; B[5].rotation.z = tz * .25 - Math.sin(p * TAU - 1.6) * .12 * run; B[3].rotation.x = Math.sin(p * TAU * .5) * .07 * run;
+    const u = root.userData; u.p = p; u.run = run; u.graze = graze; if (u.pending) return; const B = u.B, JB_ = u.JB, TAU = Math.PI * 2;
+    // allure selon run : pas (4 temps latéraux), trot (diagonales), galop (4 temps) ; à l'arrêt, le cheval respire, balance la queue et bouge la tête
+    const G = run < .4 ? GAITS.pas : run < .75 ? GAITS.trot : GAITS.galop, k = G === GAITS.galop ? run : Math.min(1, run / (G === GAITS.pas ? .2 : .5)), idle = Math.max(0, 1 - run * 5), st = G.st;
+    B[0].position.y = 1.3 + Math.sin(p * TAU * 2) * G.bob * k + Math.sin(p * TAU) * .006 * idle; B[0].rotation.z = Math.sin(p * TAU + .6) * G.roll * k;
+    B[1].rotation.z = Math.sin(p * TAU * G.nodF + 2.2) * G.nod * k - .03 * run - graze * 1.1 + Math.sin(p * TAU * .5) * .04 * idle; B[2].rotation.z = -Math.sin(p * TAU * G.nodF + 2.2) * G.nod * .4 * k + .02 - graze * .5 + Math.sin(p * TAU * 1.5 + 1) * .05 * idle;
+    B[2].rotation.y = Math.sin(p * TAU * .5 + 2) * .1 * idle;
+    const tz = -.2 - Math.sin(p * TAU) * .12 * run - (G === GAITS.galop ? run * .75 : run * .15); B[3].rotation.z = tz * .5; B[4].rotation.z = tz * .35 - Math.sin(p * TAU - .8) * .1 * run; B[5].rotation.z = tz * .25 - Math.sin(p * TAU - 1.6) * .12 * run;
+    B[3].rotation.x = Math.sin(p * TAU * .5) * .07 * run + Math.sin(p * TAU * 2) * .22 * idle; B[4].rotation.x = Math.sin(p * TAU * 2 - .7) * .18 * idle;
     for (let l = 0; l < 4; l++) {
-      const fore = l < 2, ph = [.52, .4, .12, 0][l], b = 6 + l * 3, q = ((p - ph) % 1 + 1) % 1, A = (fore ? .55 : .5) * run; let a, flex;
+      const fore = l < 2, b = 6 + l * 3, q = ((p - G.ph[l]) % 1 + 1) % 1, A = (fore ? G.A[0] : G.A[1]) * k; let a, flex;
       if (q < st) { a = A - 2 * A * (q / st); flex = 0 } else { const s = (q - st) / (1 - st); a = -A + 2 * A * (s * s * (3 - 2 * s)); flex = Math.sin(s * Math.PI) }
-      B[b].rotation.z = a + (fore ? 0 : .08 * run); B[b + 1].rotation.z = fore ? -flex * 1.5 * run : .2 * run + flex * 1.05 * run;
-      B[b + 2].rotation.z = fore ? -flex * .95 * run + (q < st ? .28 * run * Math.sin(q / st * Math.PI) : 0) : -.2 * run - flex * .95 * run + (q < st ? .22 * run * Math.sin(q / st * Math.PI) : 0)
+      const kf = (fore ? G.kf[0] : G.kf[1]) * k, gr = G === GAITS.galop ? run : k * .5;
+      B[b].rotation.z = a + (fore ? 0 : .08 * gr); B[b + 1].rotation.z = fore ? -flex * kf : .2 * gr + flex * kf;
+      B[b + 2].rotation.z = fore ? -flex * kf * .63 + (q < st ? .28 * gr * Math.sin(q / st * Math.PI) : 0) : -.2 * gr - flex * kf * .9 + (q < st ? .22 * gr * Math.sin(q / st * Math.PI) : 0)
     }
     // saut : antérieurs repliés puis tendus à la réception, postérieurs qui poussent puis se rassemblent, dos qui bascule
     const jup = jmp >= 0 ? Math.sin(Math.min(1, jmp) * Math.PI) : 0;

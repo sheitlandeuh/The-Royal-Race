@@ -215,9 +215,24 @@ const raceWorld = (() => {
     forest(scene, trees, Q);
     pond(scene, -150, -45, 85, 42);
     hills(scene); castle(scene, -160, -900);
-    W.screen = screen(scene);
+    W.screen = screen(scene); floodlights(scene);
     return W
   }
+  // ---------- projecteurs (courses de nuit) : pylônes toujours là, lampes et halos allumés la nuit ----------
+  const LAMP = new THREE.MeshStandardMaterial({ color: 0x20242a, emissive: 0xfff4dc, emissiveIntensity: 0, roughness: .4 });
+  let halo = null;
+  function floodlights(scene) {
+    const P = [], L = []; halo = new THREE.SpriteMaterial({ map: haloTex(), color: 0xfff1d6, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, fog: false });
+    for (const [t, off] of [[.03, 58], [.13, 44], [.21, 44], [.53, 58], [.63, 58], [.73, 58], [.37, 64], [.87, 64]]) {
+      const p = trackPose(t, off), ry = Math.atan2(-p.n.x, -p.n.z), m = M4(p.p.x, 0, p.p.z, ry);
+      P.push({ g: new THREE.CylinderGeometry(.8, 1.3, 72, 8).translate(0, 36, 0), m, c: 0x8a9098 }, { g: box(16, 8, 1.6).translate(0, 74, 0), m, c: 0x2a2f36 });
+      const lm = new THREE.Mesh(box(15, 7, .4).rotateX(-.45).translate(0, 74, 1.1), LAMP); lm.position.set(p.p.x, 0, p.p.z); lm.rotation.y = ry; scene.add(lm);
+      const s = new THREE.Sprite(halo); s.position.set(p.p.x - p.n.x * 2, 74, p.p.z - p.n.z * 2); s.scale.setScalar(46); scene.add(s)
+    }
+    const g = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6, metalness: .3 })); g.castShadow = true; scene.add(g)
+  }
+  function haloTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.2, 'rgba(255,240,210,.5)'); g.addColorStop(1, 'rgba(255,230,190,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c) }
+  function night(v) { LAMP.emissiveIntensity = v * 2.4; if (halo) halo.opacity = v * .9 }
   function update(q, now) {
     U.uTime.value = now * .001; if (!W) return;
     const src = (typeof progress !== 'undefined' && progress.length) ? progress : [0], lead = Math.max(...src), running = q.startPhase === 'running';
@@ -227,5 +242,5 @@ const raceWorld = (() => {
     if (W.screen) drawScreen(W.screen, now)
   }
   // boîte à outils partagée avec le domaine en 3D (50-domaine3d)
-  return { build, update, merge, hillH, get uniforms() { return U }, kit: { merge, M4, rng, fluffy, treeGeos, leafMat, flagMesh, noise2, box } }
+  return { build, update, merge, hillH, night, get uniforms() { return U }, kit: { merge, M4, rng, fluffy, treeGeos, leafMat, flagMesh, noise2, box } }
 })();

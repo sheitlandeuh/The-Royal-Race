@@ -10,6 +10,7 @@ const MEETINGS=[
  {id:'m5',n:'Critérium des Sprinters',dist:1200,terrain:'bon',league:2,diff:4,purse:15000,fee:900},
  {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000},
  // courses de haies (10-haies) : un choix d'élan avant chaque obstacle
+ {id:'n1',n:'Nocturne Royale',dist:1600,terrain:'bon',league:1,diff:2,purse:11500,fee:700},
  {id:'h1',n:'Prix des Haies',dist:2000,terrain:'souple',league:1,diff:0,purse:9500,fee:600,haies:6},
  {id:'h2',n:'Grand Steeple Royal',dist:2400,terrain:'bon',league:2,diff:4,purse:19000,fee:1000,haies:8}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];

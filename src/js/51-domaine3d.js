@@ -295,14 +295,26 @@ const domaine3d = (() => {
     riders.slice(0, 3).forEach((l, i) => H.push({ kind: 'track', liv: l, s: i * 60 + 10, lane: 56 - i * 2.2, sp: 15 + i * .8 }));
     // deux cavaliers au petit galop dans la carrière
     riders.slice(3, 5).forEach((l, i) => H.push({ kind: 'arena', liv: l, a: i * Math.PI, sp: .26 }));
-    // chevaux en liberté : paddocks et pré de l'écurie
-    const FREE = [['bai', 0], ['alezan', 0], ['gris', 1], ['noir', 1], ['palomino', 2], ['alezan', 2]];
-    FREE.forEach(([coat, f], i) => H.push({ kind: 'free', liv: { coat, main: '#000', second: '#000', pattern: 'uni', cap: '#000', name: 'Libre' + i }, f, x: 0, z: 0, tx: 0, tz: 0, st: 'graze', until: 0, ph: i * .3 }));
-    const FIELDS = [[-107, 62, 10, 11], [-77, 62, 10, 11], [112, 4, 12, 5]];
     // chevaux plus grands que nature (comme sur la peinture) pour rester lisibles à l'échelle du domaine
-    H.forEach((h, i) => { h.m = HORSE3D.build(h.liv, { lod: 2, free: h.kind === 'free', number: i + 1, seed: h.liv.name }); h.m.scale.setScalar(2.4); S.add(h.m); h.p = Math.random();
-      if (h.kind === 'free') { const F = FIELDS[h.f]; h.F = F; h.x = F[0] + (Math.random() - .5) * F[2]; h.z = F[1] + (Math.random() - .5) * F[3]; h.tx = h.x; h.tz = h.z; h.yaw = Math.random() * 6.28 } });
-    horses = H; HORSE3D.ready(2).then(() => horses.forEach(h => h.m.traverse(o => { if (o.isMesh) o.castShadow = true })))
+    H.forEach((h, i) => { h.m = HORSE3D.build(h.liv, { lod: 2, number: i + 1, seed: h.liv.name }); h.m.scale.setScalar(2.4); S.add(h.m); h.p = Math.random() });
+    horses = H; buildMine(); HORSE3D.ready(2).then(() => horses.forEach(h => h.m.traverse(o => { if (o.isMesh) o.castShadow = true })))
+  }
+  // les chevaux de ton écurie, en liberté dans les paddocks et le pré de l'écurie (le blessé reste au box devant l'écurie) ; leur nom s'affiche de près
+  const FIELDS = [[-107, 62, 10, 11], [-77, 62, 10, 11], [112, 4, 12, 5]];
+  let mineSig = '';
+  const mineList = () => { try { return stable.data.horses.map(h => ({ id: h.id, name: h.name, coat: h.coat, inj: !!h.injury, tired: h.fatigue > 60 })) } catch (e) { return [] } };
+  function buildMine() {
+    const list = mineList(); mineSig = JSON.stringify(list);
+    for (const h of horses.filter(h => h.kind === 'free')) { S.remove(h.m); HORSE3D.dispose(h.m); h.tag && h.tag.remove() }
+    horses = horses.filter(h => h.kind !== 'free');
+    list.forEach((x, i) => { const f = x.inj ? 2 : i % 3, F = FIELDS[f], h = { kind: 'free', mine: x, liv: { coat: x.coat, main: '#000', second: '#000', pattern: 'uni', cap: '#000', name: x.name }, f, F, st: x.inj ? 'idle' : 'graze', until: 0, p: Math.random() };
+      h.x = F[0] + (Math.random() - .5) * F[2]; h.z = F[1] + (Math.random() - .5) * F[3]; h.tx = h.x; h.tz = h.z; h.yaw = Math.random() * 6.28;
+      h.m = HORSE3D.build(h.liv, { lod: 2, free: true, seed: x.name }); h.m.scale.setScalar(2.4); S.add(h.m); HORSE3D.ready(2).then(() => h.m.traverse(o => { if (o.isMesh) o.castShadow = true })); horses.push(h) })
+  }
+  function horseTag(h) {
+    if (h.tag && h.tag.isConnected) return h.tag; if (!ui) return null; const b = document.createElement('button'); b.className = 'd3-horse';
+    b.innerHTML = `${h.mine.inj ? '🩹 ' : h.mine.tired ? '💤 ' : ''}${escapeHTML(h.mine.name)}`; b.addEventListener('pointerdown', e => e.stopPropagation());
+    b.addEventListener('click', e => { e.stopPropagation(); try { stUI.horse = h.mine.id; openStable() } catch (x) { } }); ui.appendChild(b); return h.tag = b
   }
   function stepHorses(dt, t) {
     const [hx, hz] = B.hippodrome, [ax, az, , ar] = B.carriere;
@@ -311,7 +323,8 @@ const domaine3d = (() => {
       if (h.kind === 'track') { h.s = (h.s + h.sp * dt) % 1e6; const L = 2 * Math.PI * Math.sqrt((h.lane ** 2 + (h.lane * .5) ** 2) / 2), a = -(h.s / L) * 6.2832, rx = h.lane, rz = h.lane * .5 - 2; x = hx + Math.cos(a) * rx; z = hz + Math.sin(a) * rz; const dx = Math.sin(a) * rx, dz = -Math.cos(a) * rz; yaw = Math.atan2(-dz, dx); run = 1; rate = 2.3 }
       else if (h.kind === 'arena') { h.a -= h.sp * dt; const c = Math.cos(h.a), s = Math.sin(h.a), lx = c * 22, lz = s * 10, ca = Math.cos(-ar), sa = Math.sin(-ar); x = ax + lx * ca - lz * sa; z = az + lx * sa + lz * ca; const tx = -s * 22, tz = -c * 10, wx = tx * ca - tz * sa, wz = tx * sa + tz * ca; yaw = Math.atan2(wz, -wx) + Math.PI; run = .62; rate = 1.7 }
       else {
-        if (t > h.until) { const r = Math.random(); if (r < .45) { h.st = 'walk'; h.tx = h.F[0] + (Math.random() - .5) * h.F[2] * 1.6; h.tz = h.F[1] + (Math.random() - .5) * h.F[3] * 1.6; h.until = t + 20 } else { h.st = r < .85 ? 'graze' : 'idle'; h.until = t + 4 + Math.random() * 9 } }
+        if (t > h.until && h.mine && h.mine.inj) { h.st = 'idle'; h.until = t + 30 }
+        else if (t > h.until) { const r = Math.random(); if (r < .45) { h.st = 'walk'; h.tx = h.F[0] + (Math.random() - .5) * h.F[2] * 1.6; h.tz = h.F[1] + (Math.random() - .5) * h.F[3] * 1.6; h.until = t + 20 } else { h.st = r < .85 ? 'graze' : 'idle'; h.until = t + 4 + Math.random() * 9 } }
         if (h.st === 'walk') { const dx = h.tx - h.x, dz = h.tz - h.z, d = Math.hypot(dx, dz); if (d < 1) { h.st = 'graze'; h.until = t + 5 + Math.random() * 6 } else { const want = Math.atan2(-dz, dx); let dy = ((want - h.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI; h.yaw += Math.max(-1, Math.min(1, dy)) * dt * 1.8; if (Math.abs(dy) < .6) { h.x += Math.cos(h.yaw) * 3 * dt; h.z -= Math.sin(h.yaw) * 3 * dt } } }
         x = h.x; z = h.z; yaw = h.yaw; run = h.st === 'walk' ? .28 : 0; g = h.st === 'graze' ? 1 : 0; rate = .9
       }
@@ -346,10 +359,12 @@ const domaine3d = (() => {
     const E = village.els; for (const id of VILLAGE.order) { const e = E[id]; for (const el of [e.tag, e.timer, e.hit]) if (el) { moved.push([el, el.style.cssText, id]); ui.appendChild(el) } }
     $$('#map .bld-harvest').forEach(el => { const id = Object.keys(VILLAGE.buildings).find(k => Math.abs(parseFloat(el.style.left) - VILLAGE.buildings[k].cx * 100) < .01); moved.push([el, el.style.cssText, id]); ui.appendChild(el) })
   }
-  function release() { const map = $('#map'); for (const [el, css] of moved) { el.style.cssText = css; map.appendChild(el) } moved = []; ui && ui.remove(); ui = null }
+  function release() { const map = $('#map'); for (const [el, css] of moved) { el.style.cssText = css; map.appendChild(el) } moved = []; ui && ui.remove(); ui = null; for (const h of horses) h.tag = null }
   const V3 = new THREE.Vector3();
   function placeUI() {
     const Wd = world.clientWidth, Hd = world.clientHeight;
+    for (const h of horses) { if (h.kind !== 'free' || !h.mine) continue; const tag = horseTag(h); if (!tag) continue; V3.set(h.m.position.x, 7.2, h.m.position.z).project(cam);
+      const x = (V3.x * .5 + .5) * Wd, y = (-V3.y * .5 + .5) * Hd, off = W3.dist > 150 || V3.z > 1 || x < -60 || x > Wd + 60 || y < 70 || y > Hd - 60; tag.style.visibility = off ? 'hidden' : ''; if (!off) { tag.style.left = x.toFixed(1) + 'px'; tag.style.top = y.toFixed(1) + 'px' } }
     for (const [el, , id] of moved) { if (!id) continue; const b = B[id], harvest = el.classList.contains('bld-harvest'), hit = el.classList.contains('bld-hit'); V3.set(b[0], harvest ? b[2] * .55 : hit ? b[2] * .4 : b[2] + 2, b[1]).project(cam);
       const x = (V3.x * .5 + .5) * Wd, y = (-V3.y * .5 + .5) * Hd, off = V3.z > 1 || x < -80 || x > Wd + 80 || y < -40 || y > Hd + 80;
       el.style.left = x.toFixed(1) + 'px'; el.style.top = Math.max(harvest ? 60 : 96, y).toFixed(1) + 'px'; el.style.visibility = off ? 'hidden' : ''; if (hit) { el.style.width = '64px'; el.style.height = '64px'; el.style.marginLeft = el.style.marginTop = '-32px' } }
@@ -393,6 +408,7 @@ const domaine3d = (() => {
     for (const id in T.blds) { const b = T.blds[id], s = id === selId, hv = id === hover; b.ring.material.opacity += ((s ? .55 + .3 * Math.sin(t * 4) : hv ? .35 : 0) - b.ring.material.opacity) * .2; T.bmats[id].userData.u.uHi.value += ((s ? .7 + .3 * Math.sin(t * 4) : hv ? .45 : 0) - T.bmats[id].userData.u.uHi.value) * .2;
       // un bâtiment amélioré ou construit est reconstruit (bannières, Salle des trophées)
       if (!chk) continue; let l = 1; try { l = dlv(id) } catch (e) { } if (l !== b.lv) rebuild(id) }
+    if (chk && JSON.stringify(mineList()) !== mineSig) buildMine();
     if (sails) sails.rotation.z -= dt * .9;
     stepHorses(dt, t); stepLife(dt, t); camera(); R.render(S, cam); placeUI()
   }

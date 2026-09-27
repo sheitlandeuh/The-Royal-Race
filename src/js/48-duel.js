@@ -13,19 +13,20 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  const unb64=s=>{const b=atob(s.replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))};
  async function encode(o){const s=JSON.stringify(o);if(window.CompressionStream){try{const z=new Blob([s]).stream().pipeThrough(new CompressionStream('deflate-raw'));return 'z'+b64(new Uint8Array(await new Response(z).arrayBuffer()))}catch(e){}}return 'j'+b64(new TextEncoder().encode(s))}
  async function decode(c){const b=unb64(c.slice(1));if(c[0]==='z'){const z=new Blob([b]).stream().pipeThrough(new DecompressionStream('deflate-raw'));return JSON.parse(await new Response(z).text())}if(c[0]==='j')return JSON.parse(new TextDecoder().decode(b));throw 0}
- const pack=r=>({v:DUEL_V,race:{...r.race,id:r.race.src||r.race.id},field:r.field,seed:r.seed,player:r.player,strategy:r.strategy,horse:r.horse,liv:r.liv,inputs:r.inputs,reaction:r.reaction,window:r.window,plan:r.plan,result:r.result,at:r.at});
+ const pack=r=>({v:DUEL_V,e:r.e,race:{...r.race,id:r.race.src||r.race.id},field:r.field,seed:r.seed,player:r.player,strategy:r.strategy,horse:r.horse,liv:r.liv,inputs:r.inputs,reaction:r.reaction,window:r.window,plan:r.plan,result:r.result,at:r.at});
  // un lien vient de n'importe où : on vérifie la forme avant de s'en servir (tailles bornées, nombres finis)
  const num=x=>typeof x==='number'&&isFinite(x),str=(x,n=40)=>typeof x==='string'&&x.length<=n;
  const livOk=l=>!!l&&['main','second','cap'].every(k=>/^#[0-9a-f]{6}$/i.test(l[k]))&&LIVERY.PATTERNS.some(p=>p[0]===l.pattern)&&LIVERY.COATS.some(c=>c.id===l.coat);
  function valid(o){try{if(!o||o.v!==DUEL_V)return false;const F=o.field,R=o.race,P=o.player;
   if(!F||!Array.isArray(F.rivals)||F.rivals.length!==5||!num(F.seed)||!num(o.seed)||!R||![1200,1600,2000,2400].includes(R.dist)||!TERRAINS[R.terrain])return false;
   if(!P||!['cruise','sprint','sprintDrain','drain','boxed','draft','noise','window'].every(k=>num(P[k]))||!P.tactic||!num(P.tactic.c))return false;
+  if(o.e!==undefined&&(!num(o.e)||o.e>=2&&!['jump','wideK','save','nerve'].every(k=>num(P[k]))))return false;
   if(!F.rivals.every(r=>r&&str(r.name,24)&&r.stats&&STATS.every(s=>num(r.stats[s.k]))&&num(r.pref)&&livOk(r.livery)&&TALENTS[r.talent]&&['leader','stalker','finisher'].includes(r.tac)))return false;
-  if(!Array.isArray(o.inputs)||o.inputs.length>3000||!o.inputs.every(x=>Array.isArray(x)&&num(x[0])&&['steer','sprint','moment'].includes(x[1])))return false;
+  if(!Array.isArray(o.inputs)||o.inputs.length>3000||!o.inputs.every(x=>Array.isArray(x)&&num(x[0])&&['steer','sprint','moment','jump'].includes(x[1])))return false;
   if(!o.result||!Array.isArray(o.result.times)||!o.result.times.every(num)||!str(o.horse,24)||!['leader','stalker','finisher'].includes(o.strategy))return false;
   return !o.liv||livOk(o.liv)}catch(e){return false}}
  // la course reçue est reconstruite à partir de champs connus : rien de ce qui vient du lien n'est affiché sans contrôle
- function safeRace(R){const M=MEETINGS.find(m=>m.id===R.id),D=R.id==='defi'||R.defi===true;return{id:M?M.id:D?'defi':'lien',n:M?M.n:D?'Défi du jour':'Course amicale',dist:R.dist,terrain:R.terrain,amb:AMBIANCES[R.amb]?R.amb:undefined,league:0,diff:0,purse:0,fee:0}}
+ function safeRace(R){const M=MEETINGS.find(m=>m.id===R.id),D=R.id==='defi'||R.defi===true;return{id:M?M.id:D?'defi':'lien',n:M?M.n:D?'Défi du jour':'Course amicale',dist:R.dist,terrain:R.terrain,haies:M&&M.haies?M.haies:undefined,amb:AMBIANCES[R.amb]?R.amb:undefined,league:0,diff:0,purse:0,fee:0}}
  async function share(r=replays.last()){if(!r||!r.result)return toast('Aucune course à partager');const code=await encode(pack(r)),url=`${location.origin}${location.pathname}#duel=${code}`,
   me=r.result.order.indexOf(0)+1,text=`⚔️ ${r.horse} te défie sur « ${safeRace(r.race).n} » (${fmt(r.race.dist)} m) : ${t2(r.result.times[0])} s, ${me}${me===1?'er':'e'} sur 6. Tu fais mieux ?`;
   hooks.emit('duel:partage',url.length);
@@ -45,14 +46,14 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  function later(f){if(champion.exists())return setTimeout(()=>when(f),2200);let done=false;champion.on(()=>{if(!done){done=true;setTimeout(()=>when(f),1500)}})}
  // vérification de la course de l'ami : refaite pas à pas, elle doit retrouver exactement son classement et ses temps
  let cur=null,G=null;
- function check(d){const v=replays.verify(clone(d.rec),{track:true});if(v.ok===null)return null;d.ok=!!v.ok;save();return v.ok?v.track:false}
+ function check(d){const v=replays.verify(clone(d.rec),{track:true});if(v.why==='version')return 'old';if(v.ok===null)return null;d.ok=!!v.ok;save();return v.ok?v.track:false}
  function card(d){const r=d.rec,L={...stable.silks,...(r.liv||{})},me=r.result.order.indexOf(0)+1;$('#panelTitle').textContent='Duel reçu';$('#panel .card').classList.remove('wide');
   $('#panelBody').innerHTML=`<div class="duel-card"><div class="duel-silk">${LIVERY.silkSVG(L,74)}</div><p class="duel-t">⚔️ <b>${escapeHTML(r.horse)}</b> te défie !</p>
    <p class="hint">${escapeHTML(safeRace(r.race).n)} · ${fmt(r.race.dist)} m · terrain ${TERRAINS[r.race.terrain].n.toLowerCase()}</p><div class="duel-time"><b>${t2(r.result.times[0])} s</b><small>${me}${me===1?'er':'e'} sur 6</small></div>
    <p class="hint">Même course, mêmes adversaires, même départ : avec ton propre cheval, bats son temps. Son fantôme court à côté de toi. Gratuit, sans fatigue ni trophées.</p>
    <div class="race-entry"><button class="action green" data-duel-go="${escapeHTML(d.id)}">⚔️ RELEVER LE DÉFI</button></div></div>`;$('#panel').classList.add('open')}
  function meeting(d){const R=safeRace(d.rec.race);return{...R,id:'duel',src:R.id,n:`Duel · ${R.n}`,duel:true,defi:false,tour:false}}
- function select(d){while(coach.open)coach.hide();const tr=check(d);if(tr===null)return toast('Un instant…');if(tr===false){toast('Ce duel n’a pas pu être vérifié : le temps de ton ami ne correspond pas à sa course');return false}
+ function select(d){while(coach.open)coach.hide();const tr=check(d);if(tr===null)return toast('Un instant…');if(tr==='old'){toast('Ce duel vient d’une ancienne version du jeu : demande à ton ami de t’en envoyer un nouveau');return false}if(tr===false){toast('Ce duel n’a pas pu être vérifié : le temps de ton ami ne correspond pas à sa course');return false}
   cur=d;G=tr;RACE=meeting(d);currentField=null;buildField();return true}
  // (openCourses remettrait une course du programme : on ouvre l'écran directement)
  function go(id){const d=D.list.find(x=>x.id===id);if(!d||!select(d))return;$('#panelTitle').textContent='Courses';$('#panel .card').classList.add('wide');$('#panel').classList.add('open');renderCourses()}

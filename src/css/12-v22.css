@@ -14,3 +14,21 @@
 .d3-horse{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;padding:4px 10px;border-radius:999px;border:1.5px solid #f1c75a;background:#071a2de0;color:#fff4d2;font:800 12px/1 ui-sans-serif,system-ui;white-space:nowrap;box-shadow:0 4px 12px #0008;cursor:pointer}
 .d3-horse:hover{background:#0d2a47}
 .shop-h small{font:600 11px ui-sans-serif,system-ui;color:#9fb3c2;letter-spacing:0;margin-left:6px}
+/* ===== adaptation : panneaux toujours au-dessus de la barre de navigation, téléphone en paysage, tablette en portrait ===== */
+.panel .card,.panel .card.wide{max-height:min(88vh,100%)}
+@media (max-height:500px) and (orientation:landscape){
+  .dock{bottom:max(4px,env(safe-area-inset-bottom));padding:4px;gap:4px;border-radius:14px}
+  .nav{height:40px;min-width:92px;padding:2px 8px;font-size:10px;grid-auto-flow:column;gap:6px}
+  .nav svg,.nav .ico{width:20px;height:20px}
+  .homebar{bottom:calc(54px + env(safe-area-inset-bottom,0px));width:min(560px,calc(100% - 140px))}
+  .slot{height:44px}.slot i{font-size:20px}.slot small{font-size:9px}
+  .play{width:150px;border-radius:14px}.play b{font-size:18px}.play small{font-size:9px}
+  .rail{top:64px;gap:5px}.square{width:40px;height:40px;font-size:19px;border-radius:11px}
+  .panel{padding:8px 10px 56px}
+  .selection{bottom:106px}
+}
+@media (min-width:601px) and (max-width:1100px) and (orientation:portrait){
+  #raceScreen .steer{left:14px;right:auto;transform:none;bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  #raceScreen .sprint-btn{right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+  #raceScreen .auto-gallop{left:14px;right:auto;bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+}

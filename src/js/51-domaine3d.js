@@ -427,6 +427,12 @@ const domaine3d = (() => {
     cv.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); W3.goal = null; W3.dist *= Math.exp(e.deltaY * .0012); clampT() }, { passive: false });
     cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && hover) { hover = null; world.classList.remove('over-bld') } })
   }
+  // ---------- clavier (PC) : flèches ou ZQSD / WASD pour se déplacer, A / E pour tourner, + / − pour zoomer ----------
+  const keys = new Set(), KEYMAP = { arrowleft: 'l', q: 'l', arrowright: 'r', d: 'r', arrowup: 'u', z: 'u', w: 'u', arrowdown: 'b', s: 'b', a: 'rl', e: 'rr', '+': 'in', '=': 'in', '-': 'out' };
+  const keyOk = e => on && !e.ctrlKey && !e.metaKey && !e.altKey && !/input|textarea|select/i.test(e.target.tagName) && !$('#panel').classList.contains('open') && !$('#raceScreen').classList.contains('open') && !$('#studio')?.classList.contains('open');
+  addEventListener('keydown', e => { const k = KEYMAP[e.key.toLowerCase()]; if (!k || !keyOk(e)) return; keys.add(k); W3.goal = null; if (e.key.startsWith('Arrow')) e.preventDefault() });
+  addEventListener('keyup', e => { const k = KEYMAP[e.key.toLowerCase()]; if (k) keys.delete(k) }); addEventListener('blur', () => keys.clear());
+  function stepKeys(dt) { if (!keys.size) return; const v = 520 * dt; pan((keys.has('l') ? v : 0) - (keys.has('r') ? v : 0), (keys.has('u') ? v : 0) - (keys.has('b') ? v : 0)); if (keys.has('rl')) W3.yaw += dt * 1.4; if (keys.has('rr')) W3.yaw -= dt * 1.4; if (keys.has('in')) W3.dist *= 1 - dt * 1.2; if (keys.has('out')) W3.dist *= 1 + dt * 1.2; clampT() }
   // ---------- boucle ----------
   let selId = null;
   function frame(now) {
@@ -437,6 +443,7 @@ const domaine3d = (() => {
     const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const t = now / 1000;
     raceWorld.uniforms.uTime.value = t; light();
     if (!drag && !pinch && (Math.abs(W3.vx) + Math.abs(W3.vz) > .2)) { pan(W3.vx, W3.vz); W3.vx *= .92; W3.vz *= .92 }
+    stepKeys(dt);
     // sélection : la caméra glisse vers le bâtiment, anneau doré qui pulse, bâtiment éclairé
     const sel = village.selected; if (sel !== selId) { selId = sel; if (sel && B[sel]) W3.goal = { x: B[sel][0], z: B[sel][1] + 6, d: Math.min(W3.dist, sel === 'hippodrome' ? 170 : 115) } }
     if (W3.goal) { const k = 1 - Math.pow(.02, dt); W3.tx += (W3.goal.x - W3.tx) * k; W3.tz += (W3.goal.z - W3.tz) * k; W3.dist += (W3.goal.d - W3.dist) * k; if (Math.hypot(W3.goal.x - W3.tx, W3.goal.z - W3.tz) < .3) W3.goal = null }
@@ -469,7 +476,7 @@ const domaine3d = (() => {
         if (!built) { const t0 = performance.now(); build(); T.ms = Math.round(performance.now() - t0); if (world.clientWidth < world.clientHeight * .8) { W3.dist = 280; W3.tz = -4 } } light(); camera()
       } catch (e) { console.warn('domaine 3D', e); return on = false }
       on = true; world.classList.add('d3-on');
-      setTimeout(() => { try { if (on && !$('#panel').classList.contains('open') && career.data.stats.races >= 1) coach.tip('d3', 'Ton domaine est maintenant en <b>3D</b> : glisse pour te déplacer, pince ou utilise la molette pour zoomer, <b>deux doigts</b> (ou clic droit) pour tourner autour. Touche un bâtiment pour l’ouvrir.') } catch (e) { } }, 7000); try { villageGL.off = true } catch (e) { } adopt(); if (!raf) raf = requestAnimationFrame(frame)
+      setTimeout(() => { try { if (on && !$('#panel').classList.contains('open') && career.data.stats.races >= 1) coach.tip('d3', matchMedia('(pointer:coarse)').matches ? 'Ton domaine est maintenant en <b>3D</b> : glisse pour te déplacer, pince pour zoomer, <b>deux doigts</b> pour tourner autour. Touche un bâtiment pour l’ouvrir.' : 'Ton domaine est maintenant en <b>3D</b> : glisse ou utilise les flèches pour te déplacer, molette ou + / − pour zoomer, <b>clic droit</b> ou A / E pour tourner autour. Clique sur un bâtiment pour l’ouvrir.') } catch (e) { } }, 7000); try { villageGL.off = true } catch (e) { } adopt(); if (!raf) raf = requestAnimationFrame(frame)
     } else { on = false; world.classList.remove('d3-on'); try { villageGL.off = false } catch (e) { } release(); try { village.layout() } catch (e) { } }
     return on
   }

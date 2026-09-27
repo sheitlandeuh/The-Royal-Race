@@ -1,6 +1,10 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🏇','Courses de haies','Prix des Haies et Grand Steeple Royal : avant chaque haie, choisis ton élan, prudent ou à fond. Un cheval intelligent et calme fait moins de fautes.',0,'2.2'],
+ ['🧠','Chaque qualité compte','Le Départ donne de l’élan, l’Intelligence fait gagner du terrain dans les virages et quand tu es enfermé, le Tempérament garde ton cheval calme dans le peloton.',0,'2.2'],
+ ['🌙','Nocturne sous les projecteurs','Nouvelle course, la Nocturne Royale : pylônes allumés et ciel étoilé. Quand il fait nuit chez toi, les courses se courent aussi sous les projecteurs.',0,'2.2'],
+ ['🌹','Ton domaine, tes chevaux','Tes chevaux broutent dans les prés du domaine (touche leur nom pour ouvrir leur fiche). Embellis-le à la Boutique : roseraie, kiosque, étang aux cygnes, statue dorée…',0,'2.2'],
  ['🏰','Le domaine en 3D','Ton domaine est construit en volumes : fais-le tourner, zoome sur chaque bâtiment. Les chevaux broutent au pré, galopent sur la piste, et les fenêtres s’allument le soir.',0,'2.1'],
  ['🐎','Chevaux et jockeys en 3D','Des chevaux articulés, avec crinière, queue, robe et balzanes propres à chacun. Au sprint, ton jockey pousse et sort la cravache.',0,'2.1'],
  ['🏟️','Hippodrome en 3D','Tribunes pleines d’une foule qui se lève au passage des chevaux, écran géant du classement en direct, collines, château et nuages selon la météo.',0,'2.1'],

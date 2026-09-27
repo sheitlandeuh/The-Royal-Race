@@ -1,0 +1,12 @@
+/* ===== 2.2 : courses de haies (carte d'élan), divers ===== */
+.jump-card{position:absolute;z-index:9;left:50%;bottom:142px;transform:translateX(-50%);width:min(420px,calc(100% - 24px));padding:9px 12px 10px;border-radius:16px;background:linear-gradient(#0d2a47f0,#071a2df0);border:2px solid #7fd46b;box-shadow:0 12px 32px #0009;text-align:center;animation:moIn .2s cubic-bezier(.2,1.4,.4,1)}
+.jump-card[hidden]{display:none}
+.jc-h{display:flex;justify-content:center;gap:10px;align-items:baseline;font:900 15px/1 Georgia,serif;color:#dff7d6;letter-spacing:.08em}.jc-h span{font:800 13px/1 ui-sans-serif,system-ui;color:#ffe09a;letter-spacing:0}
+.jc-b{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.jc-b button{min-height:48px;border-radius:12px;border:1.5px solid #ffffff55;background:#ffffff14;color:#fff;font:900 14px/1.1 ui-sans-serif,system-ui;cursor:pointer;touch-action:manipulation}
+.jc-b button small{display:block;margin-top:3px;font:600 10.5px/1.1 ui-sans-serif,system-ui;color:#c9d7e2}
+.jc-b button[data-j=p].on{background:linear-gradient(#3f7fd1,#1d4f94);border-color:#bfe0ff}
+.jc-b button[data-j=f].on{background:linear-gradient(#e0892d,#b0501a);border-color:#ffd9a0}
+.jc-r{margin-top:6px;font-size:12px;color:#c9d7e2}.jc-r b.ok{color:#8fe08a}.jc-r b.mid{color:#ffd66b}.jc-r b.bad{color:#ff9a8a}
+@media(max-width:850px){.jump-card{bottom:auto;top:112px}}
+@media(max-height:500px){.jump-card{bottom:84px;padding:6px 10px 7px}.jc-b button{min-height:40px}.jc-r{display:none}}

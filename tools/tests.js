@@ -66,6 +66,18 @@ export async function run({ quick = false } = {}) {
       const inj = JSON.parse(JSON.stringify(back)); inj.field.rivals[0].livery.main = '"><img src=x onerror=alert(1)>';
       pass('Duel : lien vérifié, fantôme tracé, triche refusée', duel.valid(back) && v.ok && v.track.p.length > 100 && ko && !duel.valid(inj), `lien ${code.length} caractères · trajectoire ${v.track.p.length} pas · temps truqué refusé ${ko ? 'oui' : 'NON'} · couleurs piégées refusées ${!duel.valid(inj) ? 'oui' : 'NON'}`) }
 
+    // 8 bis. courses de haies : un choix d'élan avant chaque haie (entrées 'jump' enregistrées), rejeu identique
+    { let ok = 0, jumps = 0, faults = 0; const H = quick ? 2 : 4;
+      for (let k = 1; k <= H; k++) {
+        RACE = { ...MEETINGS.find(m => m.id === 'h1') }; currentField = null; buildField(k * 6007); stable.active().fatigue = 10; state.feed = 99999;
+        bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); threeRace.startPhase = 'waiting'; threeRace.goTime = performance.now() - (140 + k * 29); launchFromStalls(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+        while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); if (moments.active && n % 4 === 0) moments.choose('a'); if (n % 53 === 0) steer(n % 106 ? 1 : -1);
+          const u = haies.upcoming(); if (u && u.m < RACE.dist * .03 && haies.state.choice === 'n' && u.k % 3 !== 2) haies.choose(u.k % 3 ? 'f' : 'p');
+          if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
+        raceLoop = null; const log = haies.state ? haies.state.log : []; jumps += log.length; faults += log.filter(x => x.fault).length;
+        const r = replays.last(); while (coach.open) coach.hide(); if (r && r.race.haies && r.inputs.some(x => x[1] === 'jump') && replays.verify(r).ok) ok++; leaveRace(); while (coach.open) coach.hide(); await tick() }
+      pass('Haies : sauts décidés et rejeu identique', ok === H && jumps === H * 6, `${ok}/${H} rejeux identiques · ${jumps} sauts · ${faults} faute${faults > 1 ? 's' : ''}`) }
+
     // 9. La Couronne : un chapitre réussi débloque sa récompense (plateau affaibli pour garantir l'objectif)
     { const keepRace = RACE; couronne.select('c1'); RACE.diff = -40; currentField = null; buildField(1234); stable.active().fatigue = 10; state.feed = 99999;
       bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); threeRace.startPhase = 'waiting'; threeRace.goTime = performance.now() - 150; launchFromStalls(); clearInterval(raceLoop); raceLoop = -1; let n = 0;

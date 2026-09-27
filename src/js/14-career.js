@@ -8,7 +8,10 @@ const MEETINGS=[
  {id:'m3',n:'Prix de la Forêt',dist:2000,terrain:'souple',league:1,diff:1,purse:8500,fee:600},
  {id:'m4',n:'Coupe d’Automne',dist:2400,terrain:'lourd',league:2,diff:3,purse:14000,fee:900},
  {id:'m5',n:'Critérium des Sprinters',dist:1200,terrain:'bon',league:2,diff:4,purse:15000,fee:900},
- {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000}];
+ {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000},
+ // courses de haies (10-haies) : un choix d'élan avant chaque obstacle
+ {id:'h1',n:'Prix des Haies',dist:2000,terrain:'souple',league:1,diff:0,purse:9500,fee:600,haies:6},
+ {id:'h2',n:'Grand Steeple Royal',dist:2400,terrain:'bon',league:2,diff:4,purse:19000,fee:1000,haies:8}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];
 const MISSION_POOL=[{k:'train',n:'Entraîner un cheval',goal:3,r:{gold:1500}},{k:'race',n:'Disputer des courses',goal:2,r:{feed:1500}},{k:'top3',n:'Finir sur le podium',goal:1,r:{gold:2500}},
  {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Réussir un départ parfait',goal:1,r:{gems:5}},{k:'moment',n:'Gagner 3 places sur des temps forts',goal:3,r:{gold:2500}}];
@@ -43,5 +46,5 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.claimM!=null){claimMission(+b.dataset.claimM);openMissions()}else if(b.dataset.claimL!=null)claimLeague(+b.dataset.claimL);else if(b.hasAttribute('data-claim-w'))claimWeek()});
  return{bump,afterRace,league,badges,openMissions,openTrophies,openEvents,tip:k=>{if(C.tips[k])return false;C.tips[k]=1;save();return true},get data(){return C},roll}})();
 /* ---------- programme des courses ---------- */
-function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m);return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<small>${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(purseOf(m))}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
+function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m);return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<small>${m.haies?`🏇 ${m.haies} haies · `:''}${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(purseOf(m))}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
 $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-meet]');if(!b)return;if(b.dataset.meet==='tour'){RACE=tour.meeting();stable.setActive(tour.horse);champion.emit()}else RACE={...MEETINGS.find(m=>m.id===b.dataset.meet)};buildField();renderCourses()});

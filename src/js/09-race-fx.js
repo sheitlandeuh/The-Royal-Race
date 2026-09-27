@@ -79,15 +79,18 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
  }
  function liveries(q){if(!fx)return;LIVERY.ready.then(()=>{const me=champion.get(),F=currentField||buildField(),list=[me,...F.rivals.map(r=>r.livery)];fx.liv=list;
   (fx.h3d||[]).forEach(m=>{q.scene.remove(m);HORSE3D.dispose(m)});fx.h3d=list.map((l,i)=>{const m=HORSE3D.build(l,{number:i+1,blinkers:!i&&gear.sel.id==='oeilleres',lod:!i&&settings.level()==='haute'?0:1});m.scale.setScalar(4.4);m.visible=false;q.scene.add(m);return m});
+  hurdles(q);
   list.forEach((l,i)=>{const t=fx.gallop[i];t.image=LIVERY.gallop(l,i?.5:1);t.needsUpdate=true;const p=new THREE.CanvasTexture(LIVERY.portrait(l));p.colorSpace=THREE.SRGBColorSpace;p.anisotropy=8;q.podiumTextures[i]=p})})}
  function horse(q,i,p,speed,now){const h=q.horses[i];if(!fx)return;const running=q.startPhase==='running';
   const dt=Math.min(.05,(now-(fx.lastH||now))/1000);if(i===5)fx.lastH=now;
   if(h.material.map!==fx.gallop[i])h.material.map=fx.gallop[i];
+  // saut d'obstacle (courses de haies) : phase du saut selon la distance à la haie la plus proche
+  let jmp=-1;if(fx.hp&&visualProgress.length)for(const hp of fx.hp){const d=(visualProgress[i]||0)-hp;if(d>-.96&&d<.96){jmp=(d+.96)/1.92;break}}
   // cheval 3D articulé sous tous les angles ; l'image peinte ne sert que le temps que son maillage se calcule
   {const m=fx.h3d&&fx.h3d[i],u=m&&m.userData,three=!!u&&!u.pending;h.visible=!three;fx.use3d=fx.use3d||[];fx.use3d[i]=three;if(m)m.visible=three;
    if(three){if(!u.hashed){u.hashed=true;u.mats.forEach(x=>{if(!x.alphaTest)x.alphaHash=true})}if(!i)HORSE3D.setLod(m,settings.level()==='haute'?0:1);
     const c=q.camera.position,dx=c.x-p.p.x,dz=c.z-p.p.z,drive=!running?0:i?(rivalAI[i-1]&&rivalAI[i-1].final?1:.15):(playerFinal&&playerEnergy>0?1:.15);
-    m.position.set(p.p.x,0,p.p.z);m.rotation.y=Math.atan2(-p.f.z,p.f.x);HORSE3D.pose(m,((fx.phase[i]/8)%1+1)%1,running?1:.12,drive);const near=Math.min(1,Math.max(0,(Math.hypot(dx,dz)-8.5)/3)),op=near*near*(3-2*near);if(Math.abs((u.op??1)-op)>.02){u.op=op;u.mats.forEach(x=>{x.opacity=op});m.visible=op>.02}}}
+    m.position.set(p.p.x,0,p.p.z);m.rotation.y=Math.atan2(-p.f.z,p.f.x);HORSE3D.pose(m,((fx.phase[i]/8)%1+1)%1,running?1:.12,drive,0,running?jmp:-1);if(running&&jmp>=0)m.position.y=Math.sin(jmp*Math.PI)*5.4;const near=Math.min(1,Math.max(0,(Math.hypot(dx,dz)-8.5)/3)),op=near*near*(3-2*near);if(Math.abs((u.op??1)-op)>.02){u.op=op;u.mats.forEach(x=>{x.opacity=op});m.visible=op>.02}}}
   fx.phase[i]+=(running?dt*(2.1+speed*1.6)*8:dt*1.2);const fr=Math.floor(fx.phase[i]+i*3)%8;fx.gallop[i].offset.x=fr/8;
   const lift=running?Math.abs(Math.sin(fx.phase[i]/8*Math.PI*2))*.22:0,H=12.6;
   h.position.copy(p.p);h.position.y=H*.5-H*.105+lift;h.scale.set(H*.375,H,1);h.material.rotation=running?Math.sin(fx.phase[i]/8*Math.PI*2)*.012:0;
@@ -99,6 +102,14 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   if(m.userData.pending)return false;HORSE3D.setLod(m,0);m.visible=true;q.horses[0].visible=false;fx.horseShadows[0].visible=false;if(m.userData.op!==1){m.userData.op=1;m.userData.mats.forEach(x=>{x.opacity=1})}
   m.position.set(b.p.x+b.f.x*(e*9-4.5),0,b.p.z+b.f.z*(e*9-4.5));m.rotation.y=Math.atan2(-b.f.z,b.f.x);HORSE3D.pose(m,(now*.00085)%1,.3);
   const a=.55+e*1.5,R=18-e*3;q.camera.position.set(m.position.x+(b.f.x*Math.cos(a)+b.n.x*Math.sin(a))*R,4.2+e*2.2,m.position.z+(b.f.z*Math.cos(a)+b.n.z*Math.sin(a))*R);q.camera.lookAt(m.position.x,5.6,m.position.z);return true}
+ // haies de la course (steeple) : broussaille, lisse blanche, ailes rayées ; une géométrie partagée, recréée à chaque course
+ let HG=null;function hurdleGeo(){if(HG)return HG;const k=raceWorld.kit,P=[],r=k.rng(5),box=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+  P.push({g:box(40,3.4,1.6),m:k.M4(0,1.7,0),c:0x3e5a2c});for(let x=-19.4;x<=19.5;x+=1.4)P.push({g:k.fluffy(new THREE.IcosahedronGeometry(.95,1).scale(1,.75+r()*.3,1.1),0,0,0,.6),m:k.M4(x,3.55+r()*.2,0),c:r()<.5?0x4c6e34:0x567a3a});
+  P.push({g:box(40,1,.25).rotateX(-.4),m:k.M4(0,.55,-1.05),c:0xf2efe6},{g:box(40,.3,.3),m:k.M4(0,3.1,-.9),c:0xf2efe6});
+  for(const s of[-1,1]){P.push({g:box(.6,6.2,3.2),m:k.M4(s*21,3.1,0),c:0xf2efe6});for(const y of[1.3,3.1,4.9])P.push({g:box(.65,.7,3.25),m:k.M4(s*21,y,0),c:0xe0782d})}
+  return HG=k.merge(P)}
+ function hurdles(q){if(fx.hurdles){q.scene.remove(fx.hurdles);fx.hurdles=null}fx.hp=null;const n=RACE.haies|0;if(!n)return;const g=new THREE.Group(),mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.9});fx.hp=haies.posOf(n);
+  for(const hp of fx.hp){const p=trackPose(RACE_ORIGIN+hp/100,0),m=new THREE.Mesh(hurdleGeo(),mat);m.position.copy(p.p);m.rotation.y=Math.atan2(p.f.x,p.f.z);m.castShadow=m.receiveShadow=true;g.add(m)}q.scene.add(g);fx.hurdles=g}
  // podium : les trois premiers, en 3D, de trois quarts sur leur marche (rend faux tant que le maillage n'est pas prêt : l'image peinte prend le relais)
  function podium(q,i,slot,now){if(!fx)return false;fx.horseShadows[i].visible=false;const m=fx.h3d&&fx.h3d[i];if(!m)return false;if(!slot||m.userData.pending){m.visible=false;return false}
   const u=m.userData;HORSE3D.setLod(m,0);m.visible=true;if(u.op!==1){u.op=1;u.mats.forEach(x=>{x.opacity=1})}const S=slot.x?2.9:3.2;m.scale.setScalar(S);

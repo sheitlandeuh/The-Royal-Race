@@ -24,6 +24,8 @@ export const bot = window.bot = (() => {
       if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint();
       if (!moments.active) { const a = nearbyHorses(0)[0], boxed = a && a.gap < 1.6 && Math.abs(a.l - playerLane) < 11; playerLane += boxed ? (playerLane < 60 ? 4 : -4) : (14 - playerLane) * .05 }
       else { let c = policy[moments.cur.k] || 'b'; if (typeof c === 'function') c = c(moments.cur); if (c !== 'b') moments.choose(c) }
+      // haies : élan choisi un peu avant l'obstacle (politique.haie : 'p' | 'n' | 'f' | fonction)
+      if (typeof haies !== 'undefined' && policy.haie) { const u = haies.upcoming(); if (u && u.m < RACE.dist * .03 && haies.state.choice === 'n') { const c = typeof policy.haie === 'function' ? policy.haie(u) : policy.haie; if (c !== 'n') haies.choose(c) } }
       runRaceV2(); n++;
     }
     const r = { rank: finishOrder.indexOf(0) + 1, aheadBM: finishOrder.indexOf(0) < finishOrder.indexOf(1), log: moments.log.map(e => e.k + e.ch + (e.k === 'breche' && e.ch === 'a' ? (e.ok ? '+' : '-') : '')) };
@@ -45,6 +47,8 @@ export const bot = window.bot = (() => {
     tire: () => RACE.dist <= 1200 ? 'b' : 'a',
     breche: 'a',
     attaque: c => RACE.dist !== 1600 || playerEnergy >= rivalAI[c.r - 1].energy ? 'a' : 'b',
+    // haies : prudent quand fatigué ou maladroit, à fond quand frais et adroit
+    haie: u => playerEnergy < 32 || u.risk > .125 ? 'p' : u.risk < .105 && playerEnergy > 45 ? 'f' : 'n',
   };
   // même graine, choix 'a' puis 'b' sur un seul type de temps fort : à quel point ce choix change-t-il le résultat ?
   async function pair(kind, meet = 'm2', tactic = 'stalker', N = 40) {

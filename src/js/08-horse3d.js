@@ -426,8 +426,9 @@ const HORSE3D = (() => {
   }
   // ---------- galop (4 temps) ----------
   const X1 = new THREE.Vector3(1, 0, 0), BIT = new THREE.Vector3(), HAND = new THREE.Vector3();
-  // p : phase du galop (0..1), run : allure (0 arrêt, ~.3 pas / trot, 1 galop), drive : poussée du jockey (cravache > .5), graze : tête baissée pour brouter
-  function pose(root, p, run = 1, drive = 0, graze = 0) {
+  // p : phase du galop (0..1), run : allure (0 arrêt, ~.3 pas / trot, 1 galop), drive : poussée du jockey (cravache > .5), graze : tête baissée pour brouter,
+  // jmp : phase d'un saut d'obstacle (0 appel → 1 réception ; < 0 = pas de saut)
+  function pose(root, p, run = 1, drive = 0, graze = 0, jmp = -1) {
     const u = root.userData; u.p = p; u.run = run; u.graze = graze; if (u.pending) return; const B = u.B, JB_ = u.JB, TAU = Math.PI * 2, st = .34;
     B[0].position.y = 1.3 + Math.sin(p * TAU * 2) * .045 * run; B[0].rotation.z = Math.sin(p * TAU + .6) * .05 * run;
     B[1].rotation.z = Math.sin(p * TAU + 2.2) * .12 * run - .03 * run - graze * 1.1; B[2].rotation.z = -Math.sin(p * TAU + 2.2) * .05 * run + .02 - graze * .5;
@@ -438,11 +439,19 @@ const HORSE3D = (() => {
       B[b].rotation.z = a + (fore ? 0 : .08 * run); B[b + 1].rotation.z = fore ? -flex * 1.5 * run : .2 * run + flex * 1.05 * run;
       B[b + 2].rotation.z = fore ? -flex * .95 * run + (q < st ? .28 * run * Math.sin(q / st * Math.PI) : 0) : -.2 * run - flex * .95 * run + (q < st ? .22 * run * Math.sin(q / st * Math.PI) : 0)
     }
+    // saut : antérieurs repliés puis tendus à la réception, postérieurs qui poussent puis se rassemblent, dos qui bascule
+    const jup = jmp >= 0 ? Math.sin(Math.min(1, jmp) * Math.PI) : 0;
+    if (jmp >= 0) {
+      const ju = Math.min(1, Math.max(0, jmp)), jc = Math.cos(ju * Math.PI); B[0].rotation.z += .24 * jc; B[1].rotation.z += -.1 - .12 * jup; B[2].rotation.z += .05 * jup;
+      for (let l = 0; l < 4; l++) { const b = 6 + l * 3, off = l % 2 ? .05 : 0;
+        if (l < 2) { B[b].rotation.z = (ju < .75 ? .95 * Math.sin(Math.min(1, ju / .3) * Math.PI / 2) : .95 - (ju - .75) / .25 * 1.35) - off; B[b + 1].rotation.z = ju < .8 ? -2 * Math.sin(Math.min(1, ju / .25) * Math.PI / 2) : -2 * (1 - (ju - .8) / .2); B[b + 2].rotation.z = -.9 * jup }
+        else { B[b].rotation.z = (ju < .25 ? -.55 * ju / .25 : -.55 + (ju - .25) / .75 * 1.05) + off; B[b + 1].rotation.z = .25 + .95 * jup; B[b + 2].rotation.z = -.3 - .5 * jup } }
+    }
     if (!JB_) return;
     // jockey : amortit le galop, pousse au sprint (bras qui accompagnent l'encolure, cravache)
     const bob = B[0].position.y - 1.3; u.jg.position.y = -1.3 - bob * .75; u.jg.position.x = Math.sin(p * TAU * 2 + .8) * .012 * run; u.jg.rotation.z = -B[0].rotation.z * .85;
     const push = Math.sin(p * TAU + 2.6) * (.08 + drive * .22) * run;
-    JB_[1].rotation.z = -push * .25 - drive * .05; JB_[2].rotation.z = push * .2;
+    JB_[1].rotation.z = -push * .25 - drive * .05 - jup * .22; JB_[2].rotation.z = push * .2 + jup * .12; u.jg.position.y += jup * .05;
     for (const [sh, el] of [[3, 4], [5, 6]]) { JB_[sh].rotation.z = -push * 1.1; JB_[el].rotation.z = push * .8 }
     u.whip.visible = drive > .5; JB_[6].rotation.x = drive > .5 ? Math.sin(p * TAU * 2) * .25 : 0;
     // rênes : du mors aux mains

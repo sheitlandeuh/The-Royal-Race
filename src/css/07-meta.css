@@ -3,11 +3,11 @@
     .homebar .slots{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
     .slot{position:relative;height:74px;border-radius:14px;border:1.5px solid #ffffff2e;background:linear-gradient(#0d2a47d9,#071a2de6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;box-shadow:0 6px 16px #0007}
     .slot.empty{border-style:dashed;background:#071a2d99}.slot.empty small{color:#8fa3b3;font-size:10px;text-align:center;line-height:1.1}
-    .slot i{font-style:normal;font-size:30px;filter:drop-shadow(0 3px 3px #0008)}.slot small{font:800 11px/1 ui-sans-serif,system-ui;color:#fff;font-variant-numeric:tabular-nums}
+    .slot i{font-style:normal;font-size:30px;filter:drop-shadow(0 3px 3px #0008)}.slot small{font:800 11px/1 var(--fu);color:#fff;font-variant-numeric:tabular-nums}
     button.slot{border-color:var(--c)}.slot.going{background:linear-gradient(#173b5d,#0a1e32)}.slot.going small{color:#ffe09a}
     .slot.ready{background:linear-gradient(#2d8a32,#145c1c);animation:slotReady 1s ease-in-out infinite alternate}.slot.ready small{color:#fff}@keyframes slotReady{to{box-shadow:0 0 22px #7dff7a,0 6px 16px #0007;transform:translateY(-3px)}}
     .play{flex:none;width:176px;border-radius:18px;border:3px solid #ffe49b;background:linear-gradient(#f7c948,#c2780f);color:#2a1603;box-shadow:0 8px 24px #000a,inset 0 2px #fff9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 8px}
-    .play b{font:950 24px/1 ui-sans-serif,system-ui;letter-spacing:.08em;text-shadow:0 2px 0 #fff6}.play small{font-size:10.5px;font-weight:700;line-height:1.2;text-align:center}
+    .play b{font:950 24px/1 var(--fu);letter-spacing:.08em;text-shadow:0 2px 0 #fff6}.play small{font-size:10.5px;font-weight:700;line-height:1.2;text-align:center}
     .play:active{transform:scale(.97)}.selection{bottom:196px}
     .suit{font-style:normal;font-weight:900;font-size:11px;border-radius:999px;padding:2px 7px;white-space:nowrap}.suit.ideal{background:#1f7a2e;color:#d9ffd9}.suit.ok{background:#8a6212;color:#ffeec2}.suit.risk{background:#8f1c22;color:#ffd6d6}
     .play .suit{padding:1px 6px}.meet em.suit{align-self:flex-start;margin:2px 0}

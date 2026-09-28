@@ -375,7 +375,7 @@ const HORSE3D = (() => {
     for (let j = 0; j < 256; j++) for (let i = 0; i < 256; i++) { const u = i / 256, v = j / 256, alt = pat(liv.pattern, u, v), c2 = alt ? s : m, k = ((255 - j) * 256 + i) * 4, fold = .93 + .07 * Math.sin(u * 40 + v * 9); img.data[k] = c2[0] * fold; img.data[k + 1] = c2[1] * fold; img.data[k + 2] = c2[2] * fold; img.data[k + 3] = 255 }
     x.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t }
   function clothTexture(liv, num) { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d'); x.fillStyle = liv.main; x.fillRect(0, 0, 512, 128); x.fillStyle = liv.second; x.fillRect(0, 0, 512, 10); x.fillRect(0, 118, 512, 10);
-    x.fillStyle = '#fff'; x.font = '900 64px Georgia,serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; for (const cx of [128, 384]) { x.save(); x.translate(cx, 64); x.scale(cx < 256 ? 1 : -1, 1); x.fillText(String(num || 1), 0, 4); x.restore() }
+    x.fillStyle = '#fff'; x.font = '64px "Russo One",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; for (const cx of [128, 384]) { x.save(); x.translate(cx, 64); x.scale(cx < 256 ? 1 : -1, 1); x.fillText(String(num || 1), 0, 4); x.restore() }
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t }
   function coatColor(liv) { const i = Math.max(0, LIVERY.COATS.findIndex(c => c.id === liv.coat)), l = LIVERY.coatLut(i); return new THREE.Color().setRGB(l[0] / 255, l[1] / 255, l[2] / 255, THREE.SRGBColorSpace) }
   // balzanes et liste : tirées du nom (le même cheval garde ses marques partout)

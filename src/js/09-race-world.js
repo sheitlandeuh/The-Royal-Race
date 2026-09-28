@@ -162,10 +162,10 @@ const raceWorld = (() => {
   }
   function drawScreen(S, now) {
     if (now - S.last < 500) return; S.last = now; const x = S.cv.getContext('2d'), fx = raceFX._fx, liv = fx && fx.liv;
-    x.fillStyle = '#071a2d'; x.fillRect(0, 0, 512, 256); x.fillStyle = '#e0b249'; x.fillRect(0, 0, 512, 40); x.fillStyle = '#071a2d'; x.font = '900 24px Georgia,serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('THE ROYAL RACE', 256, 21);
+    x.fillStyle = '#071a2d'; x.fillRect(0, 0, 512, 256); x.fillStyle = '#e0b249'; x.fillRect(0, 0, 512, 40); x.fillStyle = '#071a2d'; x.font = '24px "Russo One",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('THE ROYAL RACE', 256, 21);
     const src = (typeof progress !== 'undefined' && progress.length) ? progress : [0, 0, 0, 0, 0, 0], order = src.map((p, i) => [p, i]).sort((a, b) => b[0] - a[0]).slice(0, 4);
     order.forEach(([p, i], k) => {
-      const y = 70 + k * 46, l = liv && liv[i]; x.fillStyle = k ? '#fff7dc' : '#ffd66b'; x.font = '900 30px system-ui,sans-serif'; x.textAlign = 'left'; x.fillText(`${k + 1}`, 24, y);
+      const y = 70 + k * 46, l = liv && liv[i]; x.fillStyle = k ? '#fff7dc' : '#ffd66b'; x.font = '700 32px Rajdhani,system-ui,sans-serif'; x.textAlign = 'left'; x.fillText(`${k + 1}`, 24, y);
       x.fillStyle = l ? l.main : '#888'; x.fillRect(70, y - 16, 44, 32); x.fillStyle = l ? l.second : '#ccc'; x.fillRect(70, y - 4, 44, 8);
       x.fillStyle = '#fff'; x.font = '800 26px system-ui,sans-serif'; const nm = i === 0 ? (typeof champion !== 'undefined' ? champion.get().name : 'Toi') : (currentField && currentField.rivals[i - 1] ? currentField.rivals[i - 1].name : `N° ${i + 1}`); x.fillText(`${i + 1}  ${nm}`.slice(0, 26), 130, y)
     }); S.t.needsUpdate = true

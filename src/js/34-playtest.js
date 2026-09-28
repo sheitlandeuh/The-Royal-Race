@@ -26,7 +26,7 @@ const playtest=(()=>{const q=new URLSearchParams(location.search);if(!q.has('tes
  function summary(s=S){const E=s.ev,f=t=>E.filter(e=>e.type===t),first=f('course')[0],end=E.length?E[E.length-1].t:0,mm=x=>`${Math.floor(x/60000)} min ${String(Math.round(x/1000)%60).padStart(2,'0')} s`;
   const tf=f('temps_fort'),sp=f('sprint').filter(e=>e.ideal!=null),dep=f('depart');
   return[['Durée de la session',mm(end)],['Avant la 1re course',first?mm(first.t):'jamais lancée'],['Courses lancées / terminées / abandonnées',`${f('course').length} / ${f('arrivee').length} / ${f('abandon').length}`],
-   ['Classements',f('arrivee').map(e=>e.rang+(e.rang===1?'er':'e')).join(', ')||'—'],['Réaction moyenne au départ',dep.length?Math.round(dep.reduce((a,e)=>a+e.reaction,0)/dep.length)+' ms':'—'],
+   ['Classements',f('arrivee').map(e=>e.rang+(e.rang===1?'er':'e')).join(', ')||'—'],['Stalles tirées',dep.length?dep.map(e=>'n°'+e.stalle).join(', '):'—'],
    ['Écart moyen au sprint idéal',sp.length?Math.round(sp.reduce((a,e)=>a+Math.abs(e.reste-e.ideal),0)/sp.length)+' m':'—'],
    ['Temps forts : répondus / sans réponse',tf.length?`${tf.filter(e=>!e.auto).length} / ${tf.filter(e=>e.auto).length}`+(tf.some(e=>!e.auto)?` · ${(tf.filter(e=>!e.auto).reduce((a,e)=>a+e.ms,0)/tf.filter(e=>!e.auto).length/1000).toFixed(1)} s pour décider`:''):'—'],
    ['Tactiques choisies',[...new Set(f('course').map(e=>e.tactique))].join(', ')||'—'],['Conseils affichés',f('conseil').length],['Panneaux ouverts',[...new Set(f('panneau').map(e=>e.titre))].join(', ')||'—'],

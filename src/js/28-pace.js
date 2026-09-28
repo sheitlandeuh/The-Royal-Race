@@ -3,8 +3,8 @@
    ils se disputent la tête et s'usent. Lire le plateau et choisir sa tactique en conséquence devient un vrai choix. */
 const PACE_FX={
  leader:{base:{c:1.025,d:.944},lent:{d:.75},seul:{d:.75},rapide:{},duel:.2},
- stalker:{base:{},lent:{c:.99},seul:{d:.9},rapide:{}},
- finisher:{base:{s:-.005},lent:{c:.985},seul:{c:.985},rapide:{d:.9}}};
+ stalker:{base:{},lent:{c:.99},seul:{d:.75,c:1.005},rapide:{}},
+ finisher:{base:{s:-.005},lent:{c:.985},seul:{c:.98},rapide:{d:.9}}};
 const pace=(()=>{
  const TAC=Object.fromEntries(TACTICS.map(([id,n])=>[id,n])),ICO={leader:'⚡',stalker:'🎯',finisher:'🏁'};
  // la tactique d'un adversaire découle de son profil (départ + vitesse → devant ; accélération → derrière), avec une part de hasard
@@ -29,7 +29,7 @@ const pace=(()=>{
 /* le plateau reçoit ses tactiques dès sa création (flux dérivé de la graine : même plateau = mêmes tactiques) */
 hooks.on('field:built',F=>{const R=seeded((F.seed^0x9e3779b9)>>>0);F.rivals.forEach(r=>{r.tac=pace.choose(r.stats,R)})});
 /* en course, les adversaires suivent la tactique annoncée, et le rythme modifie l'effort des animateurs */
-hooks.on('race:launch',()=>{const F=currentField;rivalAI.forEach((ai,i)=>{const r=F&&F.rivals[i];if(r&&r.tac&&ai.tac!==r.tac){const P=terrainPerf(stable.racePerf(r.stats,{form:61,fatigue:10,moral:65},RACE.dist,r.pref,r.tac),r.stats,r.talent);const off=t=>t==='leader'?-.06:t==='finisher'?.04:0;ai.err=(ai.err||0)-off(ai.tac)+off(r.tac);ai.P=P;ai.speed=P.cruise;ai.tac=r.tac}
+hooks.on('race:launch',()=>{const F=currentField;rivalAI.forEach((ai,i)=>{const r=F&&F.rivals[i];if(r&&r.tac&&ai.tac!==r.tac){const P=terrainPerf(stable.racePerf(r.stats,{form:61,fatigue:10,moral:65},RACE.dist,r.pref,r.tac),r.stats,r.talent);const off=t=>t==='leader'?-.06:t==='finisher'?.04:0;ai.err=(ai.err||0)-off(ai.tac)+off(r.tac);ai.P=P;ai.speed=P.cruise*(P.jump||1)*(ai.k0||.6);ai.tac=r.tac}
   ai.P=pace.adjust(ai.P,ai.tac)})});
 hooks.on('race:start',()=>{racePlayer=pace.adjust(racePlayer,state.strategy)});
 /* écran des courses : tactique de chaque partant + rythme prévu */

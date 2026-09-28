@@ -1,3 +1,8 @@
+/* moteur 3 (course pensée pour le multijoueur) : départ commun, pas de pause, chevaux solides.
+   STALL_LANES : couloirs des 6 stalles (n°1 à la corde) ; HORSE_LEN : longueur d'un cheval (en % de course) ; HORSE_W : largeur (en couloirs) ;
+   LANE_V : vitesse latérale maximale (couloirs par pas). Deux chevaux ne peuvent jamais se superposer : on double par le côté. */
+const STALL_LANES=[12,26,40,54,68,82],HORSE_LEN=.62,HORSE_W=8,LANE_V=1.6;
+let playerTarget=44,stallOf=[0,1,2,3,4,5],raceBlocked=[0,0,0,0,0,0];
 let playerFinal=false,raceLoop=null,progress=[],visualProgress=[],raceTime=0,playerLane=50,lookDir=0,autoSpeed=.42,startBoostUntil=0,playerEnergy=100,rivalAI=[],raceFinished=[],raceFinishTimes=[],finishOrder=[],raceStartClock=0;state.strategy='stalker';
 const rivalLanes=[46,25,70,58,12],rivalBase=[.432,.405,.448,.415,.424];
 const raceNames=['Royal Thunder','Black Majesty','Éclair Rouge','Silver Crown','Royal Shadow','Golden Star'];

@@ -4,9 +4,9 @@
    se renforce de 15 % par niveau. Débloqué après 4 courses. */
 const JOCKEYS=[
  {id:'paul',n:'Paul Garnier',c:'#7a8a99',price:0,spe:'Polyvalent',d:'Le jockey maison : fiable, sans spécialité.',fx:()=>({}),fit:()=>0},
- {id:'lea',n:'Léa Martin',c:'#e0567a',price:5000,spe:'Départ éclair',d:'Fenêtre de réaction aux stalles élargie (+40 ms).',fx:k=>({window:40*k}),fit:m=>m.dist<=1200?1:0},
+ {id:'lea',n:'Léa Martin',c:'#e0567a',price:5000,spe:'Départ éclair',d:'Jaillit des stalles : élan de départ renforcé (+2,5 %).',fx:k=>({jumpMul:1+.025*k}),fit:m=>m.dist<=1200?1:0},
  {id:'hugo',n:'Hugo Bernard',c:'#e89b2e',price:8000,spe:'Finisseur',d:'Sprint final plus puissant (+4 %).',fx:k=>({sprintMul:1+.04*k}),fit:m=>m.dist>=1600&&m.dist<=2000?1:0},
- {id:'ines',n:'Inès Dubois',c:'#3aa0e0',price:8000,spe:'Tacticienne',d:'Profite mieux des sillages (+25 %) et se dégage plus vite quand elle est enfermée.',fx:k=>({draftMul:1+.25*k,boxed:.015*k}),fit:()=>0},
+ {id:'ines',n:'Inès Dubois',c:'#3aa0e0',price:8000,spe:'Tacticienne',d:'Profite mieux des sillages (+25 %) et perd moins de rythme quand elle est enfermée.',fx:k=>({draftMul:1+.25*k,check:.006*k}),fit:()=>0},
  {id:'victor',n:'Victor Laurent',c:'#4caf6a',price:10000,league:1,spe:'Économe',d:'Ménage sa monture : −4 % d’énergie dépensée en course.',fx:k=>({drainMul:1-.04*k}),fit:m=>m.dist>=2000||m.terrain!=='bon'?1:-0},
  {id:'chloe',n:'Chloé Moreau',c:'#9a6cd6',price:12000,league:1,spe:'Sprint long',d:'Peut lancer son sprint de plus loin : il coûte 3 % d’énergie en moins.',fx:k=>({sprintDrainMul:1-.03*k}),fit:m=>m.dist>=2000?1:0}];
 const jockeys=(()=>{const C=career.data;C.jockeys=C.jockeys||{owned:['paul'],sel:'paul',xp:{}};const J=C.jockeys;
@@ -15,7 +15,7 @@ const jockeys=(()=>{const C=career.data;C.jockeys=C.jockeys||{owned:['paul'],sel
  const initials=n=>n.split(' ').map(w=>w[0]).join('');
  // effet sur les paramètres de course du joueur — priorité haute : avant l'enregistrement du rejeu
  hooks.on('race:start',()=>{if(!racePlayer)return;const j=byId(J.sel),f=j.fx(power(j.id)),o={...racePlayer};
-  if(f.window)o.window+=f.window;if(f.sprintMul)o.sprint*=f.sprintMul;if(f.draftMul)o.draft*=f.draftMul;if(f.boxed)o.boxed+=f.boxed;if(f.drainMul)o.drain*=f.drainMul;if(f.noiseMul)o.noise*=f.noiseMul;if(f.sprintDrainMul)o.sprintDrain*=f.sprintDrainMul;
+  if(f.jumpMul)o.jump=(o.jump||1)*f.jumpMul;if(f.sprintMul)o.sprint*=f.sprintMul;if(f.draftMul)o.draft*=f.draftMul;if(f.check)o.check=Math.min(1,(o.check||.97)+f.check);if(f.drainMul)o.drain*=f.drainMul;if(f.noiseMul)o.noise*=f.noiseMul;if(f.sprintDrainMul)o.sprintDrain*=f.sprintDrainMul;
   o.jockey=j.id;racePlayer=o},5);
  hooks.on('race:end',()=>{const id=J.sel,before=lvl(id);J.xp[id]=(J.xp[id]||0)+1;save();if(lvl(id)>before)setTimeout(()=>toast(`${byId(id).n} passe niveau ${lvl(id)} : sa spécialité se renforce !`),1200)});
  function pick(id){const j=byId(id);if(J.owned.includes(id)){J.sel=id;save();return true}

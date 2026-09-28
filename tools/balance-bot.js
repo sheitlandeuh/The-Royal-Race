@@ -7,7 +7,7 @@ export const bot = window.bot = (() => {
   const gl = (() => { try { return !!document.createElement('canvas').getContext('webgl2') } catch (e) { return false } })();
   function headless() {
     if (threeRace || gl) return;
-    threeRace = { headless: true, startPhase: 'idle', goTime: 0, introStart: 0, falseStartPenalty: 0, horses: [], silks: [], markers: [], horseTextures: [], podiumTextures: [],
+    threeRace = { headless: true, startPhase: 'idle', introStart: 0, horses: [], silks: [], markers: [], horseTextures: [], podiumTextures: [],
       podium: { visible: false }, stalls: { visible: true, userData: { doors: [] } }, renderer: { setPixelRatio() {}, setSize() {}, shadowMap: {} },
       sun: { color: { set() {} }, position: { set() {} } }, hemi: { color: { set() {} }, groundColor: { set() {} } }, scene: { fog: { color: { set() {} } }, add() {} }, camera: {} };
   }
@@ -16,13 +16,12 @@ export const bot = window.bot = (() => {
     RACE = { ...MEETINGS.find(m => m.id === meet) }; state.strategy = tactic; career.data.rival.lvl = 0;
     const h = stable.active(); h.fatigue = 10; h.form = 62; h.moral = 72;
     currentField = null; buildField(seed); state.feed = 99999; startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open');
-    threeRace.startPhase = 'waiting'; threeRace.goTime = performance.now() - 150; launchFromStalls();
-    clearInterval(raceLoop); raceLoop = -1;
-    let n = 0;
+    openGates(); clearInterval(raceLoop); raceLoop = -1;
+    let n = 0; const st = { pass: 0 };
     while (finishOrder.length < 6 && n < 9000) {
-      if (coach.open) coach.hide(); // un conseil de l'entraîneur met la course en pause
+      if (coach.open) coach.hide();
       if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint();
-      if (!moments.active) { const a = nearbyHorses(0)[0], boxed = a && a.gap < 1.6 && Math.abs(a.l - playerLane) < 11; playerLane += boxed ? (playerLane < 60 ? 4 : -4) : (14 - playerLane) * .05 }
+      if (!moments.active) drive(st);
       else { let c = policy[moments.cur.k] || 'b'; if (typeof c === 'function') c = c(moments.cur); if (c !== 'b') moments.choose(c) }
       // haies : élan choisi un peu avant l'obstacle (politique.haie : 'p' | 'n' | 'f' | fonction)
       if (typeof haies !== 'undefined' && policy.haie) { const u = haies.upcoming(); if (u && u.m < RACE.dist * .03 && haies.state.choice === 'n') { const c = typeof policy.haie === 'function' ? policy.haie(u) : policy.haie; if (c !== 'n') haies.choose(c) } }
@@ -30,6 +29,17 @@ export const bot = window.bot = (() => {
     }
     const r = { rank: finishOrder.indexOf(0) + 1, aheadBM: finishOrder.indexOf(0) < finishOrder.indexOf(1), log: moments.log.map(e => e.k + e.ch + (e.k === 'breche' && e.ch === 'a' ? (e.ok ? '+' : '-') : '')) };
     leaveRace(); return r;
+  }
+  // placement d'un bon joueur (moteur 3) : à la corde ou dans un sillage ; derrière un cheval plus lent, au moment du sprint
+  // ou dans la dernière ligne droite, il déborde par le côté libre (l'intérieur s'il est ouvert, sinon l'extérieur).
+  // Le bot fixe directement le couloir visé (sans entrée enregistrée) : ses courses ne se rejouent pas.
+  function drive(st) {
+    if (raceFinished[0]) return;
+    if (st.pass > 0) { st.pass--; return }
+    const a = nearbyHorses(0).find(h => Math.abs(h.l - playerLane) < HORSE_W), slow = a && a.gap < 1.2 && (playerFinal || raceBlocked[0] > 2 || speedOf(a.j) < racePlayer.cruise * .99 || progress[0] > 62);
+    const sideFree = d => !progress.some((p, j) => j && !raceFinished[j] && Math.abs(p - progress[0]) < HORSE_LEN * 1.6 && (laneOf(j) - playerLane) * d > 0 && Math.abs(laneOf(j) - playerLane) < HORSE_W + 6);
+    if (slow) { const d = playerLane - 12 >= 7 && sideFree(-1) ? -1 : 1; playerTarget = clampRace(playerLane + d * 12, 7, 93); st.pass = 12 }
+    else playerTarget = 10;
   }
   function one(policy, meet = 'm2', tactic = 'stalker', N = 50) {
     let s = 0, w = 0; const cnt = {};
@@ -46,7 +56,8 @@ export const bot = window.bot = (() => {
   const smart = {
     tire: () => RACE.dist <= 1200 ? 'b' : 'a',
     breche: 'a',
-    attaque: c => RACE.dist !== 1600 || playerEnergy >= rivalAI[c.r - 1].energy ? 'a' : 'b',
+    // suivre une attaque : oui jusqu'au mile, jamais sur 2 400 m, sur 2 000 m seulement si la voie est libre devant
+    attaque: () => RACE.dist <= 1600 ? 'a' : RACE.dist >= 2400 ? 'b' : boxedIn() ? 'b' : 'a',
     // haies : prudent quand fatigué ou maladroit, à fond quand frais et adroit
     haie: u => playerEnergy < 32 || u.risk > .125 ? 'p' : u.risk < .105 && playerEnergy > 45 ? 'f' : 'n',
   };

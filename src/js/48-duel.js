@@ -13,14 +13,14 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  const unb64=s=>{const b=atob(s.replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))};
  async function encode(o){const s=JSON.stringify(o);if(window.CompressionStream){try{const z=new Blob([s]).stream().pipeThrough(new CompressionStream('deflate-raw'));return 'z'+b64(new Uint8Array(await new Response(z).arrayBuffer()))}catch(e){}}return 'j'+b64(new TextEncoder().encode(s))}
  async function decode(c){const b=unb64(c.slice(1));if(c[0]==='z'){const z=new Blob([b]).stream().pipeThrough(new DecompressionStream('deflate-raw'));return JSON.parse(await new Response(z).text())}if(c[0]==='j')return JSON.parse(new TextDecoder().decode(b));throw 0}
- const pack=r=>({v:DUEL_V,e:r.e,race:{...r.race,id:r.race.src||r.race.id},field:r.field,seed:r.seed,player:r.player,strategy:r.strategy,horse:r.horse,liv:r.liv,inputs:r.inputs,reaction:r.reaction,window:r.window,plan:r.plan,result:r.result,at:r.at});
+ const pack=r=>({v:DUEL_V,e:r.e,race:{...r.race,id:r.race.src||r.race.id},field:r.field,seed:r.seed,player:r.player,strategy:r.strategy,horse:r.horse,liv:r.liv,inputs:r.inputs,plan:r.plan,result:r.result,at:r.at});
  // un lien vient de n'importe où : on vérifie la forme avant de s'en servir (tailles bornées, nombres finis)
  const num=x=>typeof x==='number'&&isFinite(x),str=(x,n=40)=>typeof x==='string'&&x.length<=n;
  const livOk=l=>!!l&&['main','second','cap'].every(k=>/^#[0-9a-f]{6}$/i.test(l[k]))&&LIVERY.PATTERNS.some(p=>p[0]===l.pattern)&&LIVERY.COATS.some(c=>c.id===l.coat);
  function valid(o){try{if(!o||o.v!==DUEL_V)return false;const F=o.field,R=o.race,P=o.player;
   if(!F||!Array.isArray(F.rivals)||F.rivals.length!==5||!num(F.seed)||!num(o.seed)||!R||![1200,1600,2000,2400].includes(R.dist)||!TERRAINS[R.terrain])return false;
-  if(!P||!['cruise','sprint','sprintDrain','drain','boxed','draft','noise','window'].every(k=>num(P[k]))||!P.tactic||!num(P.tactic.c))return false;
-  if(o.e!==undefined&&(!num(o.e)||o.e>=2&&!['jump','wideK','save','nerve'].every(k=>num(P[k]))))return false;
+  if(!P||!['cruise','sprint','sprintDrain','drain','draft','noise'].every(k=>num(P[k]))||!P.tactic||!num(P.tactic.c))return false;
+  if(o.e!==undefined&&(!num(o.e)||o.e>=2&&!['jump','wideK','save','nerve'].every(k=>num(P[k]))||o.e>=3&&!num(P.check)))return false;
   if(!F.rivals.every(r=>r&&str(r.name,24)&&r.stats&&STATS.every(s=>num(r.stats[s.k]))&&num(r.pref)&&livOk(r.livery)&&TALENTS[r.talent]&&['leader','stalker','finisher'].includes(r.tac)))return false;
   if(!Array.isArray(o.inputs)||o.inputs.length>3000||!o.inputs.every(x=>Array.isArray(x)&&num(x[0])&&['steer','sprint','moment','jump'].includes(x[1])))return false;
   if(!o.result||!Array.isArray(o.result.times)||!o.result.times.every(num)||!str(o.horse,24)||!['leader','stalker','finisher'].includes(o.strategy))return false;

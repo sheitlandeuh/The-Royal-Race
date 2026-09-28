@@ -10,7 +10,7 @@ const playtest=(()=>{const q=new URLSearchParams(location.search);if(!q.has('tes
  function log(type,data={}){if(typeof replays!=='undefined'&&replays.busy)return;S.ev.push({t:now(),type,...data});lastAct=now();save()}
  // ce que le moteur annonce
  hooks.on('race:start',()=>log('course',{nom:RACE.n,dist:RACE.dist,cheval:stable.active().name,tactique:state.strategy,rythme:pace.info().label}));
- hooks.on('race:go',(ms,fen)=>log('depart',{reaction:Math.round(ms),fenetre:Math.round(fen)}));
+ hooks.on('race:go',st=>log('depart',{stalle:st}));
  hooks.on('race:sprint',(rest,ideal)=>log('sprint',{reste:Math.round(rest),ideal:ideal==null?null:Math.round(ideal)}));
  hooks.on('moment',m=>log('temps_fort',m));
  hooks.on('race:end',rank=>log('arrivee',{rang:rank,etoiles:$$('#fbStars .stars i.on').length}));

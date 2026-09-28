@@ -20,7 +20,7 @@ export async function run({ quick = false } = {}) {
     const completeOrig = completeRace;
     for (let k = 1; k <= D; k++) {
       RACE = { ...MEETINGS[k % 3] }; currentField = null; buildField(k * 104729); stable.active().fatigue = 10; state.feed = 99999; state.strategy = ['leader', 'stalker', 'finisher'][k % 3]; career.data.jockeys && (career.data.jockeys.owned = JOCKEYS.map(j => j.id), career.data.jockeys.sel = JOCKEYS[k % JOCKEYS.length].id);
-      bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); threeRace.startPhase = 'waiting'; threeRace.goTime = performance.now() - (120 + k * 37); launchFromStalls(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+      bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
       while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); if (moments.active && n % 4 === 0) moments.choose(n % 3 ? 'a' : 'b'); if (n % 41 === 0) steer(n % 82 ? 1 : -1);
         if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
       raceLoop = null; const r = replays.last(); while (coach.open) coach.hide(); if (replays.verify(r).ok) det++; leaveRace(); while (coach.open) coach.hide(); await tick();
@@ -29,6 +29,26 @@ export async function run({ quick = false } = {}) {
     pass('Rejeu identique', det === D, `${det}/${D} courses`);
     { const r = JSON.parse(JSON.stringify(replays.last())); r.result.times[0] -= .3; pass('Falsification détectée', replays.verify(r).ok === false, 'temps truqué refusé') }
     await tick();
+
+    // 2 bis. moteur 3 : départ commun, chevaux solides (jamais superposés), dépassements par le côté
+    { let bad = 0, steps = 0, blocked = 0, passes = 0, go = 0; const R = quick ? 4 : 8;
+      for (let k = 1; k <= R; k++) {
+        RACE = { ...MEETINGS[k % 4] }; currentField = null; buildField(k * 7331); stable.active().fatigue = 10; state.feed = 99999; state.strategy = 'stalker';
+        bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+        if (progress.every(p => p === 0) && rivalAI.every(a => a.speed > .2) && autoSpeed > .2) go++;
+        let order = progress.map((p, i) => i).sort((a, b) => progress[b] - progress[a]).join();
+        while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); if (n % 37 === 0) steer(n % 74 ? 1 : -1);
+          if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++;
+          const on = [0, 1, 2, 3, 4, 5].filter(i => !raceFinished[i]);
+          for (const i of on) for (const j of on) if (i < j && Math.abs(progress[i] - progress[j]) < HORSE_LEN - 1e-9 && Math.abs(laneOf(i) - laneOf(j)) < HORSE_W - 1e-9) bad++;
+          steps++; blocked += raceBlocked.filter(b => b > 0).length;
+          const o = progress.map((p, i) => i).sort((a, b) => progress[b] - progress[a]).join(); if (o !== order) { passes++; order = o } }
+        raceLoop = null; leaveRace(); while (coach.open) coach.hide(); await tick() }
+      pass('Moteur 3 : départ commun, aucun chevauchement', go === R && bad === 0 && blocked > 0 && passes > R * 3, `${go}/${R} départs communs · ${bad} chevauchement${bad > 1 ? 's' : ''} sur ${steps} pas · ${blocked} pas bloqués derrière un cheval · ${passes} changements d’ordre`) }
+    // pas de pause : sans bouton PARTEZ ni pause, la course avance à l'horloge (un onglet en arrière-plan rattrape son retard)
+    { const noBtn = !document.querySelector('#goBtn') && !document.querySelector('.race-pause'); RACE = { ...MEETINGS[1] }; currentField = null; buildField(4242); stable.active().fatigue = 10; state.feed = 99999;
+      bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); openGates(); raceClock.t0 -= 3000; raceClock.pump(); const t = raceTime; clearInterval(raceLoop); raceLoop = null; leaveRace(); while (coach.open) coach.hide();
+      pass('Pas de pause : la course suit l’horloge', noBtn && t >= 29 && t <= 32, `bouton PARTEZ / pause absents ${noBtn ? 'oui' : 'NON'} · 3 s rattrapées en ${t} pas`); await tick() }
 
     // 3. équilibrage : lire le plateau paie, taux de victoire dans la cible
     stable.setActive('h1');
@@ -70,7 +90,7 @@ export async function run({ quick = false } = {}) {
     { let ok = 0, jumps = 0, faults = 0; const H = quick ? 2 : 4;
       for (let k = 1; k <= H; k++) {
         RACE = { ...MEETINGS.find(m => m.id === 'h1') }; currentField = null; buildField(k * 6007); stable.active().fatigue = 10; state.feed = 99999;
-        bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); threeRace.startPhase = 'waiting'; threeRace.goTime = performance.now() - (140 + k * 29); launchFromStalls(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+        bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
         while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); if (moments.active && n % 4 === 0) moments.choose('a'); if (n % 53 === 0) steer(n % 106 ? 1 : -1);
           const u = haies.upcoming(); if (u && u.m < RACE.dist * .03 && haies.state.choice === 'n' && u.k % 3 !== 2) haies.choose(u.k % 3 ? 'f' : 'p');
           if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
@@ -80,7 +100,7 @@ export async function run({ quick = false } = {}) {
 
     // 9. La Couronne : un chapitre réussi débloque sa récompense (plateau affaibli pour garantir l'objectif)
     { const keepRace = RACE; couronne.select('c1'); RACE.diff = -40; currentField = null; buildField(1234); stable.active().fatigue = 10; state.feed = 99999;
-      bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); threeRace.startPhase = 'waiting'; threeRace.goTime = performance.now() - 150; launchFromStalls(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+      bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
       while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
       raceLoop = null; const ok = career.data.couronne.done.includes('c1') && career.data.unlocks.includes('echarpe'); leaveRace(); while (coach.open) coach.hide(); RACE = keepRace; $('#panel').classList.remove('open');
       pass('Couronne : chapitre réussi et récompensé', ok, `rang ${finishOrder.indexOf(0) + 1} · Black Majesty ${finishOrder.indexOf(1) + 1}e · motif Écharpe ${ok ? 'débloqué' : 'NON débloqué'}`) }

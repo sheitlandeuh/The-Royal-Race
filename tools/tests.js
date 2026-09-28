@@ -52,9 +52,10 @@ export async function run({ quick = false } = {}) {
 
     // 3. équilibrage : lire le plateau paie, taux de victoire dans la cible
     stable.setActive('h1');
-    const T = bot.tactics('m2', N, bot.smart), rk = s => +s.match(/rang ([\d.]+)/)[1], wins = s => +s.match(/victoires (\d+)/)[1];
+    // 30 courses au moins, même en mode rapide : sur 16, une seule place d'écart fait basculer la comparaison
+    const NT = Math.max(N, 30), T = bot.tactics('m2', NT, bot.smart), rk = s => +s.match(/rang ([\d.]+)/)[1], wins = s => +s.match(/victoires (\d+)/)[1];
     pass('Lecture du plateau ≥ meilleure tactique fixe', rk(T.lecture) <= Math.min(rk(T.leader), rk(T.stalker), rk(T.finisher)) + .05, `lecture ${rk(T.lecture)} · fixes ${rk(T.leader)} / ${rk(T.stalker)} / ${rk(T.finisher)}`);
-    const wr = wins(T.lecture) / N; pass('Taux de victoire 35–75 % (1 600 m, cheval idéal)', wr >= .35 && wr <= .75, `${Math.round(wr * 100)} %`); await tick();
+    const wr = wins(T.lecture) / NT; pass('Taux de victoire 35–75 % (1 600 m, cheval idéal)', wr >= .35 && wr <= .75, `${Math.round(wr * 100)} %`); await tick();
 
     // 4. temps forts : la politique « malin » ne fait pas moins bien que toujours oui / toujours non
     const A = { tire: 'a', breche: 'a', attaque: 'a' }; let okM = 0; const det2 = [];

@@ -1,6 +1,11 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🏁','Départ commun','Plus de bouton PARTEZ : au GO, les stalles s’ouvrent pour tout le monde en même temps. Ton cheval jaillit selon son Départ, depuis la stalle que le tirage lui a donnée.',0,'2.3'],
+ ['🐎','Chevaux solides','Les chevaux ne se traversent plus : pour doubler, il faut trouver l’ouverture sur le côté. Enfermé derrière un cheval, tu cours à son allure, dans son sillage, jusqu’à ce que le passage s’ouvre.',0,'2.3'],
+ ['⏱️','Course sans pause','Comme une course en ligne, elle ne s’arrête jamais, même si tu quittes l’écran. Les conseils de Maître Armand s’affichent en bandeau, sans rien bloquer.',0,'2.3'],
+ ['📡','Course en direct','Le nom et la place de chaque partant au-dessus de lui, et le classement en direct avec les écarts en longueurs.',0,'2.3'],
+ ['🎮','Nouveau look','Interface repensée façon jeu vidéo : nouvelles polices, néons, boutons et HUD de course plus lisibles.',0,'2.3'],
  ['🏇','Courses de haies','Prix des Haies et Grand Steeple Royal : avant chaque haie, choisis ton élan, prudent ou à fond. Un cheval intelligent et calme fait moins de fautes.',0,'2.2'],
  ['🧠','Chaque qualité compte','Le Départ donne de l’élan, l’Intelligence fait gagner du terrain dans les virages et quand tu es enfermé, le Tempérament garde ton cheval calme dans le peloton.',0,'2.2'],
  ['🌙','Nocturne sous les projecteurs','Nouvelle course, la Nocturne Royale : pylônes allumés et ciel étoilé. Quand il fait nuit chez toi, les courses se courent aussi sous les projecteurs.',0,'2.2'],

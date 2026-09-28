@@ -131,5 +131,9 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   let bob=0;if(running){bob=Math.sin(fx.phase[0]/8*Math.PI*2)*.14;cam.position.y+=bob}
   if(!QUALITY[settings.level()].post){r.render(q.scene,cam);cam.position.y-=bob;return}r.setRenderTarget(P.rt);r.render(q.scene,cam);r.setRenderTarget(null);cam.position.y-=bob;
   P.mat.uniforms.uRes.value.copy(fx.size);P.mat.uniforms.uTime.value=now*.001;P.mat.uniforms.uBlur.value=fx.blur;r.render(P.scene,P.cam)}
- return{build,horse,podium,parade,render,ground,liveries,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
+ // gerbe de poussière (ouverture des stalles) : n grains projetés vers l'avant autour d'une position de piste
+ function burst(p,n=24,power=1){if(!fx||!fx.dust)return;const D=fx.dust;for(let k=0;k<n;k++){const j=D.next=(D.next+1)%D.N,side=(Math.random()-.5)*4.5,fw=(Math.random()-.2)*3;
+   D.pos[j*3]=p.p.x+p.f.x*fw+p.n.x*side;D.pos[j*3+1]=.3+Math.random()*.6;D.pos[j*3+2]=p.p.z+p.f.z*fw+p.n.z*side;const sp=(4+Math.random()*9)*power;
+   D.vel[j*3]=p.f.x*sp+p.n.x*(Math.random()-.5)*5;D.vel[j*3+1]=2.5+Math.random()*5.5*power;D.vel[j*3+2]=p.f.z*sp+p.n.z*(Math.random()-.5)*5;D.life[j]=.7+Math.random()*.7}}
+ return{build,horse,podium,parade,render,ground,liveries,burst,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
 })();

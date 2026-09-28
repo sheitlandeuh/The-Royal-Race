@@ -15,13 +15,13 @@ Joueur mobile de 16 à 45 ans, amateur de jeux de gestion légers et de jeux de 
 
 ## Ce que le jeu n'est pas
 - **Pas un jeu de paris.** Aucune mise, aucun gain réel, les cotes restent un indicateur de force.
-- **Pas un jeu de réflexes.** Le départ récompense la réactivité, mais on gagne surtout par la lecture.
+- **Pas un jeu de réflexes.** Le départ est commun (les stalles s'ouvrent pour tous), on gagne par la lecture : placement, sillage, ouverture, moment du sprint.
 - **Pas un « pay-to-win ».** On vend des cosmétiques (casaques, robes, décors du domaine) et du confort, jamais de la vitesse.
 
 ## Priorités (fin septembre 2026, après la V2)
 La V2 a livré : un domaine réel (chaque niveau de bâtiment a un effet), les ventes aux enchères, la retraite et les Légendes, les duels entre amis par lien (courses fantômes asynchrones, vérifiées par rejeu, sans serveur), la campagne « La Couronne » contre Valmont, et un équilibrage remesuré au bot (note des chevaux, talents, distances, temps forts).
 1. Tester la V2 avec de vrais joueurs (voir [PLAYTEST.md](PLAYTEST.md)) : les duels donnent-ils envie de revenir ? la campagne est-elle bien dosée ? l'économie du domaine tient-elle sur deux semaines ?
-2. Serveur : comptes, sauvegarde cloud, résultats revérifiés avec le moteur de `replays.verify`, classement en ligne du Défi du jour et des duels.
+2. Serveur : comptes, sauvegarde cloud, résultats revérifiés avec le moteur de `replays.verify`, classement en ligne du Défi du jour et des duels. La 2.3 a préparé le terrain : moteur 3 sans pause ni bouton de départ, chevaux solides et règles identiques pour tous, horloge de course commune — six joueurs humains peuvent maintenant partager une course (un serveur qui distribue la graine, l'heure du GO et les entrées datées de chacun).
 3. ~~Faire compter le Départ, l'Intelligence et le Tempérament en course~~ — fait en 2.2 (moteur 2, courses de haies). Suite : d'autres disciplines à décisions (cross, relais d'écurie) et un calendrier de saison qui les mélange.
 4. Lancement discret dans un ou deux pays tests (Capacitor, achats intégrés de cosmétiques).
 

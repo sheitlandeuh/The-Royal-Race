@@ -20,7 +20,7 @@ Noter l'heure (le chronomètre de la pastille) pour chaque moment marquant.
 | Création du champion | Temps passé, plaisir visible, choix du nom | |
 | Arrivée au domaine | Sait-il quoi faire ? Trouve-t-il COURIR ? | |
 | Écran des courses | Lit-il le rythme prévu, les tactiques ? Change-t-il de tactique ? | |
-| Départ | Comprend le bouton PARTEZ ? Faux départ ? | |
+| Départ | Comprend que les stalles s'ouvrent seules pour tous ? Se place-t-il (◀ ▶) dès la sortie ? | |
 | Premier temps fort | Lit la carte ? Répond à temps ? Comprend l'effet ? | |
 | Sprint | Attend le vert ? Sprinte trop tôt ou trop tard ? | |
 | Arrivée | Regarde l'analyse ? Comprend pourquoi il a gagné ou perdu ? | |
@@ -41,7 +41,7 @@ Noter l'heure (le chronomètre de la pastille) pour chaque moment marquant.
 6. Tu le conseillerais à qui ?
 
 ## Récupérer les données
-Toucher la pastille « ● TEST » : le résumé s'affiche (durée, temps avant la 1re course, classements, réaction au départ, précision du sprint, temps forts répondus ou non, panneaux ouverts, moments d'inactivité). **Télécharger (.json)** et renommer le fichier avec le prénom, ou **Copier le journal** et l'envoyer.
+Toucher la pastille « ● TEST » : le résumé s'affiche (durée, temps avant la 1re course, classements, stalles tirées, précision du sprint, temps forts répondus ou non, panneaux ouverts, moments d'inactivité). **Télécharger (.json)** et renommer le fichier avec le prénom, ou **Copier le journal** et l'envoyer.
 
 ## Synthèse (après 5 sessions)
 Pour chaque problème : **combien de joueurs l'ont eu** (x/5), **gravité** (bloquant / gênant / détail), **piste de correction**. On corrige d'abord ce qui bloque au moins 2 joueurs sur 5.

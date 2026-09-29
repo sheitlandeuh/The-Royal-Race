@@ -7,6 +7,7 @@ let playerTarget=44,stallOf=[0,1,2,3,4,5],raceBlocked=[0,0,0,0,0,0];
 let raceSnap=null,visualLane=[],laneVel=[0,0,0,0,0,0];
 let playerFinal=false,raceLoop=null,progress=[],visualProgress=[],raceTime=0,playerLane=50,lookDir=0,autoSpeed=.42,playerEnergy=100,rivalAI=[],raceFinished=[],raceFinishTimes=[],finishOrder=[];state.strategy='stalker';
 const rivalLanes=[46,25,70,58,12],rivalBase=[.432,.405,.448,.415,.424];
+// noms affichés pendant la course (0 = cheval du joueur, 1-5 = adversaires) : réécrits à chaque départ depuis le plateau engagé (11-ecuries)
 const raceNames=['Royal Thunder','Black Majesty','Éclair Rouge','Silver Crown','Royal Shadow','Golden Star'];
 const race3d=$('#race3d'),RACE_ORIGIN=.235;let threeRace=null;
 let sceneFrame=0,lastScene=0,raceSeed=1,raceRng=Math.random;

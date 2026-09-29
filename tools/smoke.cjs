@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const URL = process.env.URL || 'http://localhost:8765/index.html';
 const shotsDir = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 const MODULES = ['hooks', 'stable', 'career', 'meta', 'season', 'breeding', 'rival', 'gear', 'tour', 'palmares', 'shop', 'moments', 'pace', 'ambiance', 'photo',
-  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'tele', 'installer', 'speaker', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes', 'HORSE3D', 'raceWorld', 'domaine3d', 'haies', 'decors', 'manette', 'direct'];
+  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'tele', 'installer', 'speaker', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes', 'HORSE3D', 'raceWorld', 'domaine3d', 'haies', 'decors', 'manette', 'direct', 'fluidite', 'journal', 'mesures', 'aide', 'ecuries'];
 const CHAMPION = { name: 'Éclair de Lune', coat: 'alezan', main: '#c21c27', second: '#f4f2ec', pattern: 'chevrons', cap: '#f4f2ec' };
 // chaque profil : état de départ (localStorage) + éventuellement du code joué dans le jeu avant de recharger la page
 const PROFILES = {
@@ -35,6 +35,7 @@ const SCREENS = [
   ['batiments', `typeof domaine!=='undefined'&&domaine.open('carriere')`], ['ventes', `typeof ventes!=='undefined'&&ventes.open()`],
   ['legendes', `typeof legendes!=='undefined'&&legendes.open()`], ['couronne', `typeof couronne!=='undefined'&&couronne.open()`],
   ['nouveautes', `typeof nouveautes!=='undefined'&&nouveautes.open()`], ['duel', `typeof duel!=='undefined'&&duel.list.length&&duel.card(duel.list[0])`],
+  ['rapport', `aide.signaler();document.querySelector('#bugVoir').open=true;document.querySelector('#bugPre').textContent=mesures.rapport('essai')`], ['confidentialite', `aide.confidentialite()`], ['credits', `aide.credits()`],
   ['domaine-peinture', `document.querySelector('#panel').classList.remove('open');domaine3d.set(false)`], ['domaine-3d', `domaine3d.set(true);village.select('haras')`],
 ];
 (async () => {
@@ -59,6 +60,9 @@ const SCREENS = [
         if (bad.length) errs.push(`${screen}: texte cassé (${bad.join(', ')})`);
         if (shotsDir) await p.screenshot({ path: `${shotsDir}/${name}-${vp.tag}-${screen}.png` });
       }
+      // erreurs rattrapées sans bruit (écouteurs de hooks, fichiers introuvables) : le journal du jeu les a notées
+      const notees = await p.evaluate(() => typeof journal === 'undefined' ? [] : journal.erreurs.map(e => `${e.type} : ${e.msg}${e.src ? ' (' + e.src + ')' : ''}`)).catch(() => []);
+      errs.push(...notees.map(m => 'journal · ' + m));
       const ok = !errs.length && !missing.length; if (!ok) failed++;
       console.log(`${ok ? '✓' : '✗'} ${name} (${vp.tag})${missing.length ? ' · modules manquants : ' + missing.join(', ') : ''}${errs.length ? '\n    ' + [...new Set(errs)].slice(0, 8).join('\n    ') : ''}`);
       await ctx.close();

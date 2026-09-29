@@ -34,6 +34,6 @@ hooks.on('race:launch',()=>{const F=currentField;rivalAI.forEach((ai,i)=>{const 
 hooks.on('race:start',()=>{racePlayer=pace.adjust(racePlayer,state.strategy)});
 /* écran des courses : tactique de chaque partant + rythme prévu */
 hooks.on('courses:render',()=>{const F=currentField;if(!F)return;
-  $$('#panelBody .runners tr').forEach((tr,i)=>{const td=tr.children[1];if(td)td.insertAdjacentHTML('beforeend',' '+pace.chip(i?F.rivals[i-1].tac:state.strategy))});
+  $$('#panelBody .runners tr').forEach((tr,i)=>{const td=tr.children[1];if(!td)return;const c=' '+pace.chip(i?F.rivals[i-1].tac:state.strategy),f=td.querySelector('.face');if(f)f.previousElementSibling.insertAdjacentHTML('beforebegin',c);else td.insertAdjacentHTML('beforeend',c)});
   const I=pace.info(),box=`<div class="pace pace-${I.k}"><b>RYTHME PRÉVU : ${I.label.toUpperCase()}</b><p>${I.txt}</p></div>`;$('#panelBody .tactics')?.insertAdjacentHTML('beforebegin',box);
   if($('#panelBody .pace'))coach.tip('pace','Regarde la <b>tactique des adversaires</b> : s’ils sont plusieurs à vouloir mener, la course sera rapide et ils s’useront. Choisis ta tactique en conséquence.','#panelBody .pace')});

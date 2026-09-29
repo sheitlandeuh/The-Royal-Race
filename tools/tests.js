@@ -11,7 +11,7 @@ export async function run({ quick = false } = {}) {
   career.data.stats.races = 10; // joueur confirmé (le plateau débutant fausserait l'équilibrage)
   try {
     // 1. modules présents
-    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes', 'HORSE3D', 'raceWorld', 'domaine3d', 'haies', 'decors', 'manette', 'direct'];
+    const mods = ['hooks', 'stable', 'career', 'meta', 'moments', 'pace', 'ambiance', 'photo', 'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes', 'HORSE3D', 'raceWorld', 'domaine3d', 'haies', 'decors', 'manette', 'direct', 'fluidite', 'journal', 'mesures', 'aide', 'ecuries'];
     const missing = mods.filter(m => { try { return typeof eval(m) === 'undefined' } catch (e) { return true } });
     pass('Modules chargés', !missing.length, missing.length ? 'manquants : ' + missing.join(', ') : `${mods.length} modules`); await tick();
 
@@ -121,6 +121,21 @@ export async function run({ quick = false } = {}) {
       pass('Domaine 3D : sélection, retour à la peinture', inUI && sel && back, `étiquettes en 3D ${inUI ? 'oui' : 'non'} · sélection ${sel ? 'oui' : 'non'} · rendues à la peinture ${back ? 'oui' : 'non'}`)
     }
     pass('Tous les modules se sont chargés', !(window.__modulesKo || []).length, (window.__modulesKo || []).join(', ') || 'aucun échec');
+
+    // journal (2.5) : une erreur rattrapée par hooks est notée avec l'écran et le fil ; un gain est rangé par source ; le rapport part avec
+    { const before = journal.erreurs.length, fx = JSON.stringify(journal.mesures.flux.or || {}); hooks.on('test:journal', () => { throw new Error('erreur de test du journal') }); hooks.emit('test:journal');
+      const e = journal.erreurs.find(x => /erreur de test du journal/.test(x.msg)), g0 = state.gold; hooks.emit('domaine:recolte', 'test', 0); state.gold += 7; sync(); await new Promise(r => setTimeout(r, 20));
+      const src = (journal.mesures.flux.or || { gain: {} }).gain['récoltes'] || 0, rep = mesures.rapport('test'); state.gold = g0; sync(); await new Promise(r => setTimeout(r, 20));
+      journal.retirer(/erreur de test du journal/); if (journal.mesures.flux.or) journal.mesures.flux.or = JSON.parse(fx);
+      const ok = !!e && e.type === 'rattrapée' && !!e.ecran && Array.isArray(e.fil) && src >= 7 && rep.includes('erreur de test du journal') && rep.includes('"version"') && journal.erreurs.length === before;
+      pass('Journal : erreur notée, gain rangé, rapport', ok, `erreur ${e ? e.type + ' · écran ' + e.ecran : 'NON notée'} · récolte +${src} · rapport ${rep.length} car.`) }
+
+    // écuries rivales (2.5) : un cheval par écurie, noms valides pour les duels, couleur du joueur écartée, plateau reproductible
+    { let bad = 0; const J = { main: stable.silks.main, noms: stable.data.horses.map(h => h.name) }, noms = new Set();
+      for (let sd = 1; sd <= 300; sd++) { const T = ecuries.tirage(sd, 5, J); if (new Set(T.map(t => t.ecurie)).size !== 5) bad++;
+        T.forEach(t => { noms.add(t.name); if (t.name.length > 24 || J.noms.includes(t.name) || Math.hypot(...[1, 3, 5].map(k => parseInt(t.livery.main.slice(k, k + 2), 16) - parseInt(J.main.slice(k, k + 2), 16))) < 70) bad++ }) }
+      const a = JSON.stringify(ecuries.tirage(99, 5, J)), b = JSON.stringify(ecuries.tirage(99, 5, J));
+      pass('Écuries rivales : plateaux variés et valides', !bad && a === b && noms.size >= 50, `${noms.size} chevaux croisés sur 300 plateaux · ${bad} anomalie${bad > 1 ? 's' : ''}`) }
 
     // 12. aucun contenu factice visible
     const txt = document.body.innerText, bad = ['bientôt', 'Lorem', 'TODO', 'undefined', 'NaN'].filter(w => txt.includes(w));

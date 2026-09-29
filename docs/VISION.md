@@ -14,7 +14,7 @@ Chaque course dure moins d'une minute, et elle se gagne sur trois ou quatre déc
 Joueur mobile de 16 à 45 ans, amateur de jeux de gestion légers et de jeux de course « à décisions » (pas de réflexes purs). Il joue dans les transports ou le soir, 2 à 4 sessions par jour. Il n'est pas forcément amateur de turf : le jeu doit s'expliquer tout seul.
 
 ## Ce que le jeu n'est pas
-- **Pas un jeu de paris.** Aucune mise, aucun gain réel, les cotes restent un indicateur de force.
+- **Pas un jeu de paris.** Aucune mise, aucun gain réel, aucune cote : les chances de chaque partant s'affichent en mots (favori, prétendant, outsider, petite chance).
 - **Pas un jeu de réflexes.** Le départ est commun (les stalles s'ouvrent pour tous), on gagne par la lecture : placement, sillage, ouverture, moment du sprint.
 - **Pas un « pay-to-win ».** On vend des cosmétiques (casaques, robes, décors du domaine) et du confort, jamais de la vitesse.
 

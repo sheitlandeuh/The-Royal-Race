@@ -180,7 +180,7 @@
     /* Courses */
     .rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
     .runners{width:100%;border-collapse:collapse;font-size:13px}.runners td{padding:7px 6px;border-bottom:1px solid #ffffff14;vertical-align:middle}.runners tr.me{background:#f0c4571a}.runners td:first-child{width:36px}.runners td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
-    .runners .odds{color:#ffe09a}
+    .runners .prono{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;color:#9fb3c2}.runners .prono.fav{color:#ffe09a}.runners .prono.pre{color:#cfe3f2}.runners .face{color:#8fd3ff}
     .tactics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tactics button{border:1.5px solid #ffffff22;background:#ffffff08;border-radius:12px;padding:10px 8px;text-align:left;font-size:12px}.tactics button b{display:block;font-size:13px;margin-bottom:3px}.tactics button.on{border-color:#f0c457;background:#f0c4571a}
     .fb-gain{margin:12px 0 0!important;color:#bfe9b5!important;font-weight:700}
     @media(max-width:760px){.st-hero{grid-template-columns:96px 1fr}.st-hero canvas{width:96px;height:124px}.st-hero h3{font-size:20px}.st-cols,.rc-grid{grid-template-columns:1fr}.stat{grid-template-columns:88px 1fr 40px 24px}.tactics{grid-template-columns:1fr}}
@@ -193,6 +193,11 @@
     .sl{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;font-size:14px;margin:6px 0}.sl input{accent-color:#f0c457}
     .action.danger{border-color:#7a1414;background:linear-gradient(#e0484e,#8f1c22)}
     body.no-anim .map-shade{animation:none}
+    /* aide (2.5) : signaler un problème, confidentialité, crédits */
+    .aide{display:flex;flex-direction:column;gap:14px;margin-top:10px}.aide-btns{display:flex;flex-wrap:wrap;gap:8px}
+    .aide-t{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}.aide-t td{padding:6px 4px;border-bottom:1px solid #ffffff14;color:#cfe3f2}.aide-t td:last-child{text-align:right;white-space:nowrap;color:#9fb3c3}
+    .aide-plus{margin-top:8px}.aide-plus summary{cursor:pointer;color:#e8c875;font-size:13px;padding:4px 0}.aide .hint a{color:#e8c875}.aide #journalEffacer{margin-top:10px}
+    pre.savecode{white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto;margin:6px 0 0}
     /* ===== Carrière : missions, ligues, événement, programme, entraîneur ===== */
     .missions{display:flex;flex-direction:column;gap:10px;margin-top:12px}.mis{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;background:#ffffff0a;border:1px solid #ffffff1c}.mis>div{flex:1}.mis b{display:block;margin-bottom:6px}.mis small{display:block;margin-top:5px;color:#b9cbd8}.mis.done{opacity:.6}
     .ladder{display:flex;flex-direction:column;gap:8px;margin-top:12px}.rung{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#ffffff08;border:1px solid #ffffff1a}.rung>div{flex:1}.rung b{display:block;font:800 17px var(--fd)}.rung small{color:#aebfcc;font-size:12px}.rung i{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 -5px 8px #0006,inset 0 3px 6px #fff6;flex:none;opacity:.35}.rung.reached i{opacity:1}.rung.cur{border-color:#f0c457;background:#f0c4571a}.rung .action{padding:8px 10px;font-size:12px}
@@ -759,6 +764,99 @@
   <div class="toast" id="toast">Action effectuée</div>
 </main>
 <script src="assets/vendor/three.min.js"></script>
+<script type="text/x-module" data-f="00-journal.js">/* ===== Journal local (2.5) : erreurs et mesures de jeu, gardées sur l'appareil =====
+   Premier module chargé, sans dépendance, pour attraper aussi les erreurs des modules suivants.
+   - trr.erreurs : les 30 dernières erreurs distinctes (message, fichier:ligne, pile courte, version, écran, nombre, derniers événements) ;
+     erreurs JS, promesses rejetées, erreurs attrapées par hooks (console.error), fichiers introuvables.
+   - trr.mesures : premier lancement, jours joués (rétention J1 / J7 / J30), sessions et temps de jeu, étapes de la première partie
+     (entonnoir), courses, gains et dépenses par source, fluidité, appareil. Rempli par 55-mesures (événements du jeu).
+   Rien ne quitte l'appareil : le joueur copie lui-même le rapport (Réglages → Signaler un problème). Un envoi vers un serveur
+   n'existe que si JOURNAL_ENVOI.url est renseigné ET que le joueur l'accepte (voir 55-mesures et docs/MESURES.md). */
+const JOURNAL_ENVOI = { url: '', contact: '' }; // vides dans le jeu publié : aucun envoi, aucun choix affiché
+const journal = (() => {
+  const KE = 'trr.erreurs', KM = 'trr.mesures', JOUR = 864e5, PAUSE_SESSION = 30 * 60e3;
+  const lire = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v && typeof v === 'object' ? v : d } catch (e) { return d } };
+  const ecrire = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) { } };
+  const minuit = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime() };
+  const version = () => typeof VERSION !== 'undefined' ? VERSION : '?';
+  let E = lire(KE, []); if (!Array.isArray(E)) E = [];
+  const M = lire(KM, {});
+  const t0 = Date.now();
+  // --- sessions, jours joués, temps de jeu (visible seulement) ---
+  if (!M.debut) { M.debut = t0; M.premiereVersion = version() }
+  M.jeu = M.jeu || 0; M.jours = Array.isArray(M.jours) ? M.jours : []; M.durees = Array.isArray(M.durees) ? M.durees : [];
+  M.etapes = M.etapes || {}; M.compteurs = M.compteurs || {}; M.flux = M.flux || {};
+  // durée de la session précédente (enCours, en s) rangée à l'ouverture suivante : rien à faire à la fermeture de l'onglet
+  const finSession = () => { if (M.enCours) { M.durees.push(M.enCours); if (M.durees.length > 30) M.durees.shift() } M.enCours = 0 };
+  // rechargement de la page moins de 30 min après la dernière mesure : même session
+  const suite = M.sessions && M.maj && t0 - M.maj < PAUSE_SESSION;
+  if (!suite) { finSession(); M.sessions = (M.sessions || 0) + 1; M.sessionDebut = t0 }
+  let session = { debut: M.sessionDebut || t0, jeu: suite ? (M.enCours || 0) * 1000 : 0 }, visibleDepuis = document.hidden ? 0 : t0, cacheLe = document.hidden ? t0 : 0;
+  const jour = () => { const j = Math.round((minuit(Date.now()) - minuit(M.debut)) / JOUR); if (!M.jours.includes(j)) { M.jours.push(j); if (M.jours.length > 400) M.jours.shift() } };
+  const compterTemps = () => { if (!visibleDepuis) return; const now = Date.now(), d = Math.min(now - visibleDepuis, 10 * 60e3); visibleDepuis = now; session.jeu += d; M.jeu += d; M.enCours = Math.round(session.jeu / 1000) };
+  const sauver = () => { compterTemps(); M.maj = Date.now(); M.version = version(); if (!M.premiereVersion || M.premiereVersion === '?') M.premiereVersion = M.version; ecrire(KM, M) };
+  jour();
+  // plus de 30 min sans regarder le jeu : la session suivante commence au retour
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { compterTemps(); visibleDepuis = 0; cacheLe = Date.now(); sauver() }
+    else { const now = Date.now(); if (cacheLe && now - cacheLe > PAUSE_SESSION) { finSession(); M.sessions++; M.sessionDebut = now; session = { debut: now, jeu: 0 } } visibleDepuis = now; cacheLe = 0; jour() }
+  });
+  addEventListener('pagehide', sauver);
+  setInterval(sauver, 30e3);
+  // --- fil des derniers événements (joint à chaque erreur) ---
+  const fil = [];
+  const trace = (nom, info) => { fil.push({ t: Math.round((Date.now() - t0) / 100) / 10, nom, ...(info ? { info: String(info).slice(0, 60) } : {}) }); if (fil.length > 12) fil.shift() };
+  // --- erreurs ---
+  const ecran = () => { try { const r = document.getElementById('raceScreen'), p = document.getElementById('panel'); if (r && r.classList.contains('open')) return 'course'; if (p && p.classList.contains('open')) return 'panneau : ' + (document.getElementById('panelTitle')?.textContent || '?'); return 'domaine' } catch (e) { return '?' } };
+  const fichier = s => String(s || '').split(/[?#]/)[0].split('/').pop();
+  let dernier = 0, vu = { msg: '', t: 0 };
+  function erreur(type, msg, src, pile) {
+    msg = String(msg || 'erreur inconnue').slice(0, 300); src = String(src || '').slice(0, 120);
+    const cle = type + '|' + msg + '|' + src, now = Date.now();
+    // la même erreur répétée aussitôt par console.error (message d'erreur de 26-release) n'est comptée qu'une fois
+    if (type === 'rattrapée' && vu.t > now - 300 && msg.includes(vu.msg)) return; vu = { msg, t: now };
+    let e = E.find(x => x.cle === cle);
+    if (e) { e.n++; e.t = now; E = E.filter(x => x !== e) }
+    else e = { cle, type, msg, src, pile: pile ? String(pile).split('\n').slice(0, 8).map(l => l.trim().replace(/(https?:)?\/\/[^)\s]*\//, '')).join('\n').slice(0, 900) : '', n: 1, t: now, premiere: now };
+    e.v = version(); e.ecran = ecran(); e.fil = fil.slice(-8); e.session = M.sessions;
+    E.push(e); if (E.length > 30) E.shift();
+    if (now - dernier > 250) { dernier = now; ecrire(KE, E) } else setTimeout(() => ecrire(KE, E), 300);
+    trace('erreur', msg);
+  }
+  addEventListener('error', ev => {
+    const cible = ev.target;
+    if (cible && cible !== window && (cible.src || cible.href)) { erreur('fichier', 'Fichier introuvable : ' + fichier(cible.src || cible.href), cible.tagName); return } // image, son, script
+    if (!ev.message) return;
+    erreur('js', ev.message, ev.filename ? fichier(ev.filename) + ':' + ev.lineno + ':' + ev.colno : '', ev.error && ev.error.stack);
+  }, true);
+  addEventListener('unhandledrejection', ev => { const r = ev.reason; erreur('promesse', r && r.message || r, '', r && r.stack) });
+  // erreurs rattrapées (écouteurs de hooks, chargeur des modules) : elles ne remontent pas jusqu'à window
+  const ce = console.error.bind(console);
+  console.error = (...a) => { ce(...a); try { const x = a.find(v => v instanceof Error); erreur('rattrapée', a.map(v => v instanceof Error ? v.message : typeof v === 'string' ? v : '').filter(Boolean).join(' '), '', x && x.stack) } catch (e) { } };
+  // --- mesures (appelées par 55-mesures) ---
+  const tempsJeu = () => { compterTemps(); return Math.round(M.jeu / 1000) };
+  return {
+    erreur, trace,
+    // première fois qu'une étape de la partie est franchie : temps de jeu cumulé (s), session, jour
+    etape(nom) { if (M.etapes[nom]) return false; M.etapes[nom] = { jeu: tempsJeu(), session: M.sessions, jour: Math.round((minuit(Date.now()) - minuit(M.debut)) / JOUR) }; sauver(); return true },
+    compte(nom, n = 1) { M.compteurs[nom] = (M.compteurs[nom] || 0) + n },
+    // or / gemmes / fourrage gagnés ou dépensés, par source
+    flux(res, delta, source) { if (!delta) return; const f = M.flux[res] = M.flux[res] || { gain: {}, depense: {} }, sens = delta > 0 ? f.gain : f.depense; if (!(source in sens) && Object.keys(sens).length >= 24) source = 'autre'; sens[source] = (sens[source] || 0) + Math.abs(delta) },
+    note(k, v) { M[k] = v },
+    sauver, tempsJeu,
+    get mesures() { compterTemps(); return M }, get erreurs() { return E.slice() }, get session() { return { ...session, n: M.sessions } }, get fil() { return fil.slice() },
+    // bilan lisible : rétention, entonnoir, économie
+    bilan() {
+      const J = M.jours, s = x => J.includes(x);
+      return { depuis: new Date(M.debut).toISOString().slice(0, 10), sessions: M.sessions, jeuMin: Math.round(tempsJeu() / 60), joursJoues: J.length, J1: s(1), J7: s(7), J30: s(30),
+        dureeMedianeS: M.durees.length ? M.durees.slice().sort((a, b) => a - b)[M.durees.length >> 1] : null, etapes: M.etapes, compteurs: M.compteurs, flux: M.flux }
+    },
+    // test automatique : retire les erreurs provoquées exprès
+    retirer(re) { E = E.filter(e => !re.test(e.msg)); ecrire(KE, E) },
+    effacer() { E = []; for (const k in M) delete M[k]; Object.assign(M, { debut: Date.now(), sessions: 1, sessionDebut: Date.now(), jeu: 0, enCours: 0, jours: [0], durees: [], etapes: {}, compteurs: {}, flux: {}, premiereVersion: version() }); session = { debut: Date.now(), jeu: 0 }; try { localStorage.removeItem(KE) } catch (e) { } sauver() }
+  };
+})();
+</script>
 <script type="text/x-module" data-f="01-core.js">const VERSION='2.4';
 const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
@@ -893,6 +991,7 @@ let playerTarget=44,stallOf=[0,1,2,3,4,5],raceBlocked=[0,0,0,0,0,0];
 let raceSnap=null,visualLane=[],laneVel=[0,0,0,0,0,0];
 let playerFinal=false,raceLoop=null,progress=[],visualProgress=[],raceTime=0,playerLane=50,lookDir=0,autoSpeed=.42,playerEnergy=100,rivalAI=[],raceFinished=[],raceFinishTimes=[],finishOrder=[];state.strategy='stalker';
 const rivalLanes=[46,25,70,58,12],rivalBase=[.432,.405,.448,.415,.424];
+// noms affichés pendant la course (0 = cheval du joueur, 1-5 = adversaires) : réécrits à chaque départ depuis le plateau engagé (11-ecuries)
 const raceNames=['Royal Thunder','Black Majesty','Éclair Rouge','Silver Crown','Royal Shadow','Golden Star'];
 const race3d=$('#race3d'),RACE_ORIGIN=.235;let threeRace=null;
 let sceneFrame=0,lastScene=0,raceSeed=1,raceRng=Math.random;
@@ -2192,6 +2291,72 @@ const rank=finishOrder.indexOf(0)+1,win=rank===1,A=raceAnalysis(rank);if(A.lines
  $('#fbStars').innerHTML=`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}${A.adv?`<div class="an-adv">🎩 ${A.adv[1]} <button class="action" data-adv="${A.adv[0]}">ENTRAÎNER</button></div>`:''}`;
  {const rm=rival.after();$('#fbGain').innerHTML+=`<br>🎩 ${rm}`;const tm=tour.after(rank);if(tm)$('#fbGain').innerHTML+=`<br><span class="tourmsg">${tm}</span>`;tour.resultBtn();palmares.onRace(rank,A.stars)}currentField=null;const first=raceFinishTimes[finishOrder[0]];$('#finishRows').innerHTML=finishOrder.map((idx,pos)=>{const gap=raceFinishTimes[idx]-first;return `<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${raceFinishTimes[idx].toFixed(2)} s</td><td>${pos?`+${gap.toFixed(2)} s`:'—'}</td></tr>`}).join('');$('#raceComment').textContent='Classement officiel validé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=win?'🏆':'🎖️';$('#resultTitle').textContent=win?'Victoire royale !':`${rank}e place`;$('#resultText').textContent=win?HN()+' monte sur la première marche du podium.':`${HN()} termine ${rank}e après une course disputée.`;hooks.emit('race:end',finishOrder.indexOf(0)+1)}
 </script>
+<script type="text/x-module" data-f="11-ecuries.js">/* ===== Écuries rivales (2.5) : des adversaires qu'on reconnaît d'une course à l'autre =====
+   Douze écuries, chacune avec sa casaque (couleurs et motif fixes) et six chevaux nommés, avec leur robe.
+   Un plateau prend au plus un cheval par écurie, tiré sur la graine du plateau (flux de hasard propre : la simulation
+   n'en dépend pas). Les écuries dont la couleur ressemble à celle du joueur sont écartées. Black Majesty (Valmont)
+   reste le rival personnel (20-rival). Face-à-face mémorisé par cheval dans career.data.face : rencontres et
+   combien de fois il a fini devant le joueur. Les noms et casaques voyagent dans le plateau (rejeux, duels). */
+const ECURIES = [
+  { id: 'crown', n: 'Écurie Royal Crown', liv: { main: '#1f3f9f', second: '#c8982c', pattern: 'losange', cap: '#1f3f9f' },
+    ch: [['Crown Prince', 'bai'], ['Éclair Rouge', 'alezan'], ['Silver Crown', 'gris'], ['Royal Shadow', 'noir'], ['Golden Star', 'palomino'], ['Crown Jewel', 'baibrun']] },
+  { id: 'longchene', n: 'Haras de Longchêne', liv: { main: '#0f3b29', second: '#f3c41a', pattern: 'bandes', cap: '#f3c41a' },
+    ch: [['Sirocco', 'alezan'], ['Prince Noir', 'noir'], ['Duc des Landes', 'bai'], ['Belle de Mai', 'gris'], ['Orage d’Été', 'baibrun'], ['Grand Chêne', 'bai']] },
+  { id: 'montclair', n: 'Écurie Montclair', liv: { main: '#5aa4e3', second: '#f4f2ec', pattern: 'cercle', cap: '#f4f2ec' },
+    ch: [['Azur Express', 'gris'], ['Rêve Bleu', 'bai'], ['Marquis d’Azur', 'baibrun'], ['Lune Bleue', 'gris'], ['Ciel de Traîne', 'alezan'], ['Montclair', 'bai']] },
+  { id: 'saintaubin', n: 'Écurie Saint-Aubin', liv: { main: '#6c1428', second: '#f4f2ec', pattern: 'chevrons', cap: '#6c1428' },
+    ch: [['Vin de Garde', 'baibrun'], ['Grenat', 'alezan'], ['Comte Rouge', 'alezan'], ['Rubis du Val', 'bai'], ['Pourpre Royal', 'noir'], ['Saint-Aubin', 'bai']] },
+  { id: 'windsor', n: 'Windsor Lane Stud', liv: { main: '#15264a', second: '#f3c41a', pattern: 'croix', cap: '#f3c41a' },
+    ch: [['Yellow Jacket', 'palomino'], ['Night Rider', 'noir'], ['Sir Galahad', 'gris'], ['Honey Bee', 'alezan'], ['Midnight Oil', 'baibrun'], ['Lord Windsor', 'bai']] },
+  { id: 'rivieres', n: 'Haras des Trois Rivières', liv: { main: '#17824c', second: '#f4f2ec', pattern: 'pois', cap: '#17824c' },
+    ch: [['Loire Sauvage', 'bai'], ['Mascaret', 'gris'], ['Fleur d’Eau', 'palomino'], ['Estuaire', 'baibrun'], ['Flot d’Argent', 'gris'], ['Trois Rivières', 'alezan']] },
+  { id: 'valcourt', n: 'Écurie Valcourt', liv: { main: '#ee6914', second: '#15264a', pattern: 'manches', cap: '#ee6914' },
+    ch: [['Feu Follet', 'alezan'], ['Soleil Levant', 'palomino'], ['Ambre Gris', 'gris'], ['Brasier', 'alezan'], ['Tigre du Bengale', 'bai'], ['Valcourt', 'baibrun']] },
+  { id: 'mistral', n: 'Écurie du Mistral', liv: { main: '#8b9097', second: '#c21c27', pattern: 'brassards', cap: '#c21c27' },
+    ch: [['Tramontane', 'gris'], ['Vent d’Autan', 'bai'], ['Libeccio', 'alezan'], ['Rafale', 'noir'], ['Alizé', 'gris'], ['Grand Mistral', 'baibrun']] },
+  { id: 'beaulieu', n: 'Haras Beaulieu', liv: { main: '#e4679d', second: '#0f3b29', pattern: 'uni', cap: '#0f3b29' },
+    ch: [['Pivoine', 'alezan'], ['Belle Époque', 'bai'], ['Lady Rose', 'gris'], ['Camélia', 'palomino'], ['Joli Cœur', 'baibrun'], ['Beaulieu', 'bai']] },
+  { id: 'morvan', n: 'Écurie du Morvan', liv: { main: '#5a2a88', second: '#f3c41a', pattern: 'etoile', cap: '#5a2a88' },
+    ch: [['Druide', 'gris'], ['Forêt Noire', 'noir'], ['Loup Gris', 'gris'], ['Menhir', 'baibrun'], ['Brocéliande', 'bai'], ['Morvandiau', 'alezan']] },
+  { id: 'castelroux', n: 'Écurie Castelroux', liv: { main: '#c21c27', second: '#f4f2ec', pattern: 'bandes', cap: '#f4f2ec' },
+    ch: [['Coquelicot', 'alezan'], ['Cardinal', 'bai'], ['Fort Castel', 'baibrun'], ['Baron Rouge', 'alezan'], ['Écarlate', 'noir'], ['Castelroux', 'bai']] },
+  { id: 'boisjoli', n: 'Écurie Bois-Joli', liv: { main: '#5e341c', second: '#5aa4e3', pattern: 'croix', cap: '#5aa4e3' },
+    ch: [['Cacao', 'baibrun'], ['Noisetier', 'bai'], ['Sous-Bois', 'noir'], ['Châtaigne', 'alezan'], ['Bois Joli', 'bai'], ['Pain d’Épices', 'palomino']] },
+];
+const ecuries = (() => {
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const proche = (a, b) => { const x = rgb(a), y = rgb(b); return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]) < 70 };
+  const byId = id => ECURIES.find(e => e.id === id);
+  // n chevaux d'écuries différentes ; évite la couleur du joueur et les noms de ses chevaux
+  function tirage(seed, n, joueur = {}) {
+    const R = seeded(((seed >>> 0) ^ 0x2545f491) >>> 0), noms = new Set((joueur.noms || []).map(s => s.toLowerCase()));
+    const E = ECURIES.filter(e => !joueur.main || !proche(e.liv.main, joueur.main));
+    for (let i = E.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1));[E[i], E[j]] = [E[j], E[i]] }
+    return E.slice(0, n).map(e => {
+      const libres = e.ch.filter(c => !noms.has(c[0].toLowerCase())), [name, coat] = (libres.length ? libres : e.ch)[Math.floor(R() * (libres.length || e.ch.length))];
+      return { name, ecurie: e.id, livery: { ...e.liv, coat } };
+    });
+  }
+  const joueur = () => ({ main: stable.silks.main, noms: stable.data.horses.map(h => h.name) });
+  // face-à-face : chaque course terminée (hors rejeux et duels), pour chaque adversaire nommé
+  const face = () => career.data.face = career.data.face || {};
+  let engage = null; // plateau de la course en cours (currentField est vidé avant la fin de course)
+  hooks.on('race:end', () => {
+    if (replays.busy || RACE.duel) return; const F = engage, me = finishOrder.indexOf(0); if (!F || me < 0) return; const f = face();
+    F.rivals.forEach((r, i) => { const k = r.name; if (!k) return; const x = f[k] = f[k] || { n: 0, devant: 0 }; x.n++; if (finishOrder.indexOf(i + 1) < me) x.devant++ });
+    const cles = Object.keys(f); if (cles.length > 120) cles.sort((a, b) => f[a].n - f[b].n).slice(0, cles.length - 120).forEach(k => delete f[k]);
+    career.save();
+  }, 5);
+  // noms de la course en cours (commentaire, classement, photo) : ceux du plateau engagé
+  hooks.on('race:start', () => { const F = engage = currentField; if (F) F.rivals.forEach((r, i) => { if (r.name) raceNames[i + 1] = r.name }) }, 60);
+  // texte court pour la liste des partants : « 3ᵉ rencontre · tu mènes 2–0 »
+  function bilan(name) {
+    const x = (career.data.face || {})[name]; if (!x || !x.n) return ''; const moi = x.n - x.devant, lui = x.devant;
+    return `${x.n + 1}ᵉ rencontre · ${moi > lui ? `tu mènes ${moi}–${lui}` : moi < lui ? `il mène ${lui}–${moi}` : `égalité ${moi}–${lui}`}`;
+  }
+  return { tirage, joueur, bilan, nom: id => id === 'valmont' ? 'Écurie du ' + VALMONT.owner : byId(id)?.n || '', get face() { return career.data.face || {} } };
+})();
+</script>
 <script type="text/x-module" data-f="11-studio.js">$('#quitRace').onclick=leaveRace;$('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steer(-1);$('#moveRight').onclick=()=>steer(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key==='ArrowLeft')steer(-1);if(e.key==='ArrowRight')steer(1);if(e.key===' ')sprint();if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});
 /* ===== Atelier du champion ===== */
 const HN=()=>champion.get().name||'Mon champion';
@@ -2277,21 +2442,25 @@ $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button,a'
  else if(t.dataset.engage){stable.setActive(t.dataset.engage);champion.emit();renderStable();toast(`${h.name} est engagé pour la prochaine course`)}
  else if(t.hasAttribute('data-goraces')){openCourses()}
  else if(t.dataset.studioFor){stable.setActive(t.dataset.studioFor);stUI.horse=t.dataset.studioFor;champion.emit();$('#panel').classList.remove('open');studio.open()}});
-/* ---------- engagement en course : partants, cotes, tactique ---------- */
+/* ---------- engagement en course : partants, pronostic, tactique ---------- */
 /* avance des adversaires sur la note du cheval engagé (points de note) : réglée au bot pour qu'un bon joueur gagne 35 à 75 % à sa distance */
 const FIELD_EDGE=0;
 let currentField=null;const TACTICS=[['leader','Aux avant-postes','Plus vite en début de course, mais l’énergie fond.'],['stalker','Dans les dos','Équilibré : profite du sillage des leaders.'],['finisher','Attentiste','Économise en début de course, sprint final plus fort.']];
-function buildField(fixed){const h=stable.active(),first=(career.data.stats?.races||0)<2&&!RACE.tour,ref=stable.ratingAt(h,RACE.dist)+(RACE.diff||0)+(first?-6:FIELD_EDGE),seed=fixed||1+Math.floor(Math.random()*9e4),rv=stable.rivals(ref,5,seed),used=[stable.silks.main],R=seeded(seed);
- const coats=LIVERY.COATS.map(c=>c.id).sort(()=>R()-.5);
- currentField={seed,rivals:rv.map((r,i)=>{const l=LIVERY.random(seed+i*131,used);used.push(l.main);l.coat=coats[i];return{...r,name:raceNames[i+1],livery:l,rating:ratingOf(r.stats)-7}})};rival.inject(currentField);hooks.emit('field:built',currentField);return currentField}
+function buildField(fixed){const h=stable.active(),first=(career.data.stats?.races||0)<2&&!RACE.tour,ref=stable.ratingAt(h,RACE.dist)+(RACE.diff||0)+(first?-6:FIELD_EDGE),seed=fixed||1+Math.floor(Math.random()*9e4),rv=stable.rivals(ref,5,seed);
+ // adversaires : chevaux nommés des écuries rivales (11-ecuries), casaque de leur écurie
+ const T=ecuries.tirage(seed,5,ecuries.joueur());
+ currentField={seed,rivals:rv.map((r,i)=>({...r,name:T[i].name,ecurie:T[i].ecurie,livery:T[i].livery,rating:ratingOf(r.stats)-7}))};rival.inject(currentField);hooks.emit('field:built',currentField);return currentField}
+// chances estimées d'après la note (et la forme / la distance) ; affichées en mots, jamais en cotes : le jeu ne fait pas parier
 function odds(list){const m=list.reduce((a,x)=>a+x,0)/list.length,w=list.map(x=>Math.exp((x-m)/4.5)),S=w.reduce((a,x)=>a+x,0);return w.map(x=>Math.max(1.3,.82*S/x))}
+function pronostic(od){const c=od.map(x=>1/x),S=c.reduce((a,x)=>a+x,0),best=od.indexOf(Math.min(...od));
+ return od.map((x,i)=>{const p=c[i]/S;return i===best?['fav','Favori']:p>=.17?['pre','Prétendant']:p>=.09?['out','Outsider']:['pet','Petite chance']})}
 function openCourses(){if(RACE.tour){if(tour.active){RACE=tour.meeting();if(stable.byId(tour.horse))stable.setActive(tour.horse)}else RACE={...MEETINGS[1]}}else if((MEETINGS.find(m=>m.id===RACE.id)||{league:RACE.keep?0:9}).league>career.league())RACE={...MEETINGS[1]};$('#panelTitle').textContent='Courses';$('#panel .card').classList.add('wide');$('#panel').classList.add('open');buildField();renderCourses()}
 function renderCourses(){stable.tick();const H=stable.data.horses,h=stable.active(),F=currentField,rt=[stable.rating(h),...F.rivals.map(r=>r.rating)],od=odds(rt.map((x,i)=>i?x+(Math.abs(RACE.dist-F.rivals[i-1].pref)<300?1:0):x+(h.form-60)*.08-Math.max(0,h.fatigue-40)*.1-Math.abs(RACE.dist-h.dist)/400*1.5));
- const ok=!h.injury&&h.fatigue<90,why=h.injury?'blessé':'trop fatigué';
- const rows=[{name:h.name,liv:livOf(h),r:rt[0],me:1,talent:h.talent},...F.rivals.map((x,i)=>({name:x.name,liv:x.livery,r:rt[i+1],talent:x.talent,nem:x.nemesis}))].map((x,i)=>`<tr class="${x.me?'me':''}"><td>${LIVERY.silkSVG(x.liv,30)}</td><td><b>${escapeHTML(x.name)}</b>${x.me?' · <small>VOUS</small>':''}${x.nem?' <span class="nem">RIVAL</span>':''}<br><small style="color:#9fb3c2">${coatName(x.liv.coat)} · ${TALENTS[x.talent].i} ${TALENTS[x.talent].n}</small></td><td class="num"><span class="note">${x.r}</span></td><td class="num odds">${od[i].toFixed(1)}/1</td></tr>`).join('');
+ const pr=pronostic(od);const ok=!h.injury&&h.fatigue<90,why=h.injury?'blessé':'trop fatigué';
+ const rows=[{name:h.name,liv:livOf(h),r:rt[0],me:1,talent:h.talent},...F.rivals.map((x,i)=>({name:x.name,liv:x.livery,r:rt[i+1],talent:x.talent,nem:x.nemesis,ecurie:x.ecurie}))].map((x,i)=>{const fc=x.me||x.nem?'':ecuries.bilan(x.name);return `<tr class="${x.me?'me':''}"><td>${LIVERY.silkSVG(x.liv,30)}</td><td><b>${escapeHTML(x.name)}</b>${x.me?' · <small>VOUS</small>':''}${x.nem?' <span class="nem">RIVAL</span>':''}<br><small style="color:#9fb3c2">${x.me?'':escapeHTML(ecuries.nom(x.ecurie))+' · '}${coatName(x.liv.coat)} · ${TALENTS[x.talent].i} ${TALENTS[x.talent].n}</small>${fc?`<br><small class="face">${fc}</small>`:''}</td><td class="num"><span class="note">${x.r}</span></td><td class="num prono ${pr[i][0]}">${pr[i][1]}</td></tr>`}).join('');
  $('#panelBody').innerHTML=`<div class="meets">${tour.card()}${MEETINGS.map(meetingCard).join('')}</div><p style="margin:10px 0 0;color:#c9d7e2"><b style="color:#ffe09a">${RACE.n}</b> · ${fmt(RACE.dist)} m · Terrain ${TERRAINS[RACE.terrain].n.toLowerCase()} (${TERRAINS[RACE.terrain].d.toLowerCase()}) · Allocation 🪙 ${fmt(purseOf(RACE))} · ${RACE.tour?'<b style="color:#9fe39f">Engagement compris dans le tournoi</b>':`Engagement 🌾 ${fmt(RACE.fee)}`}</p>
  <div class="st-horses">${H.map(x=>`<button class="st-pick${x.id===h.id?' on':''}${RACE.tour&&x.id!==tour.horse?' dim':''}" data-runner="${x.id}"><canvas width="84" height="112"></canvas><div><b>${escapeHTML(x.name)}</b><small>Forme ${condLabel('form',x.form).toLowerCase()} · ${condLabel('fatigue',x.fatigue).toLowerCase()}</small><br><span class="note">${stable.rating(x)}</span> <em class="suit ${meta.suit(x).k}">${meta.suit(x).i} ${meta.suit(x).n}</em> <small>${TALENTS[x.talent].i}</small></div></button>`).join('')}</div>
- <div class="taunt"><div class="tface">🎩</div><div><b>${VALMONT.owner}</b> <small>face-à-face : ${rival.rec.w} – ${rival.rec.l}</small><p>${rival.taunt()}</p></div></div><div class="rc-grid"><section class="st-box"><h4>PARTANTS & COTES</h4><table class="runners">${rows}</table></section>
+ <div class="taunt"><div class="tface">🎩</div><div><b>${VALMONT.owner}</b> <small>face-à-face : ${rival.rec.w} – ${rival.rec.l}</small><p>${rival.taunt()}</p></div></div><div class="rc-grid"><section class="st-box"><h4>PARTANTS</h4><table class="runners">${rows}</table></section>
  <section class="st-box"><h4>TACTIQUE DU JOCKEY</h4><div class="tactics">${TACTICS.map(([id,n,d])=>`<button data-tactic="${id}" class="${state.strategy===id?'on':''}"><b>${n}</b>${d}</button>`).join('')}</div>
  ${gear.block()}<h4 style="margin-top:14px">CONSEIL DE L’ENTRAÎNEUR</h4><p style="margin:0;font-size:13px;color:#d5e1ea">${Math.abs(h.dist-RACE.dist)<300?'Distance idéale pour lui.':h.dist<RACE.dist?`${fmt(RACE.dist)} m, c’est long pour un ${distName(h.dist).toLowerCase()} : ménage-le, tactique attentiste conseillée.`:`Course courte pour un cheval de tenue : pars aux avant-postes.`} ${RACE.terrain==='lourd'&&h.stats.end<65?'Terrain lourd et endurance faible : course risquée.':''} ${h.fatigue>50?'Il est fatigué : un repos avant la course serait sage.':''}</p>
  ${ok?'':`<p class="alert">${escapeHTML(h.name)} est ${why} : choisis un autre partant ou passe par l’écurie.</p>`}
@@ -2318,7 +2487,8 @@ function openSettings(){$('#panelTitle').textContent='Réglages';$('#panel .card
   <p class="hint">${lv==='auto'?`Auto : ${QUALITY[settings.level()].n.toLowerCase()} sur cet appareil${settings.scale()<1?`, résolution ${Math.round(settings.scale()*100)} % pour rester fluide`:''}. `:''}${QUALITY[settings.level()].d}</p></section>
  <section><h4>AFFICHAGE</h4><label class="tog"><input type="checkbox" id="setAnim" ${settings.get('anim')?'checked':''}> Animations du domaine (nuages, oiseaux, bannières)</label>${typeof domaine3d!=='undefined'&&domaine3d.supported()?`<label class="tog"><input type="checkbox" id="setD3" ${domaine3d.wanted()?'checked':''}> Domaine en 3D (sinon : la peinture du domaine)</label>`:''}</section>
  <section><h4>SON</h4><label class="sl">Effets <input type="range" id="setSfx" min="0" max="1" step=".05" value="${settings.get('sfx')}"></label><label class="sl">Musique <input type="range" id="setMusic" min="0" max="1" step=".05" value="${settings.get('music')}"></label><label class="tog"><input type="checkbox" id="setVoice" ${settings.get('voice')?'checked':''}> Commentaire du speaker</label></section>
- <section><h4>SAUVEGARDE</h4><p class="hint">Ta partie est enregistrée dans ce navigateur (${stable.data.horses.length} chevaux, ${fmt(state.gold)} or).</p><button class="action green" id="saveTools">TRANSFÉRER / SAUVEGARDER MA PARTIE</button> <button class="action" id="resetSave">Recommencer une partie</button></section><p class="hint set-version">The Royal Race ${VERSION} · <a href="#" data-news>quoi de neuf ?</a></p></div>`;
+ <section><h4>SAUVEGARDE</h4><p class="hint">Ta partie est enregistrée dans ce navigateur (${stable.data.horses.length} chevaux, ${fmt(state.gold)} or).</p><button class="action green" id="saveTools">TRANSFÉRER / SAUVEGARDER MA PARTIE</button> <button class="action" id="resetSave">Recommencer une partie</button></section>
+ <section><h4>AIDE</h4><div class="aide-btns"><button class="action" id="aideBug">Signaler un problème</button> <button class="action" id="aidePrivee">Confidentialité</button> <button class="action" id="aideCredits">Crédits</button></div></section><p class="hint set-version">The Royal Race ${VERSION} · <a href="#" data-news>quoi de neuf ?</a></p></div>`;
  $('#panel').classList.add('open')}
 $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){settings.set('cap',undefined);settings.set('rs',undefined);settings.set('q',b.dataset.q);openSettings();toast(`Qualité : ${QUALITY[settings.level()].n.toLowerCase()}`)}
  if(e.target.id==='resetSave'){const r=e.target;if(r.dataset.armed){try{window.__noSave=true;['trr.stable','trr.champion','trr.progress','trr.bak'].forEach(k=>localStorage.removeItem(k))}catch(err){}location.reload()}else{r.dataset.armed=1;r.textContent='Confirmer : tout effacer';r.classList.add('danger');setTimeout(()=>{if(r.isConnected){delete r.dataset.armed;r.textContent='Recommencer une partie';r.classList.remove('danger')}},4000)}}});
@@ -2375,7 +2545,7 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
   $('#panelBody').innerHTML=`<div class="event"><div class="ev-art">👑</div><div><p style="margin:0">Termine <b>5 courses cette semaine</b> pour recevoir <b>Étoile du Roi</b>, un pur-sang noir rare (note 70, potentiel exceptionnel, cheval de tenue).${has?' Tu l’as déjà : la récompense sera 60 gemmes.':''}</p>
   <div class="bar" style="margin:12px 0 6px"><i style="width:${n/5*100}%"></i></div><small>${n} / 5 courses · se termine dimanche soir</small><div style="margin-top:12px">${C.weekClaimed?'<span class="chip">Récompense récupérée</span>':`<button class="action green" data-claim-w ${n<5?'disabled':''}>RÉCUPÉRER</button>`}</div></div></div>`;$('#panel').classList.add('open')}
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.claimM!=null){claimMission(+b.dataset.claimM);openMissions()}else if(b.dataset.claimL!=null)claimLeague(+b.dataset.claimL);else if(b.hasAttribute('data-claim-w'))claimWeek()});
- return{bump,afterRace,league,badges,openMissions,openTrophies,openEvents,tip:k=>{if(C.tips[k])return false;C.tips[k]=1;save();return true},get data(){return C},roll}})();
+ return{bump,afterRace,league,badges,openMissions,openTrophies,openEvents,tip:k=>{if(C.tips[k])return false;C.tips[k]=1;save();return true},get data(){return C},roll,save}})();
 /* ---------- programme des courses ---------- */
 function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m);return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<small>${m.haies?`🏇 ${m.haies} haies · `:''}${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(purseOf(m))}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
 $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-meet]');if(!b)return;if(b.dataset.meet==='tour'){RACE=tour.meeting();stable.setActive(tour.horse);champion.emit()}else RACE={...MEETINGS.find(m=>m.id===b.dataset.meet)};buildField();renderCourses()});
@@ -2402,7 +2572,9 @@ const sound=(()=>{let A=null,master,sfx,mus,crowd,crowdGain,noiseBuf,musicTimer=
  // musique : progression d'accords douce en boucle (domaine uniquement)
  const PROG=[[261.6,329.6,392],[220,261.6,329.6],[174.6,220,261.6],[196,246.9,293.7]];let step=0;
  function music(on){if(!A)return;clearInterval(musicTimer);musicTimer=0;if(!on)return;const play=()=>{const ch=PROG[step++%4];ch.forEach((f,i)=>{const t=A.currentTime,o=A.createOscillator(),g=A.createGain();o.type='triangle';o.frequency.value=f/2;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+.8);g.gain.linearRampToValueAtTime(0,t+3.9);o.connect(g).connect(mus);o.start(t);o.stop(t+4)});tone(ch[2]*2,.6,'sine',.03,1.2,mus);tone(ch[1]*2,.6,'sine',.025,2.4,mus)};play();musicTimer=setInterval(play,4000)}
- let lastSay=0;function say(txt,force){if(!settings.get('voice')||!window.speechSynthesis)return;const now=performance.now();if(!force&&now-lastSay<2500)return;lastSay=now;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';u.rate=1.12;u.pitch=1.05;u.volume=Math.min(1,settings.get('sfx')+.2);speechSynthesis.speak(u)}catch(e){}}
+ // voix : de préférence une voix française installée sur l'appareil (localService) ; sans elle, la voix française par défaut du navigateur
+ let lastSay=0,voix=null;const choisirVoix=()=>{try{const V=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));voix=V.find(v=>v.localService&&/^fr-FR/i.test(v.lang))||V.find(v=>v.localService)||null}catch(e){}};if(window.speechSynthesis){choisirVoix();speechSynthesis.addEventListener?.('voiceschanged',choisirVoix)}
+ function say(txt,force){if(!settings.get('voice')||!window.speechSynthesis)return;const now=performance.now();if(!force&&now-lastSay<2500)return;lastSay=now;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';if(voix)u.voice=voix;u.rate=1.12;u.pitch=1.05;u.volume=Math.min(1,settings.get('sfx')+.2);speechSynthesis.speak(u)}catch(e){}}
  document.addEventListener('click',e=>{if(e.target.closest('button'))click()});
  return{volumes,gallop,crowdStart,crowdLevel,crowdStop,bell,gates,coin,fanfare,music,say,init,get ctx(){return A},get musicBus(){return mus},get sfxBus(){return sfx},noise,thud,tone}})();
 const buzz=p=>{try{navigator.vibrate?.(p)}catch(e){}};
@@ -2524,7 +2696,7 @@ const rival=(()=>{const C=career.data;C.rival=C.rival||{w:0,l:0,lvl:0,met:false}
  const lines={first:'« Ainsi, voici le nouveau propriétaire du domaine… Mon Black Majesty n’a jamais perdu ici. »',ahead:'« Une victoire de chance. Black Majesty s’est remis au travail. »',behind:'« Vous pouvez toujours changer de métier, mon cher. »',even:'« Nos écuries se valent… pour l’instant. »',lvl:'« Black Majesty a passé l’été à Chantilly. Il est plus fort que jamais. »'};
  function taunt(){if(!R.met)return lines.first;if(R.justLvl)return lines.lvl;return R.w>R.l?lines.ahead:R.w<R.l?lines.behind:lines.even}
  // Black Majesty remplace le premier adversaire du plateau
- function inject(F){const r=F.rivals[0],h=stable.active(),boost=1+Math.min(4,R.lvl)*1.5,st={};for(const s of STATS)st[s.k]=Math.min(99,r.stats[s.k]+boost);r.stats=st;r.name=VALMONT.name;r.livery={...VALMONT.livery};r.talent=VALMONT.talent;r.pref=RACE.dist;r.rating=ratingOf(st)-7;r.nemesis=true;return F}
+ function inject(F){const r=F.rivals[0],h=stable.active(),boost=1+Math.min(4,R.lvl)*1.5,st={};for(const s of STATS)st[s.k]=Math.min(99,r.stats[s.k]+boost);r.stats=st;r.name=VALMONT.name;r.ecurie='valmont';r.livery={...VALMONT.livery};r.talent=VALMONT.talent;r.pref=RACE.dist;r.rating=ratingOf(st)-7;r.nemesis=true;return F}
  function after(){const me=finishOrder.indexOf(0),him=finishOrder.indexOf(1);R.met=true;R.justLvl=false;let msg='';
   if(me<him){R.w++;state.gold+=800;msg=`Tu as devancé Black Majesty ! +800 or (${R.w}–${R.l})`;if(R.w%3===0){R.lvl++;R.justLvl=true}}else{R.l++;msg=`Black Majesty t’a devancé (${R.w}–${R.l})`}save();sync();return msg}
  return{inject,after,taunt,get rec(){return R}}})();
@@ -2870,7 +3042,7 @@ hooks.on('race:launch',()=>{const F=currentField;rivalAI.forEach((ai,i)=>{const 
 hooks.on('race:start',()=>{racePlayer=pace.adjust(racePlayer,state.strategy)});
 /* écran des courses : tactique de chaque partant + rythme prévu */
 hooks.on('courses:render',()=>{const F=currentField;if(!F)return;
-  $$('#panelBody .runners tr').forEach((tr,i)=>{const td=tr.children[1];if(td)td.insertAdjacentHTML('beforeend',' '+pace.chip(i?F.rivals[i-1].tac:state.strategy))});
+  $$('#panelBody .runners tr').forEach((tr,i)=>{const td=tr.children[1];if(!td)return;const c=' '+pace.chip(i?F.rivals[i-1].tac:state.strategy),f=td.querySelector('.face');if(f)f.previousElementSibling.insertAdjacentHTML('beforebegin',c);else td.insertAdjacentHTML('beforeend',c)});
   const I=pace.info(),box=`<div class="pace pace-${I.k}"><b>RYTHME PRÉVU : ${I.label.toUpperCase()}</b><p>${I.txt}</p></div>`;$('#panelBody .tactics')?.insertAdjacentHTML('beforebegin',box);
   if($('#panelBody .pace'))coach.tip('pace','Regarde la <b>tactique des adversaires</b> : s’ils sont plusieurs à vouloir mener, la course sera rapide et ils s’useront. Choisis ta tactique en conséquence.','#panelBody .pace')});
 </script>
@@ -3265,8 +3437,8 @@ const defi=(()=>{
  function meeting(){const h=hash('defi-'+day()),base=MEETINGS.filter(m=>m.league<=1)[h%3];
   return{...base,id:'defi',n:'Défi du jour',defi:true,fee:0,purse:0,seed:1+h%89999,ref:60+h%6}}
  // plateau identique pour tous : force de référence fixe (pas celle du cheval du joueur), pas de rival personnel
- function field(M=meeting()){const seed=M.seed,rv=stable.rivals(M.ref,5,seed),R=seeded(seed),used=[stable.silks.main],coats=LIVERY.COATS.map(c=>c.id).sort(()=>R()-.5),T=seeded((seed^0x9e3779b9)>>>0);
-  return{seed,rivals:rv.map((r,i)=>{const l=LIVERY.random(seed+i*131,used);used.push(l.main);l.coat=coats[i];return{...r,name:raceNames[i+1],livery:l,rating:ratingOf(r.stats)-7,tac:pace.choose(r.stats,T)}})}}
+ function field(M=meeting()){const seed=M.seed,rv=stable.rivals(M.ref,5,seed),E=ecuries.tirage(seed,5,ecuries.joueur()),T=seeded((seed^0x9e3779b9)>>>0);
+  return{seed,rivals:rv.map((r,i)=>({...r,name:E[i].name,ecurie:E[i].ecurie,livery:E[i].livery,rating:ratingOf(r.stats)-7,tac:pace.choose(r.stats,T)}))}}
  // tout plateau construit pendant le défi (sélection d'un autre cheval, RECOURIR…) redevient celui du jour
  hooks.on('field:built',F=>{if(RACE.defi)Object.assign(F,field())});
  function select(){RACE=meeting();currentField=null;buildField();renderCourses()}
@@ -4539,6 +4711,151 @@ const fluidite=(()=>{const STEPS=[1,.85,.72,.6],ORD=['basse','moyenne','haute'];
  requestAnimationFrame(frame);
  // état (rapport de bug, tests) : images mesurées, médiane, mesure active ou non, résolution et niveau
  return{get etat(){return{n:buf.length,ms:buf.length?Math.round(median(buf)):0,mesure:watching(),rs:settings.scale(),niveau:settings.level()}},reset(){settings.set('cap',undefined);settings.set('rs',undefined)}}})();
+</script>
+<script type="text/x-module" data-f="55-mesures.js">/* ===== Mesures de jeu (2.5) : ce que 00-journal enregistre, tiré des événements du jeu =====
+   Entonnoir de la première partie (étapes datées en temps de jeu), compteurs (courses, abandons, rangs, ventes, duels…),
+   gains et dépenses d'or / gemmes / fourrage par source, fluidité et première image 3D, appareil.
+   Tout reste dans ce navigateur (trr.mesures). Envoi à un serveur : seulement si JOURNAL_ENVOI.url est renseigné et que le
+   joueur l'a accepté dans Réglages (settings 'envoi') — un résumé et les nouvelles erreurs, au moment où le jeu passe en arrière-plan. */
+const mesures = (() => {
+  const J = journal;
+  // --- entonnoir et compteurs ---
+  const etape = n => { if (J.etape(n)) J.trace('étape', n) };
+  const kind = () => RACE.defi ? 'defi' : RACE.duel ? 'duel' : RACE.haies ? 'haies' : 'plat';
+  hooks.on('ready', () => {
+    const M = J.mesures;
+    // partie commencée avant la 2.5 : son entonnoir est incomplet, on le signale au lieu de fausser les chiffres
+    if (!M.etapes.lancement) { etape('lancement'); if ((career.data.stats?.races || 0) > 0) J.note('partieAnterieure', true) }
+    if (champion.exists()) etape('champion');
+    J.note('appareil', appareil());
+  });
+  champion.on(() => etape('champion'));
+  hooks.on('race:start', () => { if (replays.busy) return; J.compte('courses'); J.compte('courses_' + kind()); J.trace('course', RACE.n); etape('course_1') });
+  hooks.on('race:go', () => { if (!replays.busy) etape('depart_1') });
+  hooks.on('race:end', rank => {
+    if (replays.busy) return; J.compte('arrivees'); J.compte('rang_' + rank); J.trace('arrivée', rank + 'e');
+    etape('arrivee_1'); if (rank === 1) etape('victoire_1');
+    const n = J.mesures.compteurs.arrivees; if (n === 3) etape('arrivee_3'); if (n === 10) etape('arrivee_10'); if (n === 50) etape('arrivee_50');
+  });
+  hooks.on('race:leave', fini => { if (!fini && !replays.busy) { J.compte('abandons'); J.trace('abandon', RACE.n) } });
+  const suivi = { 'domaine:travaux': ['travaux', 'travaux_1'], 'domaine:recolte': ['recoltes', 'recolte_1'], 'vente:debut': ['ventes_lancees'], 'vente:fin': ['ventes', 'vente_1'],
+    legende: ['legendes', 'legende_1'], 'duel:partage': ['duels_partages', 'duel_partage_1'], 'duel:end': ['duels_joues', 'duel_joue_1'], 'defi:end': ['defis', 'defi_1'],
+    couronne: ['couronne', 'couronne_1'], deco: ['decors', 'decor_1'] };
+  for (const [e, [c, s]] of Object.entries(suivi)) hooks.on(e, () => { J.compte(c); J.trace(e); if (s) etape(s) });
+  // fluidité : ajustements de la qualité automatique, temps jusqu'à la première image du domaine 3D
+  hooks.on('fluidite', x => { J.compte('fluidite'); J.note('fluidite', x) });
+  hooks.on('domaine3d:pret', ms => { const l = (J.mesures.premiereImage3d || []).concat(Math.round(ms)).slice(-5); J.note('premiereImage3d', l) });
+  // écrans ouverts (fil joint aux erreurs)
+  new MutationObserver(() => { if ($('#panel').classList.contains('open')) J.trace('panneau', $('#panelTitle').textContent) }).observe($('#panel'), { attributes: true, attributeFilter: ['class'] });
+  // --- économie : chaque variation d'or, de gemmes ou de fourrage est rangée par source ---
+  // la source est l'événement du jeu qui vient d'avoir lieu (récolte, travaux, vente…), sinon l'écran ouvert (course, nom du panneau), sinon le domaine
+  const SOURCES = { 'race:start': 'course', 'race:end': 'course', 'domaine:recolte': 'récoltes', 'domaine:travaux': 'travaux', 'domaine:fini': 'travaux',
+    'vente:debut': 'ventes', 'vente:fin': 'ventes', legende: 'légendes', couronne: 'couronne', deco: 'décors', 'defi:end': 'défi du jour', 'duel:end': 'duels' };
+  let recent = { nom: '', t: -1e9 };
+  for (const [e, nom] of Object.entries(SOURCES)) hooks.on(e, () => { recent = { nom, t: performance.now() } }, 20);
+  const source = () => performance.now() - recent.t < 1500 ? recent.nom : $('#raceScreen').classList.contains('open') ? 'course'
+    : $('#panel').classList.contains('open') ? ($('#panelTitle').textContent || 'panneau').trim().toLowerCase().slice(0, 30) : 'domaine';
+  let avant = { or: state.gold, gemmes: state.gems, fourrage: state.feed }, prevu = false;
+  // mesuré juste après la tâche en cours : l'événement qui suit souvent la modification (hooks.emit après sync) est alors connu
+  const compter = () => { prevu = false; const now = { or: state.gold, gemmes: state.gems, fourrage: state.feed }, src = source();
+    for (const k in now) if (Number.isFinite(now[k]) && Number.isFinite(avant[k])) J.flux(k, now[k] - avant[k], src); avant = now };
+  { const s55 = sync; sync = function () { s55(); if (!prevu) { prevu = true; setTimeout(compter, 0) } } }
+  // --- appareil (rapport de bug) ---
+  function gpu() {
+    for (const id of ['domain3d', 'race3d']) { const c = document.getElementById(id); if (!c) continue;
+      try { const g = c.getContext('webgl2') || c.getContext('webgl'); if (!g) continue; const x = g.getExtension('WEBGL_debug_renderer_info'); return String(x ? g.getParameter(x.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER)).slice(0, 90) } catch (e) { } }
+    return 'inconnu (3D pas encore affichée)' }
+  function appareil() {
+    return { navigateur: navigator.userAgent.slice(0, 180), ecran: `${screen.width}×${screen.height}`, fenetre: `${innerWidth}×${innerHeight}`, dpr: devicePixelRatio || 1,
+      coeurs: navigator.hardwareConcurrency || null, memoireGo: navigator.deviceMemory || null, tactile: matchMedia('(pointer:coarse)').matches, langue: navigator.language,
+      installe: matchMedia('(display-mode: standalone)').matches, webgl2: !!window.WebGL2RenderingContext }
+  }
+  // --- envoi (désactivé tant que JOURNAL_ENVOI.url est vide) ---
+  const envoiPossible = () => !!JOURNAL_ENVOI.url && typeof navigator.sendBeacon === 'function';
+  const envoiAccepte = () => envoiPossible() && settings.get('envoi') === true;
+  function envoyer() {
+    if (!envoiAccepte()) return;
+    const M = J.mesures; if (!M.id) J.note('id', (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)));
+    const depuis = M.envoiErreurs || 0, E = J.erreurs.filter(e => e.t > depuis).map(({ cle, ...e }) => e);
+    const corps = JSON.stringify({ format: 1, id: M.id, version: VERSION, date: new Date().toISOString(), bilan: J.bilan(), appareil: appareil(), qualite: qualite(), erreurs: E });
+    if (navigator.sendBeacon(JOURNAL_ENVOI.url, new Blob([corps], { type: 'application/json' }))) { J.note('envoiErreurs', Date.now()); J.sauver() }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) envoyer() });
+  const qualite = () => ({ choix: settings.get('q'), niveau: settings.level(), resolution: settings.scale(), domaine3d: typeof domaine3d !== 'undefined' && domaine3d.on, appareil: settings.device() });
+  // --- rapport de bug : texte lisible + données techniques (JSON), copié ou téléchargé par le joueur ---
+  function rapport(description = '') {
+    const b = J.bilan(), E = J.erreurs.slice(-10).reverse().map(({ cle, ...e }) => ({ ...e, t: new Date(e.t).toISOString(), premiere: new Date(e.premiere).toISOString() }));
+    const etat = { ecran: $('#raceScreen').classList.contains('open') ? 'course' : $('#panel').classList.contains('open') ? $('#panelTitle').textContent : 'domaine',
+      chevaux: stable.data.horses.length, courses: career.data.stats?.races || 0, trophees: state.trophies, modulesEnEchec: window.__modulesKo || [] };
+    const donnees = { format: 1, version: VERSION, date: new Date().toISOString(), appareil: { ...appareil(), gpu: gpu() }, qualite: { ...qualite(), fluidite: fluidite.etat }, etat, erreurs: E, fil: J.fil, bilan: b };
+    return `The Royal Race ${VERSION} — rapport de problème (${new Date().toLocaleString('fr-FR')})\n\nCe qui s'est passé :\n${description.trim() || '(non décrit)'}\n\n`
+      + `Erreurs enregistrées : ${J.erreurs.length}${E[0] ? ` — dernière : ${E[0].msg}` : ''}\n\n--- Données techniques ---\n${JSON.stringify(donnees, null, 1)}\n`;
+  }
+  return { rapport, appareil, envoiPossible, envoiAccepte, envoyer, get bilan() { return J.bilan() } };
+})();
+</script>
+<script type="text/x-module" data-f="56-aide.js">/* ===== Aide et informations (2.5) : signaler un problème, confidentialité, crédits =====
+   Écrans ouverts depuis Réglages (section AIDE). Tout ce qui est écrit ici doit rester vrai : si le jeu se met à envoyer
+   des données (JOURNAL_ENVOI), à afficher de la publicité ou à ouvrir des comptes, la page Confidentialité change avec. */
+const aide = (() => {
+  const panneau = (titre, html) => { $('#panelTitle').textContent = titre; $('#panel .card').classList.remove('wide'); $('#panelBody').innerHTML = `<div class="aide">${html}</div>`; $('#panel').classList.add('open') };
+  const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`;
+  // --- signaler un problème ---
+  function signaler() {
+    const n = journal.erreurs.length;
+    panneau('Signaler un problème', `<p class="hint">Décris ce qui s'est passé : ce que tu faisais, ce que tu attendais, ce qui est arrivé.</p>
+      <textarea class="savecode" id="bugDesc" maxlength="1500" placeholder="Ex. : au départ du Grand Prix, l'écran est resté noir…"></textarea>
+      <p class="hint">Le rapport joint la version du jeu, ton appareil et ton navigateur, les réglages graphiques, ${n ? pluriel(n, 'erreur') + ' enregistrée' + (n > 1 ? 's' : '') : 'aucune erreur enregistrée'}, les derniers écrans ouverts et un résumé de ta progression. Aucune donnée personnelle, et rien ne part sans toi : copie-le ou télécharge-le, puis joins-le à ton message.</p>
+      <div class="race-entry"><button class="action green" id="bugCopy">COPIER LE RAPPORT</button> <button class="action" id="bugDl">TÉLÉCHARGER</button>${JOURNAL_ENVOI.contact ? ' <button class="action" id="bugMail">ÉCRIRE AU SUPPORT</button>' : ''}</div>
+      <details class="aide-plus" id="bugVoir"><summary>Voir le rapport</summary><pre class="savecode" id="bugPre"></pre></details>`);
+  }
+  const texte = () => mesures.rapport($('#bugDesc')?.value || '');
+  // --- confidentialité : ce que le jeu garde, où, et ce qu'il n'envoie pas ---
+  const CLES = [['trr.stable', 'Écurie : chevaux, casaque, or, gemmes, fourrage'], ['trr.progress', 'Progression : carrière, domaine, ventes, Légendes, Couronne, missions'],
+    ['trr.champion', 'Ton premier cheval'], ['trr.settings', 'Réglages'], ['trr.replays', 'Les 10 dernières courses (rejeux)'], ['trr.defi', 'Défi du jour'], ['trr.duels', 'Duels reçus et envoyés'],
+    ['trr.bak', 'Copie de secours de la partie'], ['trr.mesures', 'Journal technique : jours joués, sessions, étapes, gains et dépenses'], ['trr.erreurs', 'Journal technique : erreurs rencontrées']];
+  const taille = k => { try { const v = localStorage.getItem(k); return v == null ? 0 : v.length } catch (e) { return 0 } };
+  const ko = n => n < 1024 ? `${n} o` : `${(n / 1024).toFixed(1).replace('.', ',')} Ko`;
+  function confidentialite() {
+    const envoi = mesures.envoiPossible();
+    panneau('Confidentialité', `<section><h4>CE QUE LE JEU GARDE</h4>
+      <p class="hint">Ta partie est enregistrée <b>uniquement dans ce navigateur</b>, sur cet appareil. Il n'y a ni compte, ni serveur de sauvegarde : si tu vides les données du site, la partie est perdue — garde un code de sauvegarde (Réglages → Transférer ma partie).</p>
+      <table class="aide-t">${CLES.map(([k, d]) => `<tr><td>${d}</td><td>${taille(k) ? ko(taille(k)) : '—'}</td></tr>`).join('')}</table></section>
+      <section><h4>JOURNAL TECHNIQUE</h4><p class="hint">Pour corriger les problèmes, le jeu note sur cet appareil les erreurs rencontrées et quelques statistiques (jours joués, durée des sessions, étapes franchies, gains et dépenses, fluidité). Ce journal ne sert qu'au rapport que tu peux copier toi-même (Signaler un problème).</p>
+      ${envoi ? `<label class="tog"><input type="checkbox" id="setEnvoi" ${mesures.envoiAccepte() ? 'checked' : ''}> Envoyer ce journal, sans nom ni adresse, pour aider à améliorer le jeu</label>` : ''}
+      <button class="action" id="journalEffacer">Effacer le journal technique</button></section>
+      <section><h4>CE QUI SORT DE L'APPAREIL</h4><p class="hint">${envoi ? `Seulement si tu l'acceptes ci-dessus : le journal technique, avec un identifiant tiré au hasard.` : `Rien. Le jeu ne contient ni publicité, ni mesure d'audience, ni compte, et ses fichiers (images, polices, moteur 3D) sont servis avec lui.`}
+      Les duels passent par un lien que tu partages toi-même : il contient ton cheval (nom, qualités, casaque), la course et ton résultat, rien d'autre.
+      Le commentaire du speaker utilise la synthèse vocale de ton navigateur, avec une voix installée sur l'appareil quand il en a une ; sinon, selon le navigateur, la voix peut être produite en ligne par son éditeur (seul le texte du commentaire est transmis). Tu peux couper le commentaire dans Réglages.</p></section>`);
+  }
+  // --- crédits : composants tiers et leurs licences ---
+  const MIT = `Copyright © 2010-2023 three.js authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.`;
+  function credits() {
+    panneau('Crédits', `<section><h4>THE ROYAL RACE ${escapeHTML(VERSION)}</h4><p class="hint">Chevaux, jockeys, hippodrome et domaine 3D sont construits par le jeu lui-même. Bruitages et musique sont synthétisés en direct (Web Audio) ; le commentaire utilise la synthèse vocale de ton appareil.</p></section>
+      <section><h4>MOTEUR 3D</h4><p class="hint"><b>three.js</b> r160 — © 2010-2023 three.js authors — licence MIT.</p><details class="aide-plus"><summary>Texte de la licence</summary><pre class="savecode">${escapeHTML(MIT)}</pre></details></section>
+      <section><h4>POLICES</h4><p class="hint"><b>Russo One</b> — Jovanny Lemonad · <b>Rajdhani</b> — Indian Type Foundry · <b>Exo 2</b> — Natanael Gama.<br>Licence SIL Open Font License 1.1 — <a href="assets/fonts/OFL.txt" target="_blank" rel="noopener">texte complet</a>.</p></section>`);
+  }
+  // --- clics (panneau commun) ---
+  $('#panelBody').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'aideBug') signaler();
+    else if (b.id === 'aidePrivee') confidentialite();
+    else if (b.id === 'aideCredits') credits();
+    else if (b.id === 'bugCopy') { try { await navigator.clipboard.writeText(texte()); toast('Rapport copié : colle-le dans ton message') } catch (err) { const v = $('#bugVoir'); v.open = true; $('#bugPre').textContent = texte(); toast('Copie impossible : sélectionne le rapport affiché') } }
+    else if (b.id === 'bugDl') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texte()], { type: 'text/plain;charset=utf-8' })); a.download = `royal-race-rapport-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000) }
+    else if (b.id === 'bugMail') { const t = texte(); location.href = `mailto:${JOURNAL_ENVOI.contact}?subject=${encodeURIComponent(`The Royal Race ${VERSION} — problème`)}&body=${encodeURIComponent(t.length > 1800 ? t.slice(0, 1800) + '\n… (rapport complet : bouton Télécharger)' : t)}` }
+    else if (b.id === 'journalEffacer') { if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = 'Confirmer : effacer le journal'; b.classList.add('danger'); return } journal.effacer(); toast('Journal technique effacé'); confidentialite() }
+  });
+  $('#panelBody').addEventListener('toggle', e => { if (e.target.id === 'bugVoir' && e.target.open) $('#bugPre').textContent = texte() }, true);
+  $('#panelBody').addEventListener('change', e => { if (e.target.id === 'setEnvoi') settings.set('envoi', e.target.checked) });
+  return { signaler, confidentialite, credits };
+})();
 </script>
 <script>(()=>{const ko=[];let cur='';const on=()=>{if(cur)ko.push(cur)};addEventListener('error',on);for(const m of document.querySelectorAll('script[type="text/x-module"]')){cur=m.dataset.f;const s=document.createElement('script');s.textContent=m.textContent+'\n//# sourceURL='+cur;document.body.appendChild(s)}cur='';removeEventListener('error',on);window.__modulesKo=ko;if(ko.length)console.error('Modules en échec :',ko.join(', '));try{hooks.emit('ready')}catch(e){}})()</script>
 

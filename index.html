@@ -1171,6 +1171,8 @@ const HORSE3D = (() => {
       E([1.0, 1.93, 0], [.13, .11, .105], 2), E([1.02, 1.8, 0], [.165, .12, .1], 2, -.8), C([1.05, 1.88, 0], [1.28, 1.64, 0], .09, .072, 2, .88),
       E([1.3, 1.6, 0], [.09, .083, .074], 2, -.7), E([1.33, 1.55, 0], [.058, .04, .056], 2, -.7),
       E([1.08, 1.915, .08], [.04, .03, .03], 2), E([1.08, 1.915, -.08], [.04, .03, .03], 2),
+      // ganaches (joues larges et plates) et menton : une tête moins « tube »
+      E([1.0, 1.79, .065], [.11, .095, .05], 2, -.75), E([1.0, 1.79, -.065], [.11, .095, .05], 2, -.75), E([1.26, 1.555, 0], [.05, .032, .045], 2, -.6),
     ];
     // jambes (gauche z>0, droite z<0)
     for (const [s, idF, idH] of [[1, 4, 6], [-1, 5, 7]]) {
@@ -1247,14 +1249,14 @@ const HORSE3D = (() => {
     const proj = p => { for (let i = 0; i < 6; i++) { const d = f(p[0], p[1], p[2]), g = grad(p[0], p[1], p[2]), L = g[0] * g[0] + g[1] * g[1] + g[2] * g[2] || 1; p = [p[0] - d * g[0] / L, p[1] - d * g[1] / L, p[2] - d * g[2] / L] } return p };
     const nrm = p => { const g = grad(p[0], p[1], p[2]), L = Math.hypot(g[0], g[1], g[2]) || 1; return [g[0] / L, g[1] / L, g[2] / L] };
     let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
-    const A = [.4, 1.71], B = [.98, 2.04], d = [B[0] - A[0], B[1] - A[1]], dl = Math.hypot(d[0], d[1]), dx = d[0] / dl, dy = d[1] / dl, nx = -dy, ny = dx, S = [], N = 48, K = 6;
+    const A = [.4, 1.71], B = [.98, 2.04], d = [B[0] - A[0], B[1] - A[1]], dl = Math.hypot(d[0], d[1]), dx = d[0] / dl, dy = d[1] / dl, nx = -dy, ny = dx, S = [], N = 64, K = 6;
     for (let i = 0; i < N; i++) {
       const t = (i + r() * .7) / N, cx = A[0] + d[0] * t, cy = A[1] + d[1] * t, q = [cx + nx * .22, cy + ny * .22, 0];
       for (let k = 0; k < 140 && f(q[0], q[1], q[2]) > 0; k++) { q[0] -= nx * .004; q[1] -= ny * .004 }
       const Rc = .13 - .05 * t, L = (1.2 + r() * .4) * (1 - .3 * t), c = [q[0] - nx * Rc, q[1] - ny * Rc, 0], p = [], w = [];
       for (let k = 0; k <= K; k++) {
         const fk = k / K, th = .05 + fk * L; let P = proj([c[0] + nx * Math.cos(th) * Rc, c[1] + ny * Math.cos(th) * Rc, -Math.sin(th) * Rc]); const no = nrm(P), off = .006 + fk * fk * .028 + r() * .004;
-        p.push([P[0] + no[0] * off - fk * fk * .04, P[1] + no[1] * off, P[2] + no[2] * off]); w.push([dx * .052 * (1 - fk * .3), dy * .052 * (1 - fk * .3), 0])
+        p.push([P[0] + no[0] * off - fk * fk * .04, P[1] + no[1] * off, P[2] + no[2] * off]); w.push([dx * .06 * (1 - fk * .3), dy * .06 * (1 - fk * .3), 0])
       }
       S.push({ p, w, root: [q[0], q[1]] })
     }
@@ -1406,7 +1408,8 @@ const HORSE3D = (() => {
   const NOISE3 = 'float h3(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}float n3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z);}';
   // pelage : robe, extrémités sombres, balzanes (hauteur par jambe), liste / étoile, pommelures, bout du nez, poil fin, occlusion
   function coatMat(col, dark, o) {
-    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .5, sheen: .8, sheenRoughness: .4, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .18, clearcoatRoughness: .5 });
+    // robe lustrée d'un pur-sang : vernis léger (clearcoat) qui prend les reflets du ciel, reflet de poil (sheen) et relief musculaire (bosselage procédural)
+    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .42, sheen: .8, sheenRoughness: .38, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .32, clearcoatRoughness: .36, envMapIntensity: 1.15 });
     m.onBeforeCompile = s => {
       Object.assign(s.uniforms, { uDark: { value: dark }, uPts: { value: o.points ? 1 : 0 }, uDap: { value: o.dapple ? 1 : 0 }, uSocks: { value: new THREE.Vector4(...o.socks) }, uBlaze: { value: o.blaze } });
       s.vertexShader = 'attribute float ao;attribute float reg;varying float vAo;varying float vReg;varying vec3 vRest;varying vec3 vRestN;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvAo=ao;vReg=reg;vRest=position;vRestN=normal;');
@@ -1421,12 +1424,17 @@ const HORSE3D = (() => {
        float bl=0.;if(r==2&&uBlaze>.5){vec2 a=vec2(1.02,2.0),b=vec2(1.36,1.57);vec2 d=b-a;float t=clamp(dot(P.xy-a,d)/dot(d,d),0.,1.);float front=dot(vRestN.xy,normalize(vec2(d.y,-d.x)));
         float w=uBlaze>1.5?.028+t*.018:(t<.2?.03:0.);bl=smoothstep(w+.006,w-.006,abs(P.z))*smoothstep(.2,.45,front)*(uBlaze>1.5?step(t,.93):1.);}
        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.93,.91,.87),max(sock,bl));
-       diffuseColor.rgb*=pow(vAo,1.25);}`)
+       diffuseColor.rgb*=pow(vAo,1.25);}`).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+      {vec3 P=vRest;float lg=mix(.3,1.,smoothstep(.85,1.15,P.y));
+       float hB=(n3(P*vec3(6.,7.5,6.))*.05+n3(P*17.)*.01)*lg;vec2 dH=vec2(dFdx(hB),dFdy(hB));
+       vec3 sX=dFdx(-vViewPosition),sY=dFdy(-vViewPosition),R1=cross(sY,normal),R2=cross(normal,sX);float fD=dot(sX,R1);
+       normal=normalize(abs(fD)*normal-sign(fD)*(dH.x*R1+dH.y*R2));}`)
     }; return m
   }
   // jockey : casaque à motif, couleur par région fondue d'un sommet à l'autre (frontières lisses), bras pondérés
   function jockeyMat(tex, cols) {
-    const m = new THREE.MeshStandardMaterial({ map: tex, roughness: .45, metalness: .02 });
+    // soie satinée (reflet doux qui glisse sur les plis) sauf en qualité basse
+    const m = settings.level() === 'basse' ? new THREE.MeshStandardMaterial({ map: tex, roughness: .45, metalness: .02 }) : new THREE.MeshPhysicalMaterial({ map: tex, roughness: .45, metalness: .02, sheen: .7, sheenRoughness: .32, sheenColor: new THREE.Color(0xffffff), envMapIntensity: 1.1 });
     m.onBeforeCompile = s => {
       s.uniforms.uCols = { value: cols };
       s.vertexShader = `attribute float ao;attribute float reg;attribute float reg2;attribute float rt;uniform vec3 uCols[9];varying float vAo;varying vec3 vCol;varying float vSilk;varying float vRough;varying vec3 vRest;
@@ -1435,6 +1443,9 @@ const HORSE3D = (() => {
        vAo=ao;int r1=jr(reg),r2=jr(reg2);float s1=r1==0?1.:0.,s2=r2==0?1.:0.;vCol=mix(jc(r1)*(1.-s1),jc(r2)*(1.-s2),rt);vSilk=mix(s1,s2,rt);vRough=mix(jro(r1),jro(r2),rt);vRest=position;`);
       s.fragmentShader = 'varying float vAo;varying vec3 vCol;varying float vSilk;varying float vRough;varying vec3 vRest;\n' + s.fragmentShader.replace('#include <map_fragment>', `vec4 sT=texture2D(map,vec2(.5+vRest.z/.42,(vRest.x+.14)/.46));diffuseColor.rgb=(vCol+vSilk*sT.rgb)*pow(vAo,1.2);`)
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor=vRough;')
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        {vec3 P=vRest;float f=sin(P.x*62.+sin(P.z*25.)*2.2+sin(P.y*30.)*1.6)*.5+.5;float hB=f*f*.0045*(1.-vSilk*.3)*smoothstep(.07,.12,distance(P,vec3(.44,2.15,0.)));vec2 dH=vec2(dFdx(hB),dFdy(hB));
+         vec3 sX=dFdx(-vViewPosition),sY=dFdy(-vViewPosition),R1=cross(sY,normal),R2=cross(normal,sX);float fD=dot(sX,R1);normal=normalize(abs(fD)*normal-sign(fD)*(dH.x*R1+dH.y*R2));}`)
     }; return m
   }
   const HAIR = { bai: 0x120c09, noir: 0x0b0a0a, alezan: 0x6a2c12, gris: 0x55555a, baibrun: 0x0e0a08, palomino: 0xefe2c0 };
@@ -1676,11 +1687,22 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   let bob=0;if(running){bob=Math.sin(fx.phase[0]/8*Math.PI*2)*.14;cam.position.y+=bob}
   if(!QUALITY[settings.level()].post){r.render(q.scene,cam);cam.position.y-=bob;return}r.setRenderTarget(P.rt);r.render(q.scene,cam);r.setRenderTarget(null);cam.position.y-=bob;
   P.mat.uniforms.uRes.value.copy(fx.size);P.mat.uniforms.uTime.value=now*.001;P.mat.uniforms.uBlur.value=fx.blur;r.render(P.scene,P.cam)}
+ // lumière d'environnement : un ciel en dégradé (zénith, horizon, sol) et un soleil, filtrés en carte PMREM. Tous les matériaux
+ // « standard » y prennent leurs reflets (robe lustrée, casaques satinées, vernis des tribunes). Réutilisée par le domaine 3D.
+ const envCache=new WeakMap();
+ function skyEnv(renderer,o){if(!renderer||!renderer.capabilities)return null;let E=envCache.get(renderer);
+  if(!E){const pm=new THREE.PMREMGenerator(renderer),s=new THREE.Scene(),mat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,
+    uniforms:{uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uGnd:{value:new THREE.Vector3()},uSun:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Vector3(1,1,1)},uK:{value:1}},
+    vertexShader:'varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform vec3 uZen,uHor,uGnd,uSun,uSunC;uniform float uK;varying vec3 vD;void main(){float y=vD.y;vec3 c=y>0.?mix(uHor,uZen,pow(smoothstep(0.,1.,y),.6)):mix(uHor*.7,uGnd,smoothstep(0.,-.35,y));float s=max(dot(vD,normalize(uSun)),0.);c+=uSunC*(pow(s,48.)*6.+pow(s,6.)*.35)*uK;gl_FragColor=vec4(c,1.);}'});
+   s.add(new THREE.Mesh(new THREE.SphereGeometry(10,48,24),mat));E={pm,s,mat,rt:null};envCache.set(renderer,E)}
+  const U=E.mat.uniforms,k=o.k??1;U.uZen.value.set(...o.zen).multiplyScalar(k);U.uHor.value.set(...o.hor).multiplyScalar(k);U.uGnd.value.set(...o.gnd).multiplyScalar(k);U.uSun.value.set(...o.sun);U.uSunC.value.set(...o.sunC).multiplyScalar(k);U.uK.value=o.sunK??1;
+  const rt=E.pm.fromScene(E.s,0,.1,100);E.rt?.dispose();E.rt=rt;return rt.texture}
  // gerbe de poussière (ouverture des stalles) : n grains projetés vers l'avant autour d'une position de piste
  function burst(p,n=24,power=1){if(!fx||!fx.dust)return;const D=fx.dust;for(let k=0;k<n;k++){const j=D.next=(D.next+1)%D.N,side=(Math.random()-.5)*4.5,fw=(Math.random()-.2)*3;
    D.pos[j*3]=p.p.x+p.f.x*fw+p.n.x*side;D.pos[j*3+1]=.3+Math.random()*.6;D.pos[j*3+2]=p.p.z+p.f.z*fw+p.n.z*side;const sp=(4+Math.random()*9)*power;
    D.vel[j*3]=p.f.x*sp+p.n.x*(Math.random()-.5)*5;D.vel[j*3+1]=2.5+Math.random()*5.5*power;D.vel[j*3+2]=p.f.z*sp+p.n.z*(Math.random()-.5)*5;D.life[j]=.7+Math.random()*.7}}
- return{build,horse,podium,parade,render,ground,liveries,burst,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
+ return{build,horse,podium,parade,render,ground,liveries,burst,skyEnv,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
 })();
 </script>
 <script type="text/x-module" data-f="09-race-world.js">/* ===== Course — le monde autour de la piste en vraie 3D =====
@@ -2854,6 +2876,8 @@ const ambiance=(()=>{let rain=null,cur=null;
   rain.drops.forEach((d,i)=>{d.y-=d.v*dt;if(d.y<0){d.y+=40;d.x=(Math.random()-.5)*90;d.z=(Math.random()-.5)*90}const o=i*6;P[o]=d.x;P[o+1]=d.y+c.y-14;P[o+2]=d.z;P[o+3]=d.x+.18;P[o+4]=d.y+c.y-14+1.3;P[o+5]=d.z+.1});rain.g.attributes.position.needsUpdate=true}
  function apply(q,k=key()){const A=AMBIANCES[k],fx=raceFX._fx;if(!q||!A)return;const v=a=>new THREE.Vector3(...a);
   q.sun.color.set(A.sun[0]);q.sun.intensity=A.sun[1];q.sun.position.set(A.sun[2],A.sun[3],A.sun[4]);q.hemi.color.set(A.hemi[0]);q.hemi.groundColor.set(A.hemi[1]);q.hemi.intensity=A.hemi[2];
+  // reflets du ciel du moment (2.4) : l'environnement prend le relais d'une partie de la lumière d'ambiance
+  if(!q.headless&&settings.level()!=='basse'){const g=new THREE.Color(A.hemi[1]),sc=new THREE.Color(A.sun[0]);try{q.scene.environment=raceFX.skyEnv(q.renderer,{zen:A.zen,hor:A.hor,gnd:[g.r,g.g,g.b],sun:A.sun.slice(2),sunC:[sc.r,sc.g,sc.b],sunK:Math.min(1,A.sunK)*(A.night?.05:1),k:A.night?.25:.85});q.hemi.intensity=A.hemi[2]*.62}catch(e){}}else q.scene.environment=null;
   q.scene.fog.color.set(A.fog[0]);q.scene.fog.near=A.fog[1];q.scene.fog.far=A.fog[2];
   if(fx){const U=fx.skyMat&&fx.skyMat.uniforms;if(U){U.uZen.value=v(A.zen);U.uMid.value=v(A.mid);U.uHor.value=v(A.hor);U.uSunC.value=v(A.sunC);U.uSunK.value=A.sunK;U.uSun.value=v(A.sun.slice(2)).normalize();if(U.uCloud)U.uCloud.value=A.cloud??.4;if(U.uNight)U.uNight.value=A.night||0}
    try{raceWorld.night(A.night||0)}catch(e){}

@@ -102,6 +102,8 @@ const HORSE3D = (() => {
       E([1.0, 1.93, 0], [.13, .11, .105], 2), E([1.02, 1.8, 0], [.165, .12, .1], 2, -.8), C([1.05, 1.88, 0], [1.28, 1.64, 0], .09, .072, 2, .88),
       E([1.3, 1.6, 0], [.09, .083, .074], 2, -.7), E([1.33, 1.55, 0], [.058, .04, .056], 2, -.7),
       E([1.08, 1.915, .08], [.04, .03, .03], 2), E([1.08, 1.915, -.08], [.04, .03, .03], 2),
+      // ganaches (joues larges et plates) et menton : une tête moins « tube »
+      E([1.0, 1.79, .065], [.11, .095, .05], 2, -.75), E([1.0, 1.79, -.065], [.11, .095, .05], 2, -.75), E([1.26, 1.555, 0], [.05, .032, .045], 2, -.6),
     ];
     // jambes (gauche z>0, droite z<0)
     for (const [s, idF, idH] of [[1, 4, 6], [-1, 5, 7]]) {
@@ -178,14 +180,14 @@ const HORSE3D = (() => {
     const proj = p => { for (let i = 0; i < 6; i++) { const d = f(p[0], p[1], p[2]), g = grad(p[0], p[1], p[2]), L = g[0] * g[0] + g[1] * g[1] + g[2] * g[2] || 1; p = [p[0] - d * g[0] / L, p[1] - d * g[1] / L, p[2] - d * g[2] / L] } return p };
     const nrm = p => { const g = grad(p[0], p[1], p[2]), L = Math.hypot(g[0], g[1], g[2]) || 1; return [g[0] / L, g[1] / L, g[2] / L] };
     let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
-    const A = [.4, 1.71], B = [.98, 2.04], d = [B[0] - A[0], B[1] - A[1]], dl = Math.hypot(d[0], d[1]), dx = d[0] / dl, dy = d[1] / dl, nx = -dy, ny = dx, S = [], N = 48, K = 6;
+    const A = [.4, 1.71], B = [.98, 2.04], d = [B[0] - A[0], B[1] - A[1]], dl = Math.hypot(d[0], d[1]), dx = d[0] / dl, dy = d[1] / dl, nx = -dy, ny = dx, S = [], N = 64, K = 6;
     for (let i = 0; i < N; i++) {
       const t = (i + r() * .7) / N, cx = A[0] + d[0] * t, cy = A[1] + d[1] * t, q = [cx + nx * .22, cy + ny * .22, 0];
       for (let k = 0; k < 140 && f(q[0], q[1], q[2]) > 0; k++) { q[0] -= nx * .004; q[1] -= ny * .004 }
       const Rc = .13 - .05 * t, L = (1.2 + r() * .4) * (1 - .3 * t), c = [q[0] - nx * Rc, q[1] - ny * Rc, 0], p = [], w = [];
       for (let k = 0; k <= K; k++) {
         const fk = k / K, th = .05 + fk * L; let P = proj([c[0] + nx * Math.cos(th) * Rc, c[1] + ny * Math.cos(th) * Rc, -Math.sin(th) * Rc]); const no = nrm(P), off = .006 + fk * fk * .028 + r() * .004;
-        p.push([P[0] + no[0] * off - fk * fk * .04, P[1] + no[1] * off, P[2] + no[2] * off]); w.push([dx * .052 * (1 - fk * .3), dy * .052 * (1 - fk * .3), 0])
+        p.push([P[0] + no[0] * off - fk * fk * .04, P[1] + no[1] * off, P[2] + no[2] * off]); w.push([dx * .06 * (1 - fk * .3), dy * .06 * (1 - fk * .3), 0])
       }
       S.push({ p, w, root: [q[0], q[1]] })
     }
@@ -337,7 +339,8 @@ const HORSE3D = (() => {
   const NOISE3 = 'float h3(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}float n3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z);}';
   // pelage : robe, extrémités sombres, balzanes (hauteur par jambe), liste / étoile, pommelures, bout du nez, poil fin, occlusion
   function coatMat(col, dark, o) {
-    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .5, sheen: .8, sheenRoughness: .4, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .18, clearcoatRoughness: .5 });
+    // robe lustrée d'un pur-sang : vernis léger (clearcoat) qui prend les reflets du ciel, reflet de poil (sheen) et relief musculaire (bosselage procédural)
+    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .42, sheen: .8, sheenRoughness: .38, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .32, clearcoatRoughness: .36, envMapIntensity: 1.15 });
     m.onBeforeCompile = s => {
       Object.assign(s.uniforms, { uDark: { value: dark }, uPts: { value: o.points ? 1 : 0 }, uDap: { value: o.dapple ? 1 : 0 }, uSocks: { value: new THREE.Vector4(...o.socks) }, uBlaze: { value: o.blaze } });
       s.vertexShader = 'attribute float ao;attribute float reg;varying float vAo;varying float vReg;varying vec3 vRest;varying vec3 vRestN;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvAo=ao;vReg=reg;vRest=position;vRestN=normal;');
@@ -352,12 +355,17 @@ const HORSE3D = (() => {
        float bl=0.;if(r==2&&uBlaze>.5){vec2 a=vec2(1.02,2.0),b=vec2(1.36,1.57);vec2 d=b-a;float t=clamp(dot(P.xy-a,d)/dot(d,d),0.,1.);float front=dot(vRestN.xy,normalize(vec2(d.y,-d.x)));
         float w=uBlaze>1.5?.028+t*.018:(t<.2?.03:0.);bl=smoothstep(w+.006,w-.006,abs(P.z))*smoothstep(.2,.45,front)*(uBlaze>1.5?step(t,.93):1.);}
        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.93,.91,.87),max(sock,bl));
-       diffuseColor.rgb*=pow(vAo,1.25);}`)
+       diffuseColor.rgb*=pow(vAo,1.25);}`).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+      {vec3 P=vRest;float lg=mix(.3,1.,smoothstep(.85,1.15,P.y));
+       float hB=(n3(P*vec3(6.,7.5,6.))*.05+n3(P*17.)*.01)*lg;vec2 dH=vec2(dFdx(hB),dFdy(hB));
+       vec3 sX=dFdx(-vViewPosition),sY=dFdy(-vViewPosition),R1=cross(sY,normal),R2=cross(normal,sX);float fD=dot(sX,R1);
+       normal=normalize(abs(fD)*normal-sign(fD)*(dH.x*R1+dH.y*R2));}`)
     }; return m
   }
   // jockey : casaque à motif, couleur par région fondue d'un sommet à l'autre (frontières lisses), bras pondérés
   function jockeyMat(tex, cols) {
-    const m = new THREE.MeshStandardMaterial({ map: tex, roughness: .45, metalness: .02 });
+    // soie satinée (reflet doux qui glisse sur les plis) sauf en qualité basse
+    const m = settings.level() === 'basse' ? new THREE.MeshStandardMaterial({ map: tex, roughness: .45, metalness: .02 }) : new THREE.MeshPhysicalMaterial({ map: tex, roughness: .45, metalness: .02, sheen: .7, sheenRoughness: .32, sheenColor: new THREE.Color(0xffffff), envMapIntensity: 1.1 });
     m.onBeforeCompile = s => {
       s.uniforms.uCols = { value: cols };
       s.vertexShader = `attribute float ao;attribute float reg;attribute float reg2;attribute float rt;uniform vec3 uCols[9];varying float vAo;varying vec3 vCol;varying float vSilk;varying float vRough;varying vec3 vRest;
@@ -366,6 +374,9 @@ const HORSE3D = (() => {
        vAo=ao;int r1=jr(reg),r2=jr(reg2);float s1=r1==0?1.:0.,s2=r2==0?1.:0.;vCol=mix(jc(r1)*(1.-s1),jc(r2)*(1.-s2),rt);vSilk=mix(s1,s2,rt);vRough=mix(jro(r1),jro(r2),rt);vRest=position;`);
       s.fragmentShader = 'varying float vAo;varying vec3 vCol;varying float vSilk;varying float vRough;varying vec3 vRest;\n' + s.fragmentShader.replace('#include <map_fragment>', `vec4 sT=texture2D(map,vec2(.5+vRest.z/.42,(vRest.x+.14)/.46));diffuseColor.rgb=(vCol+vSilk*sT.rgb)*pow(vAo,1.2);`)
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor=vRough;')
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        {vec3 P=vRest;float f=sin(P.x*62.+sin(P.z*25.)*2.2+sin(P.y*30.)*1.6)*.5+.5;float hB=f*f*.0045*(1.-vSilk*.3)*smoothstep(.07,.12,distance(P,vec3(.44,2.15,0.)));vec2 dH=vec2(dFdx(hB),dFdy(hB));
+         vec3 sX=dFdx(-vViewPosition),sY=dFdy(-vViewPosition),R1=cross(sY,normal),R2=cross(normal,sX);float fD=dot(sX,R1);normal=normalize(abs(fD)*normal-sign(fD)*(dH.x*R1+dH.y*R2));}`)
     }; return m
   }
   const HAIR = { bai: 0x120c09, noir: 0x0b0a0a, alezan: 0x6a2c12, gris: 0x55555a, baibrun: 0x0e0a08, palomino: 0xefe2c0 };

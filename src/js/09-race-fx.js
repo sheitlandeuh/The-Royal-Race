@@ -131,9 +131,20 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   let bob=0;if(running){bob=Math.sin(fx.phase[0]/8*Math.PI*2)*.14;cam.position.y+=bob}
   if(!QUALITY[settings.level()].post){r.render(q.scene,cam);cam.position.y-=bob;return}r.setRenderTarget(P.rt);r.render(q.scene,cam);r.setRenderTarget(null);cam.position.y-=bob;
   P.mat.uniforms.uRes.value.copy(fx.size);P.mat.uniforms.uTime.value=now*.001;P.mat.uniforms.uBlur.value=fx.blur;r.render(P.scene,P.cam)}
+ // lumière d'environnement : un ciel en dégradé (zénith, horizon, sol) et un soleil, filtrés en carte PMREM. Tous les matériaux
+ // « standard » y prennent leurs reflets (robe lustrée, casaques satinées, vernis des tribunes). Réutilisée par le domaine 3D.
+ const envCache=new WeakMap();
+ function skyEnv(renderer,o){if(!renderer||!renderer.capabilities)return null;let E=envCache.get(renderer);
+  if(!E){const pm=new THREE.PMREMGenerator(renderer),s=new THREE.Scene(),mat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,
+    uniforms:{uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uGnd:{value:new THREE.Vector3()},uSun:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Vector3(1,1,1)},uK:{value:1}},
+    vertexShader:'varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform vec3 uZen,uHor,uGnd,uSun,uSunC;uniform float uK;varying vec3 vD;void main(){float y=vD.y;vec3 c=y>0.?mix(uHor,uZen,pow(smoothstep(0.,1.,y),.6)):mix(uHor*.7,uGnd,smoothstep(0.,-.35,y));float s=max(dot(vD,normalize(uSun)),0.);c+=uSunC*(pow(s,48.)*6.+pow(s,6.)*.35)*uK;gl_FragColor=vec4(c,1.);}'});
+   s.add(new THREE.Mesh(new THREE.SphereGeometry(10,48,24),mat));E={pm,s,mat,rt:null};envCache.set(renderer,E)}
+  const U=E.mat.uniforms,k=o.k??1;U.uZen.value.set(...o.zen).multiplyScalar(k);U.uHor.value.set(...o.hor).multiplyScalar(k);U.uGnd.value.set(...o.gnd).multiplyScalar(k);U.uSun.value.set(...o.sun);U.uSunC.value.set(...o.sunC).multiplyScalar(k);U.uK.value=o.sunK??1;
+  const rt=E.pm.fromScene(E.s,0,.1,100);E.rt?.dispose();E.rt=rt;return rt.texture}
  // gerbe de poussière (ouverture des stalles) : n grains projetés vers l'avant autour d'une position de piste
  function burst(p,n=24,power=1){if(!fx||!fx.dust)return;const D=fx.dust;for(let k=0;k<n;k++){const j=D.next=(D.next+1)%D.N,side=(Math.random()-.5)*4.5,fw=(Math.random()-.2)*3;
    D.pos[j*3]=p.p.x+p.f.x*fw+p.n.x*side;D.pos[j*3+1]=.3+Math.random()*.6;D.pos[j*3+2]=p.p.z+p.f.z*fw+p.n.z*side;const sp=(4+Math.random()*9)*power;
    D.vel[j*3]=p.f.x*sp+p.n.x*(Math.random()-.5)*5;D.vel[j*3+1]=2.5+Math.random()*5.5*power;D.vel[j*3+2]=p.f.z*sp+p.n.z*(Math.random()-.5)*5;D.life[j]=.7+Math.random()*.7}}
- return{build,horse,podium,parade,render,ground,liveries,burst,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
+ return{build,horse,podium,parade,render,ground,liveries,burst,skyEnv,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
 })();

@@ -18,6 +18,8 @@ const ambiance=(()=>{let rain=null,cur=null;
   rain.drops.forEach((d,i)=>{d.y-=d.v*dt;if(d.y<0){d.y+=40;d.x=(Math.random()-.5)*90;d.z=(Math.random()-.5)*90}const o=i*6;P[o]=d.x;P[o+1]=d.y+c.y-14;P[o+2]=d.z;P[o+3]=d.x+.18;P[o+4]=d.y+c.y-14+1.3;P[o+5]=d.z+.1});rain.g.attributes.position.needsUpdate=true}
  function apply(q,k=key()){const A=AMBIANCES[k],fx=raceFX._fx;if(!q||!A)return;const v=a=>new THREE.Vector3(...a);
   q.sun.color.set(A.sun[0]);q.sun.intensity=A.sun[1];q.sun.position.set(A.sun[2],A.sun[3],A.sun[4]);q.hemi.color.set(A.hemi[0]);q.hemi.groundColor.set(A.hemi[1]);q.hemi.intensity=A.hemi[2];
+  // reflets du ciel du moment (2.4) : l'environnement prend le relais d'une partie de la lumière d'ambiance
+  if(!q.headless&&settings.level()!=='basse'){const g=new THREE.Color(A.hemi[1]),sc=new THREE.Color(A.sun[0]);try{q.scene.environment=raceFX.skyEnv(q.renderer,{zen:A.zen,hor:A.hor,gnd:[g.r,g.g,g.b],sun:A.sun.slice(2),sunC:[sc.r,sc.g,sc.b],sunK:Math.min(1,A.sunK)*(A.night?.05:1),k:A.night?.25:.85});q.hemi.intensity=A.hemi[2]*.62}catch(e){}}else q.scene.environment=null;
   q.scene.fog.color.set(A.fog[0]);q.scene.fog.near=A.fog[1];q.scene.fog.far=A.fog[2];
   if(fx){const U=fx.skyMat&&fx.skyMat.uniforms;if(U){U.uZen.value=v(A.zen);U.uMid.value=v(A.mid);U.uHor.value=v(A.hor);U.uSunC.value=v(A.sunC);U.uSunK.value=A.sunK;U.uSun.value=v(A.sun.slice(2)).normalize();if(U.uCloud)U.uCloud.value=A.cloud??.4;if(U.uNight)U.uNight.value=A.night||0}
    try{raceWorld.night(A.night||0)}catch(e){}

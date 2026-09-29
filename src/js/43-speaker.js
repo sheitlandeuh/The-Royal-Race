@@ -6,7 +6,9 @@ const speaker=(()=>{const el=document.createElement('div');el.className='speaker
  const lengths=(a,b)=>{const g=Math.abs(progress[a]-progress[b])*RACE.dist/100/2.4;return g<.4?'une tête':g<1?'une encolure':g<1.5?'une longueur':`${Math.round(g*2)/2} longueurs`.replace('.5',' ½')};
  const de=g=>/^[aeiouéèêh]/i.test(g)?'d’'+g:'de '+g;
  const pos=n=>n===1?'en tête':`${n}${n===1?'er':'e'}`;
- function show(html,voice){el.innerHTML=`<i>🎙️</i> ${html}`;el.classList.add('show');clearTimeout(hideT);hideT=setTimeout(()=>el.classList.remove('show'),4200);if(voice)sound.say(voice)}
+ // 2.6 : pendant la course en direct, rien ne s'affiche par-dessus — le speaker parle (si la voix est activée), le classement en direct montre les écarts ;
+ // le texte ne s'affiche qu'une fois ton cheval arrivé (leçon de rythme)
+ function show(html,voice){if(voice)sound.say(voice);if(!raceFinished[0]&&$('#raceScreen').classList.contains('open')&&!(typeof tele!=='undefined'&&tele.on))return;el.innerHTML=`<i>🎙️</i> ${html}`;el.classList.add('show');clearTimeout(hideT);hideT=setTimeout(()=>el.classList.remove('show'),4200)}
  function call(k){const O=order(),L=O[0].i,S=O[1].i,n=rank(),youLead=L===0,gapL=youLead?lengths(0,S):lengths(0,L);
   if(k==='q1'){const t=pace.info().k,ry=t==='rapide'||t==='duel'?' sur un rythme soutenu':t==='lent'?' sans forcer l’allure':'';show(youLead?pick([`${me()} emmène le peloton${ry}, avec ${gapL} d’avance.`,`Premier tournant : ${me()} en tête, ${gapL} devant ${N(S)}.`]):pick([`${N(L)} emmène le peloton${ry}. ${me()} ${pos(n)}, à ${gapL}.`,`Premier tournant : ${N(L)} en tête, ${me()} ${pos(n)} à ${gapL}.`]),youLead?`${HN()} mène !`:null)}
   if(k==='q2')show(youLead?pick([`Mi-course : ${me()} mène ${de(gapL)} devant ${N(S)}.`,`À mi-parcours, ${me()} est toujours devant !`]):pick([`Mi-course : ${N(L)} devant ${N(S)}. ${me()} ${pos(n)}, à ${gapL} de la tête.`,`À mi-parcours, ${N(L)} contrôle. ${me()} ${pos(n)}.`]));

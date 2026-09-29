@@ -152,6 +152,11 @@ export async function run({ quick = false } = {}) {
       const a = JSON.stringify(ecuries.tirage(99, 5, J)), b = JSON.stringify(ecuries.tirage(99, 5, J));
       pass('Écuries rivales : plateaux variés et valides', !bad && a === b && noms.size >= 50, `${noms.size} chevaux croisés sur 300 plateaux · ${bad} anomalie${bad > 1 ? 's' : ''}`) }
 
+    // mémoire graphique (2.6) : trois courses d'affilée ne doivent pas accumuler de textures (squelettes des chevaux 3D, portraits du podium)
+    if (threeRace && !threeRace.headless) { const frames = n => new Promise(r => { const f = () => --n > 0 ? requestAnimationFrame(f) : r(); requestAnimationFrame(f) }), T = [];
+      for (let k = 0; k < 3; k++) { RACE = { ...MEETINGS[k] }; currentField = null; buildField(300 + k); stable.active().fatigue = 10; state.feed = 99999; startRace(); await frames(6); while (coach.open) coach.hide(); leaveRace(); while (coach.open) coach.hide(); await frames(3); T.push(threeRace.renderer.info.memory.textures) }
+      pass('Mémoire graphique stable entre les courses', T[2] - T[0] <= 2, `textures après chaque course : ${T.join(' → ')}`) }
+
     // 12. aucun contenu factice visible
     const txt = document.body.innerText, bad = ['bientôt', 'Lorem', 'TODO', 'undefined', 'NaN'].filter(w => txt.includes(w));
     pass('Aucun texte factice ou cassé', !bad.length, bad.length ? 'trouvé : ' + bad.join(', ') : 'rien trouvé');

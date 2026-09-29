@@ -709,6 +709,47 @@
     html,body{touch-action:pan-x pan-y}
     button,a,label,input,select,textarea,[role=button]{touch-action:manipulation}
     .race-screen{touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+    /* 2.6 : écran de course sur petit téléphone en portrait (≤ 420 px de large) : en-tête resserré, message sur deux lignes,
+       carte du cheval compacte à gauche de la commande d'allure, commandes du bas qui ne se chevauchent plus */
+    @media (max-width:420px) and (orientation:portrait){
+      #raceScreen .race-head.fp-head{padding:8px 10px;gap:8px;height:auto;min-height:60px}
+      #raceScreen .race-head h2{font-size:13px;line-height:1.15;max-width:30vw;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+      #raceScreen .fp-head .position strong{font-size:26px}
+      #raceScreen .race-head .distance{min-width:0;font-size:15px;white-space:nowrap}
+      #raceScreen #quitRace{padding:6px 9px!important;font-size:12px}
+      #raceScreen .steer{width:calc(100% - 106px)}
+      #raceScreen .race-call{top:92px;max-width:calc(100% - 24px);white-space:normal;text-align:center;font-size:12px;line-height:1.25;padding:6px 12px}
+      #raceScreen .auto-gallop{left:10px;right:80px;bottom:calc(92px + env(safe-area-inset-bottom,0px));padding:8px 10px;gap:3px;max-width:none}
+      #raceScreen .auto-gallop>span{display:none}
+      #raceScreen .auto-gallop b{font-size:14px}
+      #raceScreen .auto-gallop .energy-label{font-size:11px}
+      #raceScreen .auto-gallop .energy-track{width:100%;max-width:none}
+      #raceScreen .auto-gallop .sprint-info{font-size:11.5px;line-height:1.3}
+      #raceScreen .lane-meter span{font-size:8.5px;letter-spacing:.06em}
+    }
+    @media (max-width:360px) and (orientation:portrait){
+      #raceScreen .steer button{width:54px;height:54px}
+      #raceScreen .lane-meter{width:64px}
+      #raceScreen .lane-meter span{display:none}
+      #raceScreen .sprint-btn{width:68px;height:68px}
+      #raceScreen .steer{width:calc(100% - 96px)}
+      #raceScreen .pace-ctl{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+      #raceScreen .auto-gallop{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+    }
+    /* 2.6 : classement officiel — temps et écarts sur une seule ligne, même sur 320 px */
+    #finishRows td:nth-child(3),#finishRows td:nth-child(4){white-space:nowrap}
+    @media (max-width:420px){.finish-board table{font-size:13px}.finish-board th,.finish-board td{padding-left:6px;padding-right:6px}}
+    /* 2.6 : bouton COURIR toujours visible dans l'écran des courses */
+    #panelBody>.race-entry.sticky-cta{position:sticky;bottom:-2px;z-index:4;margin:12px -4px 0;padding:14px 4px 6px;background:linear-gradient(#070a1c00,#070a1cf5 32%)}
+    /* 2.6 : accessibilité — « réduire les animations » du système respecté ; plus aucun texte sous 10 px */
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+    .slot small,.play small{font-size:11px}
+    @media (max-height:500px) and (orientation:landscape){.slot small,.play small{font-size:10.5px}}
+    /* 2.6 : lisibilité — aucune étiquette de l'écran de course sous 10 px */
+    .fp-head .position small,.steer button small,.sprint-btn small,.pace-ctl button small,.lane-meter span,.race-map span{font-size:10px!important}
+    @media (max-width:360px) and (orientation:portrait){.pace-ctl button small{letter-spacing:0!important}}
+    .slot.empty small{font-size:10.5px}
+    .runners .nem{font-size:10px}.jk-face{font-size:10px!important}
   </style>
 </head>
 <body>
@@ -856,7 +897,7 @@ const journal = (() => {
   };
 })();
 </script>
-<script type="text/x-module" data-f="01-core.js">const VERSION='2.5';
+<script type="text/x-module" data-f="01-core.js">const VERSION='2.6';
 const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
@@ -872,7 +913,14 @@ const stableMax=()=>dfx('ecurie'),purseOf=m=>Math.round((m.purse||0)*dfx('hippod
 const hooks=(()=>{const L={};return{on(e,f,p=0){const l=L[e]=L[e]||[];l.push({f,p});l.sort((a,b)=>b.p-a.p)},emit(e,...a){for(const{f}of(L[e]||[]).slice())try{f(...a)}catch(err){console.error('hook '+e,err)}}}})();
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>n.toLocaleString('fr-FR');
-function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),2200)}
+// temps affichés (2.6) : virgule décimale et espace insécable avant l'unité — « 89,55 s » ne se coupe jamais en fin de ligne
+// réglage système « réduire les animations » (2.6) : pas de secousse de caméra, animations CSS coupées (13-gaming)
+const REDUCE_MOTION=matchMedia('(prefers-reduced-motion: reduce)');
+const sec=(x,d=2)=>Number(x).toFixed(d).replace('.',',')+'\u00a0s';
+function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),ms)}
+// sauvegarde impossible (stockage du navigateur plein ou bloqué, 2.6) : prévenir une fois par session au lieu de perdre la progression en silence
+const saveKo=(()=>{let said=false;return e=>{try{journal.erreur('sauvegarde',String(e&&e.name||e),'')}catch(x){}if(said||window.__noSave)return;said=true;
+ setTimeout(()=>toast('Sauvegarde impossible : le stockage du navigateur est plein ou bloqué. Exporte ta partie : Réglages → Transférer ma partie.',8000),0)}})();
 function sync(){ $('#gold').textContent=fmt(state.gold);$('#feed').textContent=fmt(state.feed);$('#gems').textContent=fmt(state.gems);$('#trophies').textContent=fmt(state.trophies)}
 </script>
 <script type="text/x-module" data-f="02-village.js">/* ===== Domaine : bâtiments, étiquettes, sélection =====
@@ -915,7 +963,9 @@ const splash=(()=>{const sp=$('#splash');let done=false,late=0;const hide=()=>{i
   if(!box.querySelector('button')){const b=document.createElement('button');b.className='action green';b.textContent='RECHARGER';b.onclick=()=>location.reload();box.appendChild(b)}}
  // construction anormalement longue (appareil très lent, pilote graphique bloqué) : proposer de recharger, sans cacher l'écran
  late=setTimeout(()=>{if(!done){const box=sp.querySelector('div');if(!box.querySelector('button')){const b=document.createElement('button');b.className='action';b.textContent='RECHARGER';b.onclick=()=>location.reload();box.appendChild(b)}step('Le domaine met du temps à se construire…')}},45000);
- return{hide,step,fail,get done(){return done}}})();
+ // réaffiché si le joueur a fini de créer son champion avant la première image du domaine 3D (jamais d'écran vide)
+ function show(){if(!done)return;done=false;sp.classList.remove('gone');step('Construction du domaine…')}
+ return{hide,step,fail,show,get done(){return done}}})();
 </script>
 <script type="text/x-module" data-f="03-panels.js">// panneau générique (bâtiments sans écran dédié)
 const content={};
@@ -949,7 +999,7 @@ function createPodium(scene){const group=new THREE.Group(),navy=new THREE.MeshSt
 function enhancePodium(group){const navy=new THREE.MeshStandardMaterial({color:0x071a2d,metalness:.35,roughness:.38}),gold=new THREE.MeshStandardMaterial({color:0xe9bb49,metalness:.72,roughness:.24}),back=new THREE.Mesh(new THREE.BoxGeometry(26,10,.65),navy);back.position.set(0,5,-4);group.add(back);for(const x of[-12.6,12.6]){const column=new THREE.Mesh(new THREE.CylinderGeometry(.45,.7,10,12),gold);column.position.set(x,5,-3.6);group.add(column)}const top=new THREE.Mesh(new THREE.BoxGeometry(27,.45,1.1),gold);top.position.set(0,10,-3.6);group.add(top);const title=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel('PODIUM ROYAL',520,110),transparent:true}));title.position.set(0,8.3,-3.2);title.scale.set(15,3.2,1);group.add(title);for(let i=0;i<4;i++){const stair=new THREE.Mesh(new THREE.BoxGeometry(20-i*2,.32+i*.04,1.15),i%2?gold:navy);stair.position.set(0,.18+i*.18,4.2-i*.85);group.add(stair)}for(const x of[-9,9]){const light=new THREE.SpotLight(0xffd77b,2.3,45,.42,.45,1.2);light.position.set(x,12,8);light.target.position.set(x*.35,3,0);group.add(light,light.target)}const confettiGeo=new THREE.BoxGeometry(.1,.32,.04),confetti=new THREE.InstancedMesh(confettiGeo,new THREE.MeshBasicMaterial({color:0xffffff}),150),colors=[0xf4c64e,0xffffff,0xb92c32,0x1769aa],m=new THREE.Matrix4();for(let i=0;i<150;i++){m.compose(new THREE.Vector3((Math.random()-.5)*25,2+Math.random()*10,(Math.random()-.5)*8),new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.random()*3,Math.random()*3,Math.random()*3)),new THREE.Vector3(1,1,1));confetti.setMatrixAt(i,m);confetti.setColorAt(i,new THREE.Color(colors[i%4]))}confetti.instanceMatrix.needsUpdate=true;if(confetti.instanceColor)confetti.instanceColor.needsUpdate=true;group.add(confetti)}
 function createStartingStalls(scene){const root=new THREE.Group(),steel=new THREE.MeshStandardMaterial({color:0xd7dddd,metalness:.78,roughness:.25}),navy=new THREE.MeshStandardMaterial({color:0x102d4b,metalness:.3,roughness:.42}),doors=[],laneValues=[12,28,44,56,72,88];for(let i=0;i<6;i++){const p=trackPose(RACE_ORIGIN,(laneValues[i]-50)*.38),stall=new THREE.Group();stall.position.copy(p.p);stall.rotation.y=Math.atan2(p.f.x,p.f.z);for(const x of[-2.65,2.65])for(const z of[-3.5,0,3.5]){const post=new THREE.Mesh(new THREE.BoxGeometry(.25,8.4,.25),steel);post.position.set(x,4.2,z);stall.add(post)}for(const x of[-2.65,2.65])for(const y of[1.1,2.5,4,5.5,7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,7.2),steel);rail.position.set(x,y,0);stall.add(rail)}const roof=new THREE.Mesh(new THREE.BoxGeometry(5.7,.42,7.6),navy);roof.position.y=8.45;stall.add(roof);const number=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(String(i+1),120,120),transparent:true}));number.position.set(0,7.35,3.75);number.scale.set(1.4,1.4,1);stall.add(number);const gate=new THREE.Group();gate.position.set(0,0,3.58);for(let x=-2.35;x<=2.36;x+=.67){const bar=new THREE.Mesh(new THREE.BoxGeometry(.14,6.8,.14),steel);bar.position.set(x,3.4,0);gate.add(bar)}for(const y of[.2,3.4,6.7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(5.1,.18,.18),steel);rail.position.set(0,y,0);gate.add(rail)}stall.add(gate);doors.push(gate);root.add(stall)}root.userData.doors=doors;scene.add(root);return root}
 // introduction commune : survol, présentation, stalles, 3-2-1, puis les stalles s'ouvrent pour tous à l'heure prévue (RACE_GO_MS)
-function renderRaceIntro(q,now){const elapsed=now-q.introStart,overlay=$('#startSequence'),count=$('#startCount'),hint=$('#startHint');overlay.classList.add('show');overlay.classList.remove('waiting');const par=elapsed>=2200&&elapsed<4200&&raceFX.parade(q,now,(elapsed-2200)/2000);overlay.classList.toggle('parade',!!par);if(par){count.textContent=HN();count.style.fontSize='clamp(30px,6vw,64px)';hint.textContent='AU ROND DE PRÉSENTATION'}else if(elapsed<4200){const t=RACE_ORIGIN+.06+Math.min(1,elapsed/2200)*.82,p=trackPose(t,-105),look=trackPose(t+.075,0).p;q.camera.position.set(p.p.x,48+Math.sin(elapsed*.0015)*8,p.p.z);q.camera.lookAt(look.x,0,look.z);count.textContent='THE ROYAL RACE';count.style.fontSize='clamp(34px,7vw,82px)';hint.textContent='SURVOL DE L’HIPPODROME'}else{const player=trackPose(RACE_ORIGIN,(playerLane-50)*.38),desired=player.p.clone().addScaledVector(player.f,-30);desired.y=10.5,q.camera.position.lerp(desired,.055);const aim=player.p.clone().addScaledVector(player.f,12);aim.y=3;q.camera.lookAt(aim);count.style.fontSize='';const c=elapsed<5200?'':elapsed<6200?'3':elapsed<7200?'2':elapsed<8200?'1':'GO';count.textContent=c||'EN STALLES';hint.textContent=elapsed<5200?`MISE EN PLACE · STALLE N°${RS.stall||1}`:'TOUT LE MONDE PART ENSEMBLE';overlay.classList.toggle('count',elapsed>=5200);if(!q.inStalls){q.inStalls=1;$('#raceComment').textContent='Entrée dans les stalles : départ commun au GO'}if(elapsed>=RACE_GO_MS)openGates()}raceFX.render(q);return true}
+function renderRaceIntro(q,now){const elapsed=now-q.introStart,overlay=$('#startSequence'),count=$('#startCount'),hint=$('#startHint');overlay.classList.add('show');overlay.classList.remove('waiting');const par=elapsed>=2200&&elapsed<4200&&raceFX.parade(q,now,(elapsed-2200)/2000);overlay.classList.toggle('parade',!!par);if(par){count.textContent=HN();count.style.fontSize='clamp(30px,6vw,64px)';hint.textContent='AU ROND DE PRÉSENTATION'}else if(elapsed<4200){const t=RACE_ORIGIN+.06+Math.min(1,elapsed/2200)*.82,p=trackPose(t,-105),look=trackPose(t+.075,0).p;q.camera.position.set(p.p.x,48+Math.sin(elapsed*.0015)*8,p.p.z);q.camera.lookAt(look.x,0,look.z);count.textContent='THE ROYAL RACE';count.style.fontSize='clamp(34px,7vw,82px)';hint.textContent='SURVOL DE L’HIPPODROME'}else{const player=trackPose(RACE_ORIGIN,(playerLane-50)*.38),desired=player.p.clone().addScaledVector(player.f,-30);desired.y=10.5,q.camera.position.lerp(desired,.055);const aim=player.p.clone().addScaledVector(player.f,12);aim.y=3;q.camera.lookAt(aim);count.style.fontSize='';const c=elapsed<5200?'':elapsed<6200?'3':elapsed<7200?'2':elapsed<8200?'1':'GO';count.textContent=c||'EN STALLES';hint.textContent=elapsed<5200?`MISE EN PLACE · STALLE N°${RS.stall||1}`:'TOUT LE MONDE PART ENSEMBLE';overlay.classList.toggle('count',elapsed>=5200);if(!q.inStalls){q.inStalls=1;$('#raceComment').textContent='Entrée dans les stalles : départ commun au GO'}if(elapsed>=RACE_GO_MS)openGates()}raceFX.render(q);return true}
 </script>
 <script type="text/x-module" data-f="06-livery.js">/* ===== Livrées : robe du cheval, casaque, toque — recoloration réaliste des sprites (course + podium) ===== */
 const LIVERY=(()=>{
@@ -1082,7 +1132,7 @@ const stable=(()=>{
           mk('h3','Prince d’Or','palomino',{vit:69,acc:73,end:50,dep:68,tac:52,tem:55},{vit:92,acc:95,end:74,dep:92,tac:80,tem:78},1200,6,'fusee')]});
  let S=null;try{S=JSON.parse(localStorage.getItem('trr.stable')||'null')}catch(e){}
  if(S&&S.v===1&&S.horses.length>3&&!S.horses[3].id)S.horses.length=3;if(!S||S.v!==1){S=fresh();try{const old=JSON.parse(localStorage.getItem('trr.champion')||'null');if(old){S.created=true;S.silks={main:old.main,second:old.second,pattern:old.pattern,cap:old.cap};S.horses[0].name=old.name;S.horses[0].coat=old.coat}}catch(e){}}
- const save=()=>{if(window.__noSave)return;S.res={gold:state.gold,feed:state.feed,gems:state.gems,trophies:state.trophies};try{localStorage.setItem('trr.stable',JSON.stringify(S))}catch(e){}};
+ const save=()=>{if(window.__noSave)return;S.res={gold:state.gold,feed:state.feed,gems:state.gems,trophies:state.trophies};try{localStorage.setItem('trr.stable',JSON.stringify(S))}catch(e){saveKo(e)}};
  if(S.res)Object.assign(state,S.res);S.horses.forEach(h=>{if(!h.talent)h.talent=h.rare?'coeur':{h1:'finisseur',h2:'increvable',h3:'fusee'}[h.id]||'metronome'});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  // récupération en temps réel : la fatigue baisse, la forme revient vers la moyenne
@@ -1607,7 +1657,8 @@ const HORSE3D = (() => {
     u.reins.forEach((r, k) => { const s = k ? -1 : 1; BIT.set(1.31 - .97, 1.6 - 1.95, .066 * s); B[2].localToWorld(BIT); root.worldToLocal(BIT); HAND.set(.645 - .43, 1.865 - 1.94, .07 * s - .14 * s); JB_[k ? 6 : 4].localToWorld(HAND); root.worldToLocal(HAND);
       const d = HAND.sub(BIT), L = d.length(); r.position.copy(BIT); r.scale.set(L, 1, 1); r.quaternion.setFromUnitVectors(X1, d.divideScalar(L)) })
   }
-  function dispose(root) { const u = root.userData; u.disposed = true; u.mats.forEach(m => m.dispose()); u.texs.forEach(t => t.dispose()) }
+  // 2.6 : les squelettes (cheval et jockey) ont chacun une texture d'os sur le GPU : sans skeleton.dispose(), +12 textures à chaque course
+  function dispose(root) { const u = root.userData; u.disposed = true; u.mats.forEach(m => m.dispose()); u.texs.forEach(t => t.dispose()); root.traverse(o => { if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose() }) }
   return { ready, build, pose, setLod, dispose, marks, get loaded() { return Object.keys(DATA).map(Number) } }
 })();
 // maillages calculés d'avance, pendant que le joueur est au domaine (niveau course, puis gros plan sur les appareils puissants)
@@ -1699,7 +1750,7 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
  function liveries(q){if(!fx)return;LIVERY.ready.then(()=>{const me=champion.get(),F=currentField||buildField(),list=[me,...F.rivals.map(r=>r.livery)];fx.liv=list;
   (fx.h3d||[]).forEach(m=>{q.scene.remove(m);HORSE3D.dispose(m)});fx.h3d=list.map((l,i)=>{const m=HORSE3D.build(l,{number:i+1,blinkers:!i&&gear.sel.id==='oeilleres',lod:!i&&settings.level()==='haute'?0:1});m.scale.setScalar(4.4);m.visible=false;q.scene.add(m);return m});
   hurdles(q);
-  list.forEach((l,i)=>{const t=fx.gallop[i];t.image=LIVERY.gallop(l,i?.5:1);t.needsUpdate=true;const p=new THREE.CanvasTexture(LIVERY.portrait(l));p.colorSpace=THREE.SRGBColorSpace;p.anisotropy=8;q.podiumTextures[i]=p})})}
+  list.forEach((l,i)=>{const t=fx.gallop[i];t.image=LIVERY.gallop(l,i?.5:1);t.needsUpdate=true;const p=new THREE.CanvasTexture(LIVERY.portrait(l));p.colorSpace=THREE.SRGBColorSpace;p.anisotropy=8;q.podiumTextures[i]?.dispose();q.podiumTextures[i]=p})})} // 2.6 : l'ancienne texture est libérée
  function horse(q,i,p,speed,now){const h=q.horses[i];if(!fx)return;const running=q.startPhase==='running';
   const dt=Math.min(.05,(now-(fx.lastH||now))/1000);if(i===5)fx.lastH=now;
   if(h.material.map!==fx.gallop[i])h.material.map=fx.gallop[i];
@@ -2097,7 +2148,7 @@ function renderThreeRace(now,w,h){const q=threeRace;if(!q||w<2||h<2)return false
  if(q.tvView){const act=source.map(p=>Math.min(100.6,p||0)),mid=act.reduce((a,b)=>a+b,0)/act.length*.5+Math.max(...act)*.5,c=trackPose(RACE_ORIGIN+Math.min(100.4,mid)/100,0),desired=c.p.clone().addScaledVector(c.n,58).addScaledVector(c.f,-3);desired.y=15;const aim=c.p.clone().addScaledVector(c.f,-1);aim.y=2;
   if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}q.camPos.lerp(desired,.06);q.camTarget.lerp(aim,.09);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
  if(q.finishView){const finish=trackPose(RACE_ORIGIN,0),desired=finish.p.clone().addScaledVector(finish.n,58);desired.y=13;const aim=finish.p.clone().addScaledVector(finish.f,-3);aim.y=4;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}q.camPos.lerp(desired,.09);q.camTarget.lerp(aim,.1);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
- const player=trackPose(RACE_ORIGIN+(source[0]||0)/100,((visualLane[0]??playerLane)-50)*.38),side=lookDir*8,desired=player.p.clone().addScaledVector(player.f,-26).addScaledVector(player.n,side);desired.y=10.5;const aim=player.p.clone().addScaledVector(player.f,62).addScaledVector(player.n,side*.65);aim.y=3.6;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}{const k=Math.min(60,(now-(q.lastCam||now))/16.7);q.lastCam=now;q.camPos.lerp(desired,1-Math.pow(.85,k));q.camTarget.lerp(aim,1-Math.pow(.83,k))}q.camera.position.copy(q.camPos);if(sinceGo<900){const a=(1-sinceGo/900)*.45;q.camera.position.x+=Math.sin(now*.083)*a;q.camera.position.y+=Math.cos(now*.107)*a*.7}q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
+ const player=trackPose(RACE_ORIGIN+(source[0]||0)/100,((visualLane[0]??playerLane)-50)*.38),side=lookDir*8,desired=player.p.clone().addScaledVector(player.f,-26).addScaledVector(player.n,side);desired.y=10.5;const aim=player.p.clone().addScaledVector(player.f,62).addScaledVector(player.n,side*.65);aim.y=3.6;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}{const k=Math.min(60,(now-(q.lastCam||now))/16.7);q.lastCam=now;q.camPos.lerp(desired,1-Math.pow(.85,k));q.camTarget.lerp(aim,1-Math.pow(.83,k))}q.camera.position.copy(q.camPos);if(sinceGo<900&&!REDUCE_MOTION.matches){const a=(1-sinceGo/900)*.45;q.camera.position.x+=Math.sin(now*.083)*a;q.camera.position.y+=Math.cos(now*.107)*a*.7}q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
 /* affichage fluide : on montre la course un pas en retard, en interpolant entre les deux derniers états de la simulation
    (vitesse constante entre deux pas, sans à-coups), puis les couloirs passent par un ressort amorti : un changement de couloir
    démarre et s'achève en douceur, et sa vitesse (laneVel) sert à orienter et incliner le cheval. Affichage seulement. */
@@ -2162,7 +2213,7 @@ function openGates(){const q=threeRace;clearTimeout(goTimer);if(raceLoop||raceTi
  if(q){q.startPhase='running';q.gatesAt=performance.now();if(!q.headless)for(let i=0;i<6;i++)raceFX.burst(trackPose(RACE_ORIGIN+.004,(laneOf(i)-50)*.38),26,1)}
  initRivalAI();hooks.emit('race:go',RS.stall);if(!replays.busy){sound.bell();sound.gates();sound.say('Et c’est parti !',true);buzz(30)}
  $('#startCount').textContent='GO !';$('#startHint').textContent=`STALLE N°${RS.stall} · ◀ ▶ POUR TE PLACER`;$('#startSequence').classList.add('go');
- setTimeout(()=>{$('#startSequence').classList.remove('show','go');if(raceLoop){$('#sprintBtn').disabled=false;paceUI()}},900);$('#raceComment').textContent='Les stalles s’ouvrent : tout le monde part !';
+ setTimeout(()=>{$('#startSequence').classList.remove('show','go');if(raceLoop){$('#sprintBtn').disabled=false;paceUI()}},900);$('#raceComment').textContent='Les stalles s’ouvrent : tout le monde part !';
  raceClock.start(raceGoAt&&performance.now()-raceGoAt<60000?Math.min(performance.now(),raceGoAt):0)}
 // IA : couloir visé par l'adversaire k (0..4)
 function aiLane(k){const idx=k+1,ai=rivalAI[k],own=progress[idx],lane=rivalLanes[k],near=nearbyHorses(idx),ahead=near.find(h=>Math.abs(h.l-lane)<12),ropeBusy=progress.some((p,j)=>j!==idx&&!raceFinished[j]&&Math.abs(p-own)<2.5&&laneOf(j)<24);
@@ -2211,7 +2262,7 @@ function runRaceV2(){raceSnap={at:performance.now(),p:progress.slice(),l:[player
   const pinned=Math.abs(playerTarget-playerLane)>2&&raceBlocked[0]===0&&progress.some((p,j)=>j&&!raceFinished[j]&&Math.abs(p-progress[0])<HORSE_LEN&&Math.abs(laneOf(j)-playerLane)<=HORSE_W+.01&&(laneOf(j)-playerLane)*(playerTarget-playerLane)>0);
   if(pinned&&!RS.pinned&&raceLoop>0){buzz(8);const sv=$('.steer');sv.classList.remove('bump');void sv.offsetWidth;sv.classList.add('bump')}RS.pinned=pinned;
   $('#draft').classList.toggle('show',inDraft);$('#autoGallop').classList.toggle('blocked',boxed);$('#autoGallop b').textContent=boxed?'Foulée coupée':sprinting?'Sprint final':playerFinal?'Épuisé':inDraft?'À l’abri du vent':playerEnergy<20?'Endurance faible':'Foulée libre';
-  if(boxed)$('#raceComment').textContent=pinned?'Enfermé : attends l’ouverture ou change de côté':'Bloqué derrière un cheval : décale-toi pour le doubler';else if(pinned)$('#raceComment').textContent='Un cheval court à ta hauteur : pas de passage';else if(inDraft)$('#raceComment').textContent='Dans le sillage : tu économises ton endurance';else if(sprinting)$('#raceComment').textContent=HN()+' accélère !';else if(turn>.35&&playerLane>35)$('#raceComment').textContent='Rapproche-toi de la corde';else if(phase>70&&!playerFinal)$('#raceComment').textContent='Surveille le bouton SPRINT : il passe au vert au bon moment';
+  if(boxed)$('#raceComment').textContent=pinned?'Enfermé : attends l’ouverture ou change de côté':'Bloqué derrière un cheval : décale-toi pour le doubler';else if(pinned)$('#raceComment').textContent='Un cheval court à ta hauteur : pas de passage';else if(inDraft)$('#raceComment').textContent='Dans le sillage : tu économises ton endurance';else if(sprinting)$('#raceComment').textContent=HN()+' accélère !';else if(turn>.35&&playerLane>35)$('#raceComment').textContent='Rapproche-toi de la corde';else if(phase>70&&!playerFinal)$('#raceComment').textContent='Surveille le bouton SPRINT : il passe au vert au bon moment';
   if(phase>75&&!runRaceV2.said){runRaceV2.said=1;sound.say('Dernière ligne droite !')}}
  haies.step();for(let i=0;i<6;i++)markFinish(i);const ranked=progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p),rank=raceFinished[0]?finishOrder.indexOf(0)+1:ranked.findIndex(x=>x.i===0)+1;$('#racePosition').textContent=rank+(rank===1?'er':'e');
  // mission « doubler » : chaque nouvelle meilleure place après la sortie des stalles (course en direct seulement)
@@ -2223,7 +2274,7 @@ function sprint(){if(playerFinal||!raceLoop||raceFinished[0]||playerEnergy<3)ret
 // restante 2,33 · presser en fin de course avec de la réserve 2,46 — aucune allure fixe ne paie, lire sa jauge oui.
 const PACE_IN={'-1':{c:.915,d:.72,n:'Retenu'},0:{c:1,d:1,n:'Normal'},1:{c:1.035,d:1.28,n:'Pressé'}};
 function setPace(v){v=clampRace(Math.round(+v||0),-1,1);if(v===playerPace||playerFinal||!raceLoop||raceFinished[0])return;playerPace=v;hooks.emit('race:pace',v);paceUI();
- $('#raceComment').textContent=v<0?'Tu retiens ton cheval : il économise ses forces':v>0?'Tu presses ton cheval : il gagne du terrain mais se fatigue':'Allure normale'}
+ $('#raceComment').textContent=v<0?'Tu retiens ton cheval : il économise ses forces':v>0?'Tu presses ton cheval : il gagne du terrain mais se fatigue':'Allure normale'}
 function paceUI(){const c=$('#paceCtl');if(!c)return;c.dataset.p=playerPace;c.classList.toggle('off',playerFinal||!raceLoop);$('#paceState').textContent=PACE_IN[playerPace].n.toUpperCase()}
 // une entrée du joueur, en direct ou rejouée (rejeu, replay télévisé, duel)
 function raceInput(type,val){if(type==='steer')steer(val);else if(type==='sprint')sprint();else if(type==='pace')setPace(val);else if(type==='moment')moments.choose(val);else if(type==='jump')haies.choose(val)}
@@ -2246,7 +2297,7 @@ const rank=finishOrder.indexOf(0)+1,win=rank===1,A=raceAnalysis(rank);if(A.lines
  sound.crowdLevel(1);setTimeout(()=>sound.crowdLevel(.2),2500);if(win){sound.fanfare();buzz([60,40,120])}else buzz(40);sound.say(`${raceNames[finishOrder[0]]} remporte le ${RACE.n} !`,true);
  $('#fbGain').innerHTML=`+${fmt(prize)} or${CR.streakBonus?` <small>(série ×${1+CR.streakBonus})</small>`:''}${dfx('hippodrome')>1&&prize?` <small>(hippodrome +${Math.round((dfx('hippodrome')-1)*100)} %)</small>`:''} · ${CR.d>0?'+':''}${CR.d} trophées · +${AR.xp} XP${AR.up?` · NIVEAU ${stable.active().level} !`:''}${CR.promoted?` · PROMU EN LIGUE ${CR.promoted.n.toUpperCase()} !`:CR.relegated?` · Retour en ligue ${CR.relegated.n}`:''}${CR.chest?`<br>🎁 Coffre ${CR.chest.n} gagné !`:CR.chestFull?'<br>🎁 Coffres pleins : ouvre-en un pour en gagner d’autres':''}`;
  $('#fbStars').innerHTML=`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}${A.adv?`<div class="an-adv">🎩 ${A.adv[1]} <button class="action" data-adv="${A.adv[0]}">ENTRAÎNER</button></div>`:''}`;
- {const rm=rival.after();$('#fbGain').innerHTML+=`<br>🎩 ${rm}`;const tm=tour.after(rank);if(tm)$('#fbGain').innerHTML+=`<br><span class="tourmsg">${tm}</span>`;tour.resultBtn();palmares.onRace(rank,A.stars)}currentField=null;const first=raceFinishTimes[finishOrder[0]];$('#finishRows').innerHTML=finishOrder.map((idx,pos)=>{const gap=raceFinishTimes[idx]-first;return `<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${raceFinishTimes[idx].toFixed(2)} s</td><td>${pos?`+${gap.toFixed(2)} s`:'—'}</td></tr>`}).join('');$('#raceComment').textContent='Classement officiel validé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=win?'🏆':'🎖️';$('#resultTitle').textContent=win?'Victoire royale !':`${rank}e place`;$('#resultText').textContent=win?HN()+' monte sur la première marche du podium.':`${HN()} termine ${rank}e après une course disputée.`;hooks.emit('race:end',finishOrder.indexOf(0)+1)}
+ {const rm=rival.after();$('#fbGain').innerHTML+=`<br>🎩 ${rm}`;const tm=tour.after(rank);if(tm)$('#fbGain').innerHTML+=`<br><span class="tourmsg">${tm}</span>`;tour.resultBtn();palmares.onRace(rank,A.stars)}currentField=null;const first=raceFinishTimes[finishOrder[0]];$('#finishRows').innerHTML=finishOrder.map((idx,pos)=>{const gap=raceFinishTimes[idx]-first;return `<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${sec(raceFinishTimes[idx],2)}</td><td>${pos?`+${sec(gap,2)}`:'—'}</td></tr>`}).join('');$('#raceComment').textContent='Classement officiel validé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=win?'🏆':'🎖️';$('#resultTitle').textContent=win?'Victoire royale !':`${rank}e place`;$('#resultText').textContent=win?HN()+' monte sur la première marche du podium.':`${HN()} termine ${rank}e après une course disputée.`;hooks.emit('race:end',finishOrder.indexOf(0)+1)}
 </script>
 <script type="text/x-module" data-f="11-ecuries.js">/* ===== Écuries rivales (2.5) : des adversaires qu'on reconnaît d'une course à l'autre =====
    Douze écuries, chacune avec sa casaque (couleurs et motif fixes) et six chevaux nommés, avec leur robe.
@@ -2346,9 +2397,10 @@ const studio=(()=>{const el=$('#studio'),cv=$('#studioCanvas'),ctx=cv.getContext
  $('#studioName').addEventListener('input',e=>{draft.name=e.target.value.slice(0,18);$('#studioPlate b').textContent=draft.name||'Sans nom'});
  $$('.studio-view button').forEach(b=>b.onclick=()=>{view=b.dataset.view;$$('.studio-view button').forEach(x=>x.classList.toggle('on',x===b));cancelAnimationFrame(anim);draw(performance.now())});
  $('#studioRandom').onclick=()=>{const r=S.random(Date.now()%100000);draft={...r,name:draft.name};cancelAnimationFrame(anim);render()};
- $('#studioSave').onclick=()=>{draft.name=(draft.name||'').trim()||'Royal Thunder';champion.set(draft);close();toast(firstRun?`Bienvenue, ${draft.name} !`:'Couleurs enregistrées')};
+ $('#studioSave').onclick=()=>{draft.name=(draft.name||'').trim()||'Royal Thunder';champion.set(draft);close();if(firstRun)try{if(!domaine3d.on)splash.show()}catch(e){}toast(firstRun?`Bienvenue, ${draft.name} !`:'Couleurs enregistrées')};
  $('#studioClose').onclick=()=>close();
- function open(first=false){firstRun=first;draft={...champion.get()};$('#studioTitle').textContent=first?'Crée ton premier champion':'Mon champion';
+ function open(first=false){firstRun=first;if(first)try{splash.hide()}catch(e){} // 2.6 : un nouveau joueur crée son champion tout de suite, le domaine 3D finit de se construire derrière
+ draft={...champion.get()};$('#studioTitle').textContent=first?'Crée ton premier champion':'Mon champion';
   $('#studioIntro').textContent=first?'Choisis la robe de ton cheval et les couleurs de ton écurie. Tu pourras les changer à tout moment.':'Robe, casaque et toque : tes couleurs apparaissent en course et sur le podium.';
   $('#studioClose').hidden=first;el.classList.add('open');S.ready.then(()=>{fit();render()})}
  function close(){el.classList.remove('open');cancelAnimationFrame(anim)}
@@ -2426,7 +2478,7 @@ function openCourses(){if(RACE.tour){if(tour.active){RACE=tour.meeting();if(stab
 function renderCourses(){stable.tick();const H=stable.data.horses,h=stable.active(),F=currentField,rt=[stable.rating(h),...F.rivals.map(r=>r.rating)],od=odds(rt.map((x,i)=>i?x+(Math.abs(RACE.dist-F.rivals[i-1].pref)<300?1:0):x+(h.form-60)*.08-Math.max(0,h.fatigue-40)*.1-Math.abs(RACE.dist-h.dist)/400*1.5));
  const pr=pronostic(od);const ok=!h.injury&&h.fatigue<90,why=h.injury?'blessé':'trop fatigué';
  const rows=[{name:h.name,liv:livOf(h),r:rt[0],me:1,talent:h.talent},...F.rivals.map((x,i)=>({name:x.name,liv:x.livery,r:rt[i+1],talent:x.talent,nem:x.nemesis,ecurie:x.ecurie}))].map((x,i)=>{const fc=x.me||x.nem?'':ecuries.bilan(x.name);return `<tr class="${x.me?'me':''}"><td>${LIVERY.silkSVG(x.liv,30)}</td><td><b>${escapeHTML(x.name)}</b>${x.me?' · <small>VOUS</small>':''}${x.nem?' <span class="nem">RIVAL</span>':''}<br><small style="color:#9fb3c2">${x.me?'':escapeHTML(ecuries.nom(x.ecurie))+' · '}${coatName(x.liv.coat)} · ${TALENTS[x.talent].i} ${TALENTS[x.talent].n}</small>${fc?`<br><small class="face">${fc}</small>`:''}</td><td class="num"><span class="note">${x.r}</span></td><td class="num prono ${pr[i][0]}">${pr[i][1]}</td></tr>`}).join('');
- $('#panelBody').innerHTML=`<div class="meets">${tour.card()}${MEETINGS.map(meetingCard).join('')}</div><p style="margin:10px 0 0;color:#c9d7e2"><b style="color:#ffe09a">${RACE.n}</b> · ${fmt(RACE.dist)} m · Terrain ${TERRAINS[RACE.terrain].n.toLowerCase()} (${TERRAINS[RACE.terrain].d.toLowerCase()}) · Allocation 🪙 ${fmt(purseOf(RACE))} · ${RACE.tour?'<b style="color:#9fe39f">Engagement compris dans le tournoi</b>':`Engagement 🌾 ${fmt(RACE.fee)}`}</p>
+ $('#panelBody').innerHTML=`<div class="meets">${tour.card()}${MEETINGS.map(meetingCard).join('')}</div><p style="margin:10px 0 0;color:#c9d7e2"><b style="color:#ffe09a">${escapeHTML(RACE.n)}</b> · ${fmt(RACE.dist)} m · Terrain ${TERRAINS[RACE.terrain].n.toLowerCase()} (${TERRAINS[RACE.terrain].d.toLowerCase()}) · Allocation 🪙 ${fmt(purseOf(RACE))} · ${RACE.tour?'<b style="color:#9fe39f">Engagement compris dans le tournoi</b>':`Engagement 🌾 ${fmt(RACE.fee)}`}</p>
  <div class="st-horses">${H.map(x=>`<button class="st-pick${x.id===h.id?' on':''}${RACE.tour&&x.id!==tour.horse?' dim':''}" data-runner="${x.id}"><canvas width="84" height="112"></canvas><div><b>${escapeHTML(x.name)}</b><small>Forme ${condLabel('form',x.form).toLowerCase()} · ${condLabel('fatigue',x.fatigue).toLowerCase()}</small><br><span class="note">${stable.rating(x)}</span> <em class="suit ${meta.suit(x).k}">${meta.suit(x).i} ${meta.suit(x).n}</em> <small>${TALENTS[x.talent].i}</small></div></button>`).join('')}</div>
  <div class="taunt"><div class="tface">🎩</div><div><b>${VALMONT.owner}</b> <small>face-à-face : ${rival.rec.w} – ${rival.rec.l}</small><p>${rival.taunt()}</p></div></div><div class="rc-grid"><section class="st-box"><h4>PARTANTS</h4><table class="runners">${rows}</table></section>
  <section class="st-box"><h4>TACTIQUE DU JOCKEY</h4><div class="tactics">${TACTICS.map(([id,n,d])=>`<button data-tactic="${id}" class="${state.strategy===id?'on':''}"><b>${n}</b>${d}</button>`).join('')}</div>
@@ -2434,7 +2486,9 @@ function renderCourses(){stable.tick();const H=stable.data.horses,h=stable.activ
  ${ok?'':`<p class="alert">${escapeHTML(h.name)} est ${why} : choisis un autre partant ou passe par l’écurie.</p>`}
  <div class="race-entry"><button class="action green" id="raceJoin" ${ok?'':'disabled'}>${RACE.tour?'🏆 COURIR · '+TOUR_ROUNDS[RACE.round].toUpperCase():`🏁 COURIR • ${fmt(RACE.fee)} 🌾`}</button></div></section></div>`;
  $$('#panelBody .st-pick canvas').forEach((cv,i)=>drawPortrait(cv,H[i],1.6,-2));
- $('#raceJoin').onclick=()=>startRace();if(gear.owned.length>1)coach.tip('gear','Adapte l’<b>équipement</b> au terrain : les pastilles vertes indiquent ce qui aide ton cheval aujourd’hui.','.tack');hooks.emit('courses:render')}
+ $('#raceJoin').onclick=()=>startRace();if(gear.owned.length>1)coach.tip('gear','Adapte l’<b>équipement</b> au terrain : les pastilles vertes indiquent ce qui aide ton cheval aujourd’hui.','.tack');hooks.emit('courses:render')
+ // 2.6 : le bouton COURIR reste visible en bas du panneau, même tout en haut de la liste (il n'était qu'au bout de la page sur téléphone)
+ {const re=$('#panelBody .race-entry');if(re){re.classList.add('sticky-cta');$('#panelBody').appendChild(re)}}}
 $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.runner){if(RACE.tour&&t.dataset.runner!==tour.horse)return toast('Tournoi en cours : ton cheval reste engagé jusqu’à la fin');stable.setActive(t.dataset.runner);champion.emit();buildField();renderCourses()}else if(t.dataset.tactic){state.strategy=t.dataset.tactic;renderCourses()}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-adv]');if(!b)return;leaveRace();openStable({tab:'train'});stUI.int='normal';setTimeout(()=>{const c=$(`[data-train=${b.dataset.adv}]`);c?.closest('.ses')?.scrollIntoView({block:'center'});c?.closest('.ses')?.classList.add('flash')},200)});
 </script>
@@ -2485,7 +2539,7 @@ let RACE={...MEETINGS[1]};
 const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{const d=new Date(),t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-n+3);const f=new Date(Date.UTC(t.getUTCFullYear(),0,4));return t.getUTCFullYear()+'-S'+(1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7))};
  let C={};try{C=JSON.parse(localStorage.getItem('trr.progress')||'{}')}catch(e){}
  C.best=Math.max(C.best||0,state.trophies);C.claimed=C.claimed||[];C.tips=C.tips||{};C.stats=C.stats||{races:0,wins:0};
- const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
+ const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){saveKo(e)}};
  function roll(){if(C.day!==day()){C.day=day();let x=[...day()].reduce((a,c)=>a*31+c.charCodeAt(0),7)%2147483647;const r=()=>(x=(x*16807)%2147483647)/2147483647;const pool=[...MISSION_POOL];C.missions=[];while(C.missions.length<3){const m=pool.splice(Math.floor(r()*pool.length),1)[0];C.missions.push({k:m.k,p:0,done:false})}}
   // mission d'une ancienne version (ex. temps forts, retirés en 2.4) : remplacée par une mission du jour encore absente
   if(C.missions.some(m=>!MISSION_POOL.some(x=>x.k===m.k))){C.missions=C.missions.filter(m=>MISSION_POOL.some(x=>x.k===m.k));for(const d of MISSION_POOL){if(C.missions.length>=3)break;if(!C.missions.some(m=>m.k===d.k))C.missions.push({k:d.k,p:0,done:false})}}
@@ -2825,6 +2879,9 @@ const KEYS=['trr.stable','trr.progress','trr.champion','trr.settings'];
 const backup=()=>{if(window.__noSave)return;try{stable.save();const k={};KEYS.forEach(x=>{const v=localStorage.getItem(x);if(v!=null)k[x]=v});localStorage.setItem('trr.bak',JSON.stringify({t:Date.now(),k}))}catch(e){}};
 setInterval(backup,60e3);addEventListener('pagehide',backup);document.addEventListener('visibilitychange',()=>{if(document.hidden)backup()});
 if(window.__restored)setTimeout(()=>toast('Sauvegarde abîmée : ta dernière copie de secours a été restaurée'),1500);
+// 2 bis) stockage persistant (2.6) : dès la première course, on demande au navigateur de ne pas effacer la partie quand l'espace manque
+// (Chrome, Firefox, Safari récents ; sans effet ailleurs, rien ne s'affiche)
+hooks.on('race:end',()=>{try{navigator.storage?.persist?.().catch(()=>{})}catch(e){}});
 // 3) export / import (changement d'appareil, sécurité avant de vider le navigateur)
 const saveCode={export(){backup();const k={};KEYS.forEach(x=>{const v=localStorage.getItem(x);if(v!=null)k[x]=v});return 'TRR1.'+btoa(unescape(encodeURIComponent(JSON.stringify({v:1,t:Date.now(),k}))))},
  import(code){try{const o=JSON.parse(decodeURIComponent(escape(atob(String(code).trim().replace(/^TRR1\./,'')))));const st=JSON.parse(o.k['trr.stable']);if(!st||!Array.isArray(st.horses)||!st.horses.length)throw 0;
@@ -3173,15 +3230,15 @@ const defi=(()=>{
  function select(){RACE=meeting();currentField=null;buildField();renderCourses()}
  // carte dans l'écran des courses
  hooks.on('courses:render',()=>{const g=$('#panelBody .meets');if(!g)return;const T=today(),M=meeting();
-  if(RACE.defi){const info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#bfe6ff">Défi du jour</b> · ${fmt(M.dist)} m · Terrain ${TERRAINS[M.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : seul ton meilleur temps compte${T.best?` (record : ${T.best.toFixed(2)} s)`:''}.`;$('#panelBody .taunt')?.remove()}
-  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${T.best.toFixed(2)} s`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
+  if(RACE.defi){const info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#bfe6ff">Défi du jour</b> · ${fmt(M.dist)} m · Terrain ${TERRAINS[M.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : seul ton meilleur temps compte${T.best?` (record : ${sec(T.best,2)})`:''}.`;$('#panelBody .taunt')?.remove()}
+  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${sec(T.best,2)}`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
  $('#panelBody').addEventListener('click',e=>{if(e.target.closest('[data-defi]'))select()});
  // trajectoire de l'essai en cours (pour devenir le fantôme s'il bat le record)
  let track=null,ghost=null,gv=0,gap=null;
  hooks.on('race:start',()=>{track=RACE.defi?{p:[],l:[]}:null;gv=0;if(ghost)ghost.visible=false;gap?.classList.remove('show')});
  hooks.on('race:tick',()=>{if(!track||raceFinished[0])return;track.p[raceTime]=+progress[0].toFixed(3);track.l[raceTime]=Math.round(playerLane);
   const G=today().ghost;if(G&&gap){const gp=G.p[Math.min(raceTime,G.p.length-1)]??100,m=Math.round((gp-progress[0])*RACE.dist/100);gap.innerHTML=Math.abs(m)<2?'👻 Au coude à coude avec ton fantôme':m>0?`👻 Fantôme <b>${m} m</b> devant`:`👻 Tu as <b>${-m} m</b> d’avance`;gap.classList.add('show');gap.classList.toggle('ahead',m<=0)}});
- hooks.on('race:header',()=>{if(!RACE.defi)return;const T=today();$('.race-head small').textContent+=T.best?` • Record ${T.best.toFixed(2)} s`:' • Premier essai'});
+ hooks.on('race:header',()=>{if(!RACE.defi)return;const T=today();$('.race-head small').textContent+=T.best?` • Record ${sec(T.best,2)}`:' • Premier essai'});
  // fantôme : un cheval translucide qui rejoue le meilleur essai, sans gêner la course (hors simulation)
  {const r0=raceFX.render;let last=0,gl=null;raceFX.render=function(q){const G=RACE.defi&&today().ghost,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
   if(G&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView){if(!ghost){ghost=new THREE.Sprite(new THREE.SpriteMaterial({map:q.horseTextures[0],transparent:true,opacity:.36,depthWrite:false,color:0xcfe6ff}));ghost.frustumCulled=false;q.scene.add(ghost)}
@@ -3194,11 +3251,11 @@ const defi=(()=>{
   if(first){T.first=true;const c=meta.addChest('argent');gain.push(c?'🎁 Coffre d’argent':'💎 +5 gemmes (coffres pleins)');if(!c){state.gems+=5;sync()}}
   else if(rec&&T.pbGems<3){T.pbGems++;state.gems+=3;sync();gain.push('💎 +3 gemmes (nouveau record)')}
   save();track=null;currentField=null;const A=raceAnalysis(rank),t0=raceFinishTimes[finishOrder[0]];
-  $('#finishRows').innerHTML=finishOrder.map((idx,pos)=>`<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${raceFinishTimes[idx].toFixed(2)} s</td><td>${pos?`+${(raceFinishTimes[idx]-t0).toFixed(2)} s`:'—'}</td></tr>`).join('');
-  $('#fbStars').innerHTML=`<div class="defi-res${rec?' rec':''}"><b>${rec?(old==null?'Premier temps du jour':'Nouveau record !'):'Pas de record cette fois'}</b><span>${time.toFixed(2)} s${old!=null?` · record précédent ${old.toFixed(2)} s (${time<old?'−':'+'}${Math.abs(time-old).toFixed(2)} s)`:''}</span><small>Essai n° ${T.tries} · ${rank}${rank===1?'er':'e'} sur 6</small></div>`+`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}`;
+  $('#finishRows').innerHTML=finishOrder.map((idx,pos)=>`<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${sec(raceFinishTimes[idx],2)}</td><td>${pos?`+${sec((raceFinishTimes[idx]-t0),2)}`:'—'}</td></tr>`).join('');
+  $('#fbStars').innerHTML=`<div class="defi-res${rec?' rec':''}"><b>${rec?(old==null?'Premier temps du jour':'Nouveau record !'):'Pas de record cette fois'}</b><span>${sec(time,2)}${old!=null?` · record précédent ${sec(old,2)} (${time<old?'−':'+'}${sec(Math.abs(time-old),2)})`:''}</span><small>Essai n° ${T.tries} · ${rank}${rank===1?'er':'e'} sur 6</small></div>`+`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}`;
   $('#fbGain').innerHTML=gain.join(' · ')||'Retente ta chance : seul ton meilleur temps compte.';
   if(rec){sound.fanfare();buzz([60,40,120])}else buzz(40);
-  $('#raceComment').textContent=rec?'Nouveau record du jour !':'Défi terminé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=rec?'⏱️':'🎖️';$('#resultTitle').textContent=rec?'Record du jour !':`${rank}e place`;$('#resultText').textContent=`${HN()} boucle le Défi du jour en ${time.toFixed(2)} s.`});
+  $('#raceComment').textContent=rec?'Nouveau record du jour !':'Défi terminé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=rec?'⏱️':'🎖️';$('#resultTitle').textContent=rec?'Record du jour !':`${rank}e place`;$('#resultText').textContent=`${HN()} boucle le Défi du jour en ${sec(time,2)}.`});
  // bouton sous le bilan : réessayer le défi
  hooks.on('race:end',()=>{if(!RACE.defi)return;const b=$('#raceAgain');if(b&&!b.hidden&&b.dataset.mode==='again')b.innerHTML=`RÉESSAYER LE DÉFI<small>gratuit · bats ton temps</small>`});
  // écart au fantôme, affiché en course
@@ -3344,7 +3401,9 @@ const speaker=(()=>{const el=document.createElement('div');el.className='speaker
  const lengths=(a,b)=>{const g=Math.abs(progress[a]-progress[b])*RACE.dist/100/2.4;return g<.4?'une tête':g<1?'une encolure':g<1.5?'une longueur':`${Math.round(g*2)/2} longueurs`.replace('.5',' ½')};
  const de=g=>/^[aeiouéèêh]/i.test(g)?'d’'+g:'de '+g;
  const pos=n=>n===1?'en tête':`${n}${n===1?'er':'e'}`;
- function show(html,voice){el.innerHTML=`<i>🎙️</i> ${html}`;el.classList.add('show');clearTimeout(hideT);hideT=setTimeout(()=>el.classList.remove('show'),4200);if(voice)sound.say(voice)}
+ // 2.6 : pendant la course en direct, rien ne s'affiche par-dessus — le speaker parle (si la voix est activée), le classement en direct montre les écarts ;
+ // le texte ne s'affiche qu'une fois ton cheval arrivé (leçon de rythme)
+ function show(html,voice){if(voice)sound.say(voice);if(!raceFinished[0]&&$('#raceScreen').classList.contains('open')&&!(typeof tele!=='undefined'&&tele.on))return;el.innerHTML=`<i>🎙️</i> ${html}`;el.classList.add('show');clearTimeout(hideT);hideT=setTimeout(()=>el.classList.remove('show'),4200)}
  function call(k){const O=order(),L=O[0].i,S=O[1].i,n=rank(),youLead=L===0,gapL=youLead?lengths(0,S):lengths(0,L);
   if(k==='q1'){const t=pace.info().k,ry=t==='rapide'||t==='duel'?' sur un rythme soutenu':t==='lent'?' sans forcer l’allure':'';show(youLead?pick([`${me()} emmène le peloton${ry}, avec ${gapL} d’avance.`,`Premier tournant : ${me()} en tête, ${gapL} devant ${N(S)}.`]):pick([`${N(L)} emmène le peloton${ry}. ${me()} ${pos(n)}, à ${gapL}.`,`Premier tournant : ${N(L)} en tête, ${me()} ${pos(n)} à ${gapL}.`]),youLead?`${HN()} mène !`:null)}
   if(k==='q2')show(youLead?pick([`Mi-course : ${me()} mène ${de(gapL)} devant ${N(S)}.`,`À mi-parcours, ${me()} est toujours devant !`]):pick([`Mi-course : ${N(L)} devant ${N(S)}. ${me()} ${pos(n)}, à ${gapL} de la tête.`,`À mi-parcours, ${N(L)} contrôle. ${me()} ${pos(n)}.`]));
@@ -3476,7 +3535,7 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.domUp){start(b.dataset.domUp);open(b.dataset.domUp)}else if(b.dataset.domRush){finishNow(b.dataset.domRush);open(b.dataset.domRush)}else if(b.dataset.domCollect){collect(b.dataset.domCollect,b);open()}});
  // ---------- affichage sur la carte : niveaux, minuteurs, bulles de récolte ----------
- const bubbles={};for(const id of Object.keys(PROD)){const b=document.createElement('button');b.className='bld-harvest';b.dataset.id=id;b.hidden=true;
+ const bubbles={};for(const id of Object.keys(PROD)){const b=document.createElement('button');b.className='bld-harvest';b.dataset.id=id;b.hidden=true;b.setAttribute('aria-label',`Récolter : ${BUILDINGS[id].name}`);
   b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',e=>{e.stopPropagation();collect(id,b)});village.layer.appendChild(b);bubbles[id]=b}
  function refresh(){for(const id of ORDER){const l=dlv(id);village.setTag(id,name(id),id==='chantier'&&!l?null:`NIV. ${l}`);const w=busy(id);if(w)village.setTimer(id,dureeTxt(left(w)));else village.clearTimer(id)}
   for(const id of Object.keys(PROD)){const n=dlv(id)?stock(id):0,b=bubbles[id];b.hidden=!(unlocked()&&n>=Math.max(20,cap(id)*.25));if(!b.hidden)b.innerHTML=`${PROD[id].ico}<b>+${fmt(n)}</b>`}
@@ -3650,7 +3709,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  // la course reçue est reconstruite à partir de champs connus : rien de ce qui vient du lien n'est affiché sans contrôle
  function safeRace(R){const M=MEETINGS.find(m=>m.id===R.id),D=R.id==='defi'||R.defi===true;return{id:M?M.id:D?'defi':'lien',n:M?M.n:D?'Défi du jour':'Course amicale',dist:R.dist,terrain:R.terrain,haies:M&&M.haies?M.haies:undefined,amb:AMBIANCES[R.amb]?R.amb:undefined,league:0,diff:0,purse:0,fee:0}}
  async function share(r=replays.last()){if(!r||!r.result)return toast('Aucune course à partager');const code=await encode(pack(r)),url=`${location.origin}${location.pathname}#duel=${code}`,
-  me=r.result.order.indexOf(0)+1,text=`⚔️ ${r.horse} te défie sur « ${safeRace(r.race).n} » (${fmt(r.race.dist)} m) : ${t2(r.result.times[0])} s, ${me}${me===1?'er':'e'} sur 6. Tu fais mieux ?`;
+  me=r.result.order.indexOf(0)+1,text=`⚔️ ${r.horse} te défie sur « ${safeRace(r.race).n} » (${fmt(r.race.dist)} m) : ${t2(r.result.times[0])} s, ${me}${me===1?'er':'e'} sur 6. Tu fais mieux ?`;
   hooks.emit('duel:partage',url.length);
   if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'The Royal Race — duel',text,url});return}catch(e){if(e&&e.name==='AbortError')return}}
   try{await navigator.clipboard.writeText(`${text}\n${url}`);toast('Lien du duel copié : envoie-le à un ami !')}catch(e){
@@ -3671,7 +3730,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  function check(d){const v=replays.verify(clone(d.rec),{track:true});if(v.why==='version')return 'old';if(v.ok===null)return null;d.ok=!!v.ok;save();return v.ok?v.track:false}
  function card(d){const r=d.rec,L={...stable.silks,...(r.liv||{})},me=r.result.order.indexOf(0)+1;$('#panelTitle').textContent='Duel reçu';$('#panel .card').classList.remove('wide');
   $('#panelBody').innerHTML=`<div class="duel-card"><div class="duel-silk">${LIVERY.silkSVG(L,74)}</div><p class="duel-t">⚔️ <b>${escapeHTML(r.horse)}</b> te défie !</p>
-   <p class="hint">${escapeHTML(safeRace(r.race).n)} · ${fmt(r.race.dist)} m · terrain ${TERRAINS[r.race.terrain].n.toLowerCase()}</p><div class="duel-time"><b>${t2(r.result.times[0])} s</b><small>${me}${me===1?'er':'e'} sur 6</small></div>
+   <p class="hint">${escapeHTML(safeRace(r.race).n)} · ${fmt(r.race.dist)} m · terrain ${TERRAINS[r.race.terrain].n.toLowerCase()}</p><div class="duel-time"><b>${t2(r.result.times[0])} s</b><small>${me}${me===1?'er':'e'} sur 6</small></div>
    <p class="hint">Même course, mêmes adversaires, même départ : avec ton propre cheval, bats son temps. Son fantôme court à côté de toi. Gratuit, sans fatigue ni trophées.</p>
    <div class="race-entry"><button class="action green" data-duel-go="${escapeHTML(d.id)}">⚔️ RELEVER LE DÉFI</button></div></div>`;$('#panel').classList.add('open')}
  function meeting(d){const R=safeRace(d.rec.race);return{...R,id:'duel',src:R.id,n:`Duel · ${R.n}`,duel:true,defi:false,tour:false}}
@@ -3683,14 +3742,14 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  hooks.on('field:built',F=>{if(RACE.duel&&cur)Object.assign(F,clone(cur.rec.field))});
  // ---------- écran des courses : cartes des duels reçus ----------
  hooks.on('courses:render',()=>{const g=$('#panelBody .meets');if(!g)return;
-  if(RACE.duel&&cur){const r=cur.rec,info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#ffd9a0">⚔️ Duel contre ${escapeHTML(r.horse)}</b> · ${fmt(r.race.dist)} m · Terrain ${TERRAINS[r.race.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : bats <b>${t2(r.result.times[0])} s</b> <span class="duel-ok">✓ temps vérifié</span>${cur.best?` · ton record : ${t2(cur.best)} s`:''}`;$('#panelBody .taunt')?.remove()}
-  g.insertAdjacentHTML('afterbegin',D.list.slice().reverse().slice(0,3).map(d=>`<button class="meet duel-meet${RACE.duel&&cur===d?' on':''}" data-duel="${escapeHTML(d.id)}"><b>⚔️ ${escapeHTML(d.rec.horse)}</b><em class="suit ${d.won?'ideal':'ok'}">${d.won?'✓ Battu':'Duel'}</em><small>${fmt(d.rec.race.dist)} m · ${TERRAINS[d.rec.race.terrain].n} · ${t2(d.rec.result.times[0])} s</small><span>${d.tries?`${d.tries} essai${d.tries>1?'s':''}${d.best?` · ${t2(d.best)} s`:''}`:'à relever'}</span></button>`).join(''))});
+  if(RACE.duel&&cur){const r=cur.rec,info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#ffd9a0">⚔️ Duel contre ${escapeHTML(r.horse)}</b> · ${fmt(r.race.dist)} m · Terrain ${TERRAINS[r.race.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : bats <b>${t2(r.result.times[0])} s</b> <span class="duel-ok">✓ temps vérifié</span>${cur.best?` · ton record : ${t2(cur.best)} s`:''}`;$('#panelBody .taunt')?.remove()}
+  g.insertAdjacentHTML('afterbegin',D.list.slice().reverse().slice(0,3).map(d=>`<button class="meet duel-meet${RACE.duel&&cur===d?' on':''}" data-duel="${escapeHTML(d.id)}"><b>⚔️ ${escapeHTML(d.rec.horse)}</b><em class="suit ${d.won?'ideal':'ok'}">${d.won?'✓ Battu':'Duel'}</em><small>${fmt(d.rec.race.dist)} m · ${TERRAINS[d.rec.race.terrain].n} · ${t2(d.rec.result.times[0])} s</small><span>${d.tries?`${d.tries} essai${d.tries>1?'s':''}${d.best?` · ${t2(d.best)} s`:''}`:'à relever'}</span></button>`).join(''))});
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.duel){const d=D.list.find(x=>x.id===b.dataset.duel);if(d&&select(d))renderCourses()}else if(b.dataset.duelGo)go(b.dataset.duelGo)});
  // un duel choisi, puis une autre course : on quitte le duel
  hooks.on('courses:render',()=>{if(!RACE.duel){cur=null;G=null}});
  // ---------- en course : en-tête, fantôme, écart ----------
- hooks.on('race:header',()=>{if(RACE.duel&&cur)$('.race-head small').textContent+=` • ⚔️ ${cur.rec.horse} : ${t2(cur.rec.result.times[0])} s`});
+ hooks.on('race:header',()=>{if(RACE.duel&&cur)$('.race-head small').textContent+=` • ⚔️ ${cur.rec.horse} : ${t2(cur.rec.result.times[0])} s`});
  let ghost=null,tex=null,gv=0,phase=0;const gap=document.createElement('div');gap.className='ghost-gap duel-gap';$('#raceScreen').appendChild(gap);
  hooks.on('race:start',()=>{gv=0;gap.classList.remove('show');if(ghost)ghost.visible=false;if(RACE.duel&&cur&&threeRace&&!threeRace.headless)LIVERY.ready.then(()=>{const L={...stable.silks,...(cur.rec.liv||{})};tex?.dispose();tex=new THREE.CanvasTexture(LIVERY.gallop(L,.5));tex.colorSpace=THREE.SRGBColorSpace;tex.repeat.set(1/8,1);if(ghost)ghost.material.map=tex,ghost.material.needsUpdate=true})});
  hooks.on('race:tick',()=>{if(!RACE.duel||!G||raceFinished[0])return;const gp=G.p[Math.min(raceTime,G.p.length-1)]??101,m=Math.round((gp-progress[0])*RACE.dist/100);
@@ -3704,13 +3763,13 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  hooks.on('duel:end',()=>{const d=cur;if(!d)return;const mine=raceFinishTimes[0],his=d.rec.result.times[0],rank=finishOrder.indexOf(0)+1,won=mine<his,first=!d.won&&won;gap.classList.remove('show');
   d.tries++;d.best=d.best==null?mine:Math.min(d.best,mine);if(won){if(!d.won)D.wins++;d.won=true}else if(d.tries===1)D.losses++;save();
   const A=raceAnalysis(rank),t0=raceFinishTimes[finishOrder[0]],dt=Math.abs(mine-his);
-  $('#finishRows').innerHTML=finishOrder.map((idx,pos)=>`<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${raceFinishTimes[idx].toFixed(2)} s</td><td>${pos?`+${(raceFinishTimes[idx]-t0).toFixed(2)} s`:'—'}</td></tr>`).join('');
-  $('#fbStars').innerHTML=`<div class="duel-res${won?' win':''}"><b>${won?`⚔️ Tu bats ${escapeHTML(d.rec.horse)} !`:`⚔️ ${escapeHTML(d.rec.horse)} garde l’avantage`}</b><span>${t2(mine)} s contre ${t2(his)} s (${won?'−':'+'}${t2(dt)} s)</span><small>Essai n° ${d.tries} · ${rank}${rank===1?'er':'e'} sur 6${first?' · premier duel gagné contre lui !':''}</small></div>`+`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}`;
+  $('#finishRows').innerHTML=finishOrder.map((idx,pos)=>`<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${sec(raceFinishTimes[idx],2)}</td><td>${pos?`+${sec((raceFinishTimes[idx]-t0),2)}`:'—'}</td></tr>`).join('');
+  $('#fbStars').innerHTML=`<div class="duel-res${won?' win':''}"><b>${won?`⚔️ Tu bats ${escapeHTML(d.rec.horse)} !`:`⚔️ ${escapeHTML(d.rec.horse)} garde l’avantage`}</b><span>${t2(mine)} s contre ${t2(his)} s (${won?'−':'+'}${t2(dt)} s)</span><small>Essai n° ${d.tries} · ${rank}${rank===1?'er':'e'} sur 6${first?' · premier duel gagné contre lui !':''}</small></div>`+`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}`;
   $('#fbGain').innerHTML=won?'Renvoie-lui la balle : il devra battre ton temps.':'Retente ta chance : seule compte ta meilleure course.';
   if(won){sound.fanfare();buzz([60,40,120])}else buzz(40);$('#raceComment').textContent=won?'Duel gagné !':'Duel perdu';$('#finishBoard').classList.add('show');
-  $('#resultCup').textContent=won?'⚔️':'🎖️';$('#resultTitle').textContent=won?'Duel gagné !':`Duel perdu de ${t2(dt)} s`;$('#resultText').textContent=`${HN()} boucle la course en ${t2(mine)} s, contre ${t2(his)} s pour ${d.rec.horse}.`;currentField=null});
+  $('#resultCup').textContent=won?'⚔️':'🎖️';$('#resultTitle').textContent=won?'Duel gagné !':`Duel perdu de ${t2(dt)} s`;$('#resultText').textContent=`${HN()} boucle la course en ${t2(mine)} s, contre ${t2(his)} s pour ${d.rec.horse}.`;currentField=null});
  // boutons sous le bilan : défier un ami (toute course terminée hors tournoi), réessayer le duel
- hooks.on('race:end',()=>{if(RACE.tour)return;const b=$('#raceAgain');if(RACE.duel&&b&&!b.hidden&&b.dataset.mode==='again')b.innerHTML=`RÉESSAYER LE DUEL<small>gratuit · bats ${t2(cur?.rec.result.times[0]||0)} s</small>`;
+ hooks.on('race:end',()=>{if(RACE.tour)return;const b=$('#raceAgain');if(RACE.duel&&b&&!b.hidden&&b.dataset.mode==='again')b.innerHTML=`RÉESSAYER LE DUEL<small>gratuit · bats ${t2(cur?.rec.result.times[0]||0)} s</small>`;
   $('#fbGain').insertAdjacentHTML('beforeend',`<br><button class="action duel-btn" id="duelShare">⚔️ ${RACE.duel?'RENVOYER LE DÉFI':'DÉFIER UN AMI'}</button>`);$('#duelShare').onclick=e=>{e.stopPropagation();share()}});
  hooks.on('ready',()=>{fromHash();addEventListener('hashchange',fromHash)});
  PANELS.duel=()=>{const d=D.list[D.list.length-1];if(d)card(d)};
@@ -3802,6 +3861,9 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
 <script type="text/x-module" data-f="50-nouveautes.js">/* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['📱','Course lisible sur petits téléphones','Sur les écrans étroits, la carte du cheval, l’allure, le sprint et les couloirs ne se chevauchent plus. Le commentaire ne s’affiche plus par-dessus la course : tu entends le speaker, le classement en direct donne les écarts.',0,'2.6'],
+ ['🔋','Plus économe, sans ralentir','Le domaine affiche moitié moins d’images quand tu ne le touches pas, et la mémoire graphique ne s’accumule plus de course en course : de longues sessions restent fluides.',0,'2.6'],
+ ['✨','Finitions','Bouton COURIR toujours visible, temps à la française (89,55 s), atelier du champion dès l’ouverture du jeu, réglage « réduire les animations » de ton appareil respecté.',0,'2.6'],
  ['🏰','Domaine 100 % 3D','Ton domaine s’affiche en 3D dès le lancement, sur tous les appareils : l’ancienne vue peinte a disparu.',0,'2.5'],
  ['🎚️','Allure en course','Pendant la course, presse ou retiens ton cheval (▲ / ▼). Bloqué derrière un cheval ? Retiens-le : il garde ses forces pour le sprint. Une ouverture ? Presse-le pour la prendre.',0,'2.5'],
  ['🏇','Écuries rivales','Tes adversaires courent pour 12 écuries, chacune avec sa casaque : tu les recroises de course en course et le jeu retient qui mène le face-à-face. Au départ, leurs chances s’affichent en mots : favori, prétendant, outsider.',0,'2.5'],
@@ -4261,7 +4323,7 @@ const domaine3d = (() => {
       el.style.left = x.toFixed(1) + 'px'; el.style.top = Math.max(harvest ? 60 : 96, y).toFixed(1) + 'px'; el.style.visibility = off ? 'hidden' : ''; if (hit) { el.style.width = '64px'; el.style.height = '64px'; el.style.marginLeft = el.style.marginTop = '-32px' } }
   }
   // ---------- entrées ----------
-  const pts = new Map(); let drag = null, pinch = null, lastMove = 0, hover = null;
+  const pts = new Map(); let drag = null, pinch = null, lastMove = 0, hover = null, geste = 0;
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   function pickAt(cx, cy) { const r = R.domElement.getBoundingClientRect(); ndc.set((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, cam); const h = ray.intersectObjects(T.pick, false)[0]; if (h) return h.object.userData.id;
     // à défaut, le bâtiment dont l'emprise au sol est sous le doigt
@@ -4269,9 +4331,9 @@ const domaine3d = (() => {
   function input(cv) {
     const stop = e => e.stopPropagation();
     cv.addEventListener('contextmenu', e => e.preventDefault());
-    cv.addEventListener('pointerdown', e => { stop(e); cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); W3.vx = W3.vz = 0; W3.goal = null;
+    cv.addEventListener('pointerdown', e => { stop(e); geste = performance.now(); cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); W3.vx = W3.vz = 0; W3.goal = null;
       if (pts.size === 1) drag = { x: e.clientX, y: e.clientY, moved: false, rot: e.button === 2 || e.shiftKey }; else if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), dist: W3.dist, ang: Math.atan2(b.y - a.y, b.x - a.x), yaw: W3.yaw, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; if (drag) drag.moved = true } });
-    cv.addEventListener('pointermove', e => { stop(e); const p = pts.get(e.pointerId); if (!p) { if (e.pointerType === 'mouse') { const id = pickAt(e.clientX, e.clientY); if (id !== hover) { hover = id; world.classList.toggle('over-bld', !!id) } } return }
+    cv.addEventListener('pointermove', e => { stop(e); const p = pts.get(e.pointerId); if (p) geste = performance.now(); if (!p) { if (e.pointerType === 'mouse') { const id = pickAt(e.clientX, e.clientY); if (id !== hover) { hover = id; world.classList.toggle('over-bld', !!id) } } return }
       const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
       if (pinch && pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; W3.dist = pinch.dist * pinch.d / Math.max(20, d); W3.yaw = pinch.yaw - (ang - pinch.ang); pan(mx - pinch.mx, my - pinch.my); pinch.mx = mx; pinch.my = my; clampT(); return }
       if (!drag) return; if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 7) { drag.moved = true; world.classList.add('dragging') }
@@ -4279,7 +4341,7 @@ const domaine3d = (() => {
     const end = e => { stop(e); if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (pts.size) return; world.classList.remove('dragging');
       if (drag && !drag.moved && e.type === 'pointerup') { const id = pickAt(e.clientX, e.clientY); id ? village.select(id) : village.deselect() } else if (drag && performance.now() - lastMove > 80) { W3.vx = W3.vz = 0 } drag = null };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
-    cv.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); W3.goal = null; W3.dist *= Math.exp(e.deltaY * .0012); clampT() }, { passive: false });
+    cv.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); geste = performance.now(); W3.goal = null; W3.dist *= Math.exp(e.deltaY * .0012); clampT() }, { passive: false });
     cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && hover) { hover = null; world.classList.remove('over-bld') } })
   }
   // ---------- clavier (PC) : flèches ou ZQSD / WASD pour se déplacer, A / E pour tourner, + / − pour zoomer ----------
@@ -4295,6 +4357,8 @@ const domaine3d = (() => {
     if ($('#raceScreen').classList.contains('open') || document.hidden) { last = now; return }
     // un panneau couvre le domaine : quelques images par seconde suffisent (batterie des téléphones)
     if ($('#panel').classList.contains('open') && !pts.size && now - last < 150) return;
+    // 2.6 : domaine au repos (aucun geste depuis 1,2 s, caméra immobile) : 30 images/s suffisent — moitié moins de calcul, de batterie et de chauffe
+    if (!pts.size && !keys.size && !W3.goal && Math.abs(W3.vx) + Math.abs(W3.vz) < .2 && now - geste > 1200 && now - last < 30) return;
     const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const t = now / 1000;
     raceWorld.uniforms.uTime.value = t; light();
     if (!drag && !pinch && (Math.abs(W3.vx) + Math.abs(W3.vz) > .2)) { pan(W3.vx, W3.vz); W3.vx *= .92; W3.vz *= .92 }
@@ -4310,7 +4374,7 @@ const domaine3d = (() => {
     if (sails) sails.rotation.z -= dt * .9;
     if (chk && built && decoOwned().join(',') !== decoSig) decos();
     for (const w of swans) { w.a += dt * w.sp; w.o.position.set(-38 + Math.cos(w.a) * w.r, .1, 88 + Math.sin(w.a) * w.r * 1.25); w.o.rotation.y = -w.a - Math.PI / 2 }
-    stepHorses(dt, t); if (T.smoke) stepLife(dt, t); camera(); R.render(S, cam); placeUI();
+    stepHorses(dt, t); if (T.smoke) stepLife(dt, t); camera(); R.render(S, cam); T.images = (T.images || 0) + 1; placeUI();
     if (!T.shown) { T.shown = true; try { splash.hide() } catch (e) { } hooks.emit('domaine3d:pret', T.ms) }
   }
   function rebuild(id) {
@@ -4341,7 +4405,8 @@ const domaine3d = (() => {
       const L = buildSteps(), next = () => new Promise(r => setTimeout(r, 0));
       for (let k = 0; k < ESSENTIEL; k++) { L[k](); try { splash.step(`Construction du domaine… ${Math.round((k + 1) / ESSENTIEL * 100)} %`) } catch (e) { } await next() }
       light(); camera(); try { splash.step('Préparation de la lumière…') } catch (e) { }
-      if (R.compileAsync) await R.compileAsync(S, cam).catch(() => { });
+      // compilation en parallèle seulement si le pilote la propose (sinon three.js l'annonce dans la console et compile quand même)
+      if (R.compileAsync && R.extensions.has('KHR_parallel_shader_compile')) await R.compileAsync(S, cam).catch(() => { }); else R.compile(S, cam);
       T.ms = Math.round(performance.now() - t0); show();
       for (let k = ESSENTIEL; k < L.length; k++) { await next(); L[k]() }
       T.tod = null; // les lampes du décor prennent la lumière de l'heure
@@ -4351,7 +4416,7 @@ const domaine3d = (() => {
   }
   function show() { on = true; world.classList.add('d3-on'); adopt(); if (!raf) raf = requestAnimationFrame(frame) }
   hooks.on('ready', () => setTimeout(start, 30));
-  return { get on() { return on }, start, view: W3, supported, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls } },
+  return { get on() { return on }, start, view: W3, supported, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls, images: T.images || 0 } },
     // capture sans attendre requestAnimationFrame (panneau masqué) : fait avancer la vie de ms millisecondes puis dessine
     snap(ms = 0) { if (!on) return; const t = performance.now() / 1000; for (let k = 0; k < 4; k++) { stepHorses(ms / 4000, t); if (T.smoke) stepLife(ms / 4000, t) } raceWorld.uniforms.uTime.value = t; light(); camera(); R.render(S, cam); placeUI() } }
 })();

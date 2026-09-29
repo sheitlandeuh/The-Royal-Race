@@ -8,7 +8,7 @@
 
 | Fichier | Contenu | Auteur | Licence | Visible dans le jeu |
 |---|---|---|---|---|
-| `assets/vendor/three.min.js` | Moteur 3D three.js r160 | three.js authors | MIT | Réglages → Crédits |
+| `assets/vendor/three.min.js` | Moteur 3D three.js r160 (seule modification : l'avertissement de dépréciation du build global, en tête de fichier, est retiré) | three.js authors | MIT | Réglages → Crédits |
 | `assets/fonts/russo-one-400.woff2` | Police Russo One | Jovanny Lemonad | SIL OFL 1.1 | Réglages → Crédits |
 | `assets/fonts/rajdhani-*.woff2` | Police Rajdhani | Indian Type Foundry | SIL OFL 1.1 | Réglages → Crédits |
 | `assets/fonts/exo-2-*.woff2` | Police Exo 2 | Natanael Gama | SIL OFL 1.1 | Réglages → Crédits |

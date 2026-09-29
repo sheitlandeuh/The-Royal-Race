@@ -7,6 +7,9 @@ const KEYS=['trr.stable','trr.progress','trr.champion','trr.settings'];
 const backup=()=>{if(window.__noSave)return;try{stable.save();const k={};KEYS.forEach(x=>{const v=localStorage.getItem(x);if(v!=null)k[x]=v});localStorage.setItem('trr.bak',JSON.stringify({t:Date.now(),k}))}catch(e){}};
 setInterval(backup,60e3);addEventListener('pagehide',backup);document.addEventListener('visibilitychange',()=>{if(document.hidden)backup()});
 if(window.__restored)setTimeout(()=>toast('Sauvegarde abîmée : ta dernière copie de secours a été restaurée'),1500);
+// 2 bis) stockage persistant (2.6) : dès la première course, on demande au navigateur de ne pas effacer la partie quand l'espace manque
+// (Chrome, Firefox, Safari récents ; sans effet ailleurs, rien ne s'affiche)
+hooks.on('race:end',()=>{try{navigator.storage?.persist?.().catch(()=>{})}catch(e){}});
 // 3) export / import (changement d'appareil, sécurité avant de vider le navigateur)
 const saveCode={export(){backup();const k={};KEYS.forEach(x=>{const v=localStorage.getItem(x);if(v!=null)k[x]=v});return 'TRR1.'+btoa(unescape(encodeURIComponent(JSON.stringify({v:1,t:Date.now(),k}))))},
  import(code){try{const o=JSON.parse(decodeURIComponent(escape(atob(String(code).trim().replace(/^TRR1\./,'')))));const st=JSON.parse(o.k['trr.stable']);if(!st||!Array.isArray(st.horses)||!st.horses.length)throw 0;

@@ -30,9 +30,10 @@ const studio=(()=>{const el=$('#studio'),cv=$('#studioCanvas'),ctx=cv.getContext
  $('#studioName').addEventListener('input',e=>{draft.name=e.target.value.slice(0,18);$('#studioPlate b').textContent=draft.name||'Sans nom'});
  $$('.studio-view button').forEach(b=>b.onclick=()=>{view=b.dataset.view;$$('.studio-view button').forEach(x=>x.classList.toggle('on',x===b));cancelAnimationFrame(anim);draw(performance.now())});
  $('#studioRandom').onclick=()=>{const r=S.random(Date.now()%100000);draft={...r,name:draft.name};cancelAnimationFrame(anim);render()};
- $('#studioSave').onclick=()=>{draft.name=(draft.name||'').trim()||'Royal Thunder';champion.set(draft);close();toast(firstRun?`Bienvenue, ${draft.name} !`:'Couleurs enregistrées')};
+ $('#studioSave').onclick=()=>{draft.name=(draft.name||'').trim()||'Royal Thunder';champion.set(draft);close();if(firstRun)try{if(!domaine3d.on)splash.show()}catch(e){}toast(firstRun?`Bienvenue, ${draft.name} !`:'Couleurs enregistrées')};
  $('#studioClose').onclick=()=>close();
- function open(first=false){firstRun=first;draft={...champion.get()};$('#studioTitle').textContent=first?'Crée ton premier champion':'Mon champion';
+ function open(first=false){firstRun=first;if(first)try{splash.hide()}catch(e){} // 2.6 : un nouveau joueur crée son champion tout de suite, le domaine 3D finit de se construire derrière
+ draft={...champion.get()};$('#studioTitle').textContent=first?'Crée ton premier champion':'Mon champion';
   $('#studioIntro').textContent=first?'Choisis la robe de ton cheval et les couleurs de ton écurie. Tu pourras les changer à tout moment.':'Robe, casaque et toque : tes couleurs apparaissent en course et sur le podium.';
   $('#studioClose').hidden=first;el.classList.add('open');S.ready.then(()=>{fit();render()})}
  function close(){el.classList.remove('open');cancelAnimationFrame(anim)}

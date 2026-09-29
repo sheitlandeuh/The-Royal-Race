@@ -38,7 +38,7 @@ Tests automatiques, dans la console du jeu servi en local : `await import('./too
 
 **Intégration continue** (`.github/workflows/verifications.yml`) : à chaque envoi sur `main` ou une branche `claude/…`, GitHub Actions vérifie que `index.html` est bien régénéré depuis `src/`, la syntaxe, lance les tests rapides puis le test de fumée en 1280×800 et 390×844 (`MOBILE=1`).
 
-Test de fumée (Playwright) : `python3 -m http.server 8765` puis `node tools/smoke.cjs` — charge le jeu avec six sauvegardes types (neuve, débutant, une course, confirmé, fin de partie, sauvegarde abîmée) et ouvre tous les écrans ; échoue à la moindre erreur JavaScript, à un module en échec ou à un texte cassé. `--shots dossier` produit les captures en 1280×800 et 390×844.
+Test de fumée (Playwright) : `python3 -m http.server 8765` puis `node tools/smoke.cjs` — charge le jeu avec sept sauvegardes types (neuve, débutant, une course, confirmé, fin de partie, noms piégés, sauvegarde abîmée) et ouvre tous les écrans ; échoue à la moindre erreur JavaScript, à un module en échec, à un texte cassé ou trop petit (moins de 10 px), ou si un nom piégé exécute du code. `--shots dossier` produit les captures en 1280×800 et 390×844.
 
 | Dossier | Contenu |
 |---|---|
@@ -93,6 +93,11 @@ Un nouveau joueur ne voit que le domaine et la course. Les systèmes s’ouvrent
 ## Simulation
 La course est **déterministe** : avec la même graine (tirée à la création du plateau) et les mêmes actions du joueur, le résultat est identique. C’est ce qui permettra au serveur de revérifier les courses (étape 3).
 Voir `claude/the-royal-race-systeme-ecurie.md` (projet) pour les formules.
+
+## Nouveautés de la 2.6
+
+Deuxième audit, plus exigeant (`AUDIT.md`), mené en jouant réellement : parcours d'un nouveau joueur sur quatre tailles de téléphone, test d'injection, mémoire graphique, accessibilité.
+Corrigé : fuite de mémoire graphique à chaque course (squelettes des chevaux 3D), écran de course illisible sur petits téléphones (plus aucun chevauchement de 320 à 412 px), commentaire écrit par-dessus la course (voix seule en direct), atelier du champion dès l'ouverture, bouton COURIR toujours visible, temps à la française (« 89,55 s »), domaine à 30 images/s au repos, console propre, réglage « réduire les animations » respecté, aucun texte sous 10 px, sauvegarde qui prévient si le stockage est plein.
 
 ## Nouveautés de la 2.5
 

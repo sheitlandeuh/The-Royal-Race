@@ -1,4 +1,4 @@
-const VERSION='2.5';
+const VERSION='2.6';
 const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
@@ -14,5 +14,12 @@ const stableMax=()=>dfx('ecurie'),purseOf=m=>Math.round((m.purse||0)*dfx('hippod
 const hooks=(()=>{const L={};return{on(e,f,p=0){const l=L[e]=L[e]||[];l.push({f,p});l.sort((a,b)=>b.p-a.p)},emit(e,...a){for(const{f}of(L[e]||[]).slice())try{f(...a)}catch(err){console.error('hook '+e,err)}}}})();
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>n.toLocaleString('fr-FR');
-function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),2200)}
+// temps affichés (2.6) : virgule décimale et espace insécable avant l'unité — « 89,55 s » ne se coupe jamais en fin de ligne
+// réglage système « réduire les animations » (2.6) : pas de secousse de caméra, animations CSS coupées (13-gaming)
+const REDUCE_MOTION=matchMedia('(prefers-reduced-motion: reduce)');
+const sec=(x,d=2)=>Number(x).toFixed(d).replace('.',',')+'\u00a0s';
+function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),ms)}
+// sauvegarde impossible (stockage du navigateur plein ou bloqué, 2.6) : prévenir une fois par session au lieu de perdre la progression en silence
+const saveKo=(()=>{let said=false;return e=>{try{journal.erreur('sauvegarde',String(e&&e.name||e),'')}catch(x){}if(said||window.__noSave)return;said=true;
+ setTimeout(()=>toast('Sauvegarde impossible : le stockage du navigateur est plein ou bloqué. Exporte ta partie : Réglages → Transférer ma partie.',8000),0)}})();
 function sync(){ $('#gold').textContent=fmt(state.gold);$('#feed').textContent=fmt(state.feed);$('#gems').textContent=fmt(state.gems);$('#trophies').textContent=fmt(state.trophies)}

@@ -20,7 +20,7 @@ let RACE={...MEETINGS[1]};
 const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{const d=new Date(),t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-n+3);const f=new Date(Date.UTC(t.getUTCFullYear(),0,4));return t.getUTCFullYear()+'-S'+(1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7))};
  let C={};try{C=JSON.parse(localStorage.getItem('trr.progress')||'{}')}catch(e){}
  C.best=Math.max(C.best||0,state.trophies);C.claimed=C.claimed||[];C.tips=C.tips||{};C.stats=C.stats||{races:0,wins:0};
- const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
+ const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){saveKo(e)}};
  function roll(){if(C.day!==day()){C.day=day();let x=[...day()].reduce((a,c)=>a*31+c.charCodeAt(0),7)%2147483647;const r=()=>(x=(x*16807)%2147483647)/2147483647;const pool=[...MISSION_POOL];C.missions=[];while(C.missions.length<3){const m=pool.splice(Math.floor(r()*pool.length),1)[0];C.missions.push({k:m.k,p:0,done:false})}}
   // mission d'une ancienne version (ex. temps forts, retirés en 2.4) : remplacée par une mission du jour encore absente
   if(C.missions.some(m=>!MISSION_POOL.some(x=>x.k===m.k))){C.missions=C.missions.filter(m=>MISSION_POOL.some(x=>x.k===m.k));for(const d of MISSION_POOL){if(C.missions.length>=3)break;if(!C.missions.some(m=>m.k===d.k))C.missions.push({k:d.k,p:0,done:false})}}

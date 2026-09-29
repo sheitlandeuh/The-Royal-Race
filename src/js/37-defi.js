@@ -19,15 +19,15 @@ const defi=(()=>{
  function select(){RACE=meeting();currentField=null;buildField();renderCourses()}
  // carte dans l'écran des courses
  hooks.on('courses:render',()=>{const g=$('#panelBody .meets');if(!g)return;const T=today(),M=meeting();
-  if(RACE.defi){const info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#bfe6ff">Défi du jour</b> · ${fmt(M.dist)} m · Terrain ${TERRAINS[M.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : seul ton meilleur temps compte${T.best?` (record : ${T.best.toFixed(2)} s)`:''}.`;$('#panelBody .taunt')?.remove()}
-  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${T.best.toFixed(2)} s`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
+  if(RACE.defi){const info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#bfe6ff">Défi du jour</b> · ${fmt(M.dist)} m · Terrain ${TERRAINS[M.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : seul ton meilleur temps compte${T.best?` (record : ${sec(T.best,2)})`:''}.`;$('#panelBody .taunt')?.remove()}
+  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${sec(T.best,2)}`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
  $('#panelBody').addEventListener('click',e=>{if(e.target.closest('[data-defi]'))select()});
  // trajectoire de l'essai en cours (pour devenir le fantôme s'il bat le record)
  let track=null,ghost=null,gv=0,gap=null;
  hooks.on('race:start',()=>{track=RACE.defi?{p:[],l:[]}:null;gv=0;if(ghost)ghost.visible=false;gap?.classList.remove('show')});
  hooks.on('race:tick',()=>{if(!track||raceFinished[0])return;track.p[raceTime]=+progress[0].toFixed(3);track.l[raceTime]=Math.round(playerLane);
   const G=today().ghost;if(G&&gap){const gp=G.p[Math.min(raceTime,G.p.length-1)]??100,m=Math.round((gp-progress[0])*RACE.dist/100);gap.innerHTML=Math.abs(m)<2?'👻 Au coude à coude avec ton fantôme':m>0?`👻 Fantôme <b>${m} m</b> devant`:`👻 Tu as <b>${-m} m</b> d’avance`;gap.classList.add('show');gap.classList.toggle('ahead',m<=0)}});
- hooks.on('race:header',()=>{if(!RACE.defi)return;const T=today();$('.race-head small').textContent+=T.best?` • Record ${T.best.toFixed(2)} s`:' • Premier essai'});
+ hooks.on('race:header',()=>{if(!RACE.defi)return;const T=today();$('.race-head small').textContent+=T.best?` • Record ${sec(T.best,2)}`:' • Premier essai'});
  // fantôme : un cheval translucide qui rejoue le meilleur essai, sans gêner la course (hors simulation)
  {const r0=raceFX.render;let last=0,gl=null;raceFX.render=function(q){const G=RACE.defi&&today().ghost,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
   if(G&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView){if(!ghost){ghost=new THREE.Sprite(new THREE.SpriteMaterial({map:q.horseTextures[0],transparent:true,opacity:.36,depthWrite:false,color:0xcfe6ff}));ghost.frustumCulled=false;q.scene.add(ghost)}
@@ -40,11 +40,11 @@ const defi=(()=>{
   if(first){T.first=true;const c=meta.addChest('argent');gain.push(c?'🎁 Coffre d’argent':'💎 +5 gemmes (coffres pleins)');if(!c){state.gems+=5;sync()}}
   else if(rec&&T.pbGems<3){T.pbGems++;state.gems+=3;sync();gain.push('💎 +3 gemmes (nouveau record)')}
   save();track=null;currentField=null;const A=raceAnalysis(rank),t0=raceFinishTimes[finishOrder[0]];
-  $('#finishRows').innerHTML=finishOrder.map((idx,pos)=>`<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${raceFinishTimes[idx].toFixed(2)} s</td><td>${pos?`+${(raceFinishTimes[idx]-t0).toFixed(2)} s`:'—'}</td></tr>`).join('');
-  $('#fbStars').innerHTML=`<div class="defi-res${rec?' rec':''}"><b>${rec?(old==null?'Premier temps du jour':'Nouveau record !'):'Pas de record cette fois'}</b><span>${time.toFixed(2)} s${old!=null?` · record précédent ${old.toFixed(2)} s (${time<old?'−':'+'}${Math.abs(time-old).toFixed(2)} s)`:''}</span><small>Essai n° ${T.tries} · ${rank}${rank===1?'er':'e'} sur 6</small></div>`+`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}`;
+  $('#finishRows').innerHTML=finishOrder.map((idx,pos)=>`<tr class="${idx===0?'player':''}"><td>${pos+1}</td><td>${escapeHTML(raceNames[idx])}${idx===0?' • VOUS':''}</td><td>${sec(raceFinishTimes[idx],2)}</td><td>${pos?`+${sec((raceFinishTimes[idx]-t0),2)}`:'—'}</td></tr>`).join('');
+  $('#fbStars').innerHTML=`<div class="defi-res${rec?' rec':''}"><b>${rec?(old==null?'Premier temps du jour':'Nouveau record !'):'Pas de record cette fois'}</b><span>${sec(time,2)}${old!=null?` · record précédent ${sec(old,2)} (${time<old?'−':'+'}${sec(Math.abs(time-old),2)})`:''}</span><small>Essai n° ${T.tries} · ${rank}${rank===1?'er':'e'} sur 6</small></div>`+`<div class="stars">${[0,1,2].map(i=>`<i class="${i<A.stars?'on':''}" style="animation-delay:${.3+i*.25}s">★</i>`).join('')}</div>${A.lines.map(([ok,n,t])=>`<div class="an ${ok?'ok':''}"><b>${ok?'✓':'✗'} ${n}</b><span>${t}</span></div>`).join('')}`;
   $('#fbGain').innerHTML=gain.join(' · ')||'Retente ta chance : seul ton meilleur temps compte.';
   if(rec){sound.fanfare();buzz([60,40,120])}else buzz(40);
-  $('#raceComment').textContent=rec?'Nouveau record du jour !':'Défi terminé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=rec?'⏱️':'🎖️';$('#resultTitle').textContent=rec?'Record du jour !':`${rank}e place`;$('#resultText').textContent=`${HN()} boucle le Défi du jour en ${time.toFixed(2)} s.`});
+  $('#raceComment').textContent=rec?'Nouveau record du jour !':'Défi terminé';$('#finishBoard').classList.add('show');$('#resultCup').textContent=rec?'⏱️':'🎖️';$('#resultTitle').textContent=rec?'Record du jour !':`${rank}e place`;$('#resultText').textContent=`${HN()} boucle le Défi du jour en ${sec(time,2)}.`});
  // bouton sous le bilan : réessayer le défi
  hooks.on('race:end',()=>{if(!RACE.defi)return;const b=$('#raceAgain');if(b&&!b.hidden&&b.dataset.mode==='again')b.innerHTML=`RÉESSAYER LE DÉFI<small>gratuit · bats ton temps</small>`});
  // écart au fantôme, affiché en course

@@ -1,6 +1,9 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['📱','Course lisible sur petits téléphones','Sur les écrans étroits, la carte du cheval, l’allure, le sprint et les couloirs ne se chevauchent plus. Le commentaire ne s’affiche plus par-dessus la course : tu entends le speaker, le classement en direct donne les écarts.',0,'2.6'],
+ ['🔋','Plus économe, sans ralentir','Le domaine affiche moitié moins d’images quand tu ne le touches pas, et la mémoire graphique ne s’accumule plus de course en course : de longues sessions restent fluides.',0,'2.6'],
+ ['✨','Finitions','Bouton COURIR toujours visible, temps à la française (89,55 s), atelier du champion dès l’ouverture du jeu, réglage « réduire les animations » de ton appareil respecté.',0,'2.6'],
  ['🏰','Domaine 100 % 3D','Ton domaine s’affiche en 3D dès le lancement, sur tous les appareils : l’ancienne vue peinte a disparu.',0,'2.5'],
  ['🎚️','Allure en course','Pendant la course, presse ou retiens ton cheval (▲ / ▼). Bloqué derrière un cheval ? Retiens-le : il garde ses forces pour le sprint. Une ouverture ? Presse-le pour la prendre.',0,'2.5'],
  ['🏇','Écuries rivales','Tes adversaires courent pour 12 écuries, chacune avec sa casaque : tu les recroises de course en course et le jeu retient qui mène le face-à-face. Au départ, leurs chances s’affichent en mots : favori, prétendant, outsider.',0,'2.5'],

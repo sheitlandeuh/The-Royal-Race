@@ -38,4 +38,6 @@ const splash=(()=>{const sp=$('#splash');let done=false,late=0;const hide=()=>{i
   if(!box.querySelector('button')){const b=document.createElement('button');b.className='action green';b.textContent='RECHARGER';b.onclick=()=>location.reload();box.appendChild(b)}}
  // construction anormalement longue (appareil très lent, pilote graphique bloqué) : proposer de recharger, sans cacher l'écran
  late=setTimeout(()=>{if(!done){const box=sp.querySelector('div');if(!box.querySelector('button')){const b=document.createElement('button');b.className='action';b.textContent='RECHARGER';b.onclick=()=>location.reload();box.appendChild(b)}step('Le domaine met du temps à se construire…')}},45000);
- return{hide,step,fail,get done(){return done}}})();
+ // réaffiché si le joueur a fini de créer son champion avant la première image du domaine 3D (jamais d'écran vide)
+ function show(){if(!done)return;done=false;sp.classList.remove('gone');step('Construction du domaine…')}
+ return{hide,step,fail,show,get done(){return done}}})();

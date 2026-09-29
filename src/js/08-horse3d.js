@@ -479,7 +479,8 @@ const HORSE3D = (() => {
     u.reins.forEach((r, k) => { const s = k ? -1 : 1; BIT.set(1.31 - .97, 1.6 - 1.95, .066 * s); B[2].localToWorld(BIT); root.worldToLocal(BIT); HAND.set(.645 - .43, 1.865 - 1.94, .07 * s - .14 * s); JB_[k ? 6 : 4].localToWorld(HAND); root.worldToLocal(HAND);
       const d = HAND.sub(BIT), L = d.length(); r.position.copy(BIT); r.scale.set(L, 1, 1); r.quaternion.setFromUnitVectors(X1, d.divideScalar(L)) })
   }
-  function dispose(root) { const u = root.userData; u.disposed = true; u.mats.forEach(m => m.dispose()); u.texs.forEach(t => t.dispose()) }
+  // 2.6 : les squelettes (cheval et jockey) ont chacun une texture d'os sur le GPU : sans skeleton.dispose(), +12 textures à chaque course
+  function dispose(root) { const u = root.userData; u.disposed = true; u.mats.forEach(m => m.dispose()); u.texs.forEach(t => t.dispose()); root.traverse(o => { if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose() }) }
   return { ready, build, pose, setLod, dispose, marks, get loaded() { return Object.keys(DATA).map(Number) } }
 })();
 // maillages calculés d'avance, pendant que le joueur est au domaine (niveau course, puis gros plan sur les appareils puissants)

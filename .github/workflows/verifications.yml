@@ -1,4 +1,4 @@
-# Vérifications à chaque envoi : bundle à jour, syntaxe, tests du jeu, test de fumée (6 sauvegardes types)
+# Vérifications à chaque envoi : bundle à jour, syntaxe, tests du jeu, test de fumée (7 sauvegardes types)
 name: Vérifications
 
 on:

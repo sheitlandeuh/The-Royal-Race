@@ -415,7 +415,7 @@ const domaine3d = (() => {
       el.style.left = x.toFixed(1) + 'px'; el.style.top = Math.max(harvest ? 60 : 96, y).toFixed(1) + 'px'; el.style.visibility = off ? 'hidden' : ''; if (hit) { el.style.width = '64px'; el.style.height = '64px'; el.style.marginLeft = el.style.marginTop = '-32px' } }
   }
   // ---------- entrées ----------
-  const pts = new Map(); let drag = null, pinch = null, lastMove = 0, hover = null;
+  const pts = new Map(); let drag = null, pinch = null, lastMove = 0, hover = null, geste = 0;
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   function pickAt(cx, cy) { const r = R.domElement.getBoundingClientRect(); ndc.set((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, cam); const h = ray.intersectObjects(T.pick, false)[0]; if (h) return h.object.userData.id;
     // à défaut, le bâtiment dont l'emprise au sol est sous le doigt
@@ -423,9 +423,9 @@ const domaine3d = (() => {
   function input(cv) {
     const stop = e => e.stopPropagation();
     cv.addEventListener('contextmenu', e => e.preventDefault());
-    cv.addEventListener('pointerdown', e => { stop(e); cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); W3.vx = W3.vz = 0; W3.goal = null;
+    cv.addEventListener('pointerdown', e => { stop(e); geste = performance.now(); cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); W3.vx = W3.vz = 0; W3.goal = null;
       if (pts.size === 1) drag = { x: e.clientX, y: e.clientY, moved: false, rot: e.button === 2 || e.shiftKey }; else if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), dist: W3.dist, ang: Math.atan2(b.y - a.y, b.x - a.x), yaw: W3.yaw, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; if (drag) drag.moved = true } });
-    cv.addEventListener('pointermove', e => { stop(e); const p = pts.get(e.pointerId); if (!p) { if (e.pointerType === 'mouse') { const id = pickAt(e.clientX, e.clientY); if (id !== hover) { hover = id; world.classList.toggle('over-bld', !!id) } } return }
+    cv.addEventListener('pointermove', e => { stop(e); const p = pts.get(e.pointerId); if (p) geste = performance.now(); if (!p) { if (e.pointerType === 'mouse') { const id = pickAt(e.clientX, e.clientY); if (id !== hover) { hover = id; world.classList.toggle('over-bld', !!id) } } return }
       const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
       if (pinch && pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; W3.dist = pinch.dist * pinch.d / Math.max(20, d); W3.yaw = pinch.yaw - (ang - pinch.ang); pan(mx - pinch.mx, my - pinch.my); pinch.mx = mx; pinch.my = my; clampT(); return }
       if (!drag) return; if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 7) { drag.moved = true; world.classList.add('dragging') }
@@ -433,7 +433,7 @@ const domaine3d = (() => {
     const end = e => { stop(e); if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (pts.size) return; world.classList.remove('dragging');
       if (drag && !drag.moved && e.type === 'pointerup') { const id = pickAt(e.clientX, e.clientY); id ? village.select(id) : village.deselect() } else if (drag && performance.now() - lastMove > 80) { W3.vx = W3.vz = 0 } drag = null };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
-    cv.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); W3.goal = null; W3.dist *= Math.exp(e.deltaY * .0012); clampT() }, { passive: false });
+    cv.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); geste = performance.now(); W3.goal = null; W3.dist *= Math.exp(e.deltaY * .0012); clampT() }, { passive: false });
     cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && hover) { hover = null; world.classList.remove('over-bld') } })
   }
   // ---------- clavier (PC) : flèches ou ZQSD / WASD pour se déplacer, A / E pour tourner, + / − pour zoomer ----------
@@ -449,6 +449,8 @@ const domaine3d = (() => {
     if ($('#raceScreen').classList.contains('open') || document.hidden) { last = now; return }
     // un panneau couvre le domaine : quelques images par seconde suffisent (batterie des téléphones)
     if ($('#panel').classList.contains('open') && !pts.size && now - last < 150) return;
+    // 2.6 : domaine au repos (aucun geste depuis 1,2 s, caméra immobile) : 30 images/s suffisent — moitié moins de calcul, de batterie et de chauffe
+    if (!pts.size && !keys.size && !W3.goal && Math.abs(W3.vx) + Math.abs(W3.vz) < .2 && now - geste > 1200 && now - last < 30) return;
     const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const t = now / 1000;
     raceWorld.uniforms.uTime.value = t; light();
     if (!drag && !pinch && (Math.abs(W3.vx) + Math.abs(W3.vz) > .2)) { pan(W3.vx, W3.vz); W3.vx *= .92; W3.vz *= .92 }
@@ -464,7 +466,7 @@ const domaine3d = (() => {
     if (sails) sails.rotation.z -= dt * .9;
     if (chk && built && decoOwned().join(',') !== decoSig) decos();
     for (const w of swans) { w.a += dt * w.sp; w.o.position.set(-38 + Math.cos(w.a) * w.r, .1, 88 + Math.sin(w.a) * w.r * 1.25); w.o.rotation.y = -w.a - Math.PI / 2 }
-    stepHorses(dt, t); if (T.smoke) stepLife(dt, t); camera(); R.render(S, cam); placeUI();
+    stepHorses(dt, t); if (T.smoke) stepLife(dt, t); camera(); R.render(S, cam); T.images = (T.images || 0) + 1; placeUI();
     if (!T.shown) { T.shown = true; try { splash.hide() } catch (e) { } hooks.emit('domaine3d:pret', T.ms) }
   }
   function rebuild(id) {
@@ -495,7 +497,8 @@ const domaine3d = (() => {
       const L = buildSteps(), next = () => new Promise(r => setTimeout(r, 0));
       for (let k = 0; k < ESSENTIEL; k++) { L[k](); try { splash.step(`Construction du domaine… ${Math.round((k + 1) / ESSENTIEL * 100)} %`) } catch (e) { } await next() }
       light(); camera(); try { splash.step('Préparation de la lumière…') } catch (e) { }
-      if (R.compileAsync) await R.compileAsync(S, cam).catch(() => { });
+      // compilation en parallèle seulement si le pilote la propose (sinon three.js l'annonce dans la console et compile quand même)
+      if (R.compileAsync && R.extensions.has('KHR_parallel_shader_compile')) await R.compileAsync(S, cam).catch(() => { }); else R.compile(S, cam);
       T.ms = Math.round(performance.now() - t0); show();
       for (let k = ESSENTIEL; k < L.length; k++) { await next(); L[k]() }
       T.tod = null; // les lampes du décor prennent la lumière de l'heure
@@ -505,7 +508,7 @@ const domaine3d = (() => {
   }
   function show() { on = true; world.classList.add('d3-on'); adopt(); if (!raf) raf = requestAnimationFrame(frame) }
   hooks.on('ready', () => setTimeout(start, 30));
-  return { get on() { return on }, start, view: W3, supported, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls } },
+  return { get on() { return on }, start, view: W3, supported, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls, images: T.images || 0 } },
     // capture sans attendre requestAnimationFrame (panneau masqué) : fait avancer la vie de ms millisecondes puis dessine
     snap(ms = 0) { if (!on) return; const t = performance.now() / 1000; for (let k = 0; k < 4; k++) { stepHorses(ms / 4000, t); if (T.smoke) stepLife(ms / 4000, t) } raceWorld.uniforms.uTime.value = t; light(); camera(); R.render(S, cam); placeUI() } }
 })();

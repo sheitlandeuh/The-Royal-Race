@@ -25,6 +25,11 @@ const PROFILES = {
       career.data.rival={w:21,l:14,lvl:5,met:true};career.data.tour.cups=6;
       try{domaine.debug.max()}catch(e){}try{legendes.debug.fill()}catch(e){}
       sync();stable.save();localStorage.setItem('trr.progress',JSON.stringify(career.data))` },
+  // noms piégés (2.6) : chevaux, champion et face-à-face au nom de balise HTML ; aucun code ne doit s'exécuter, sur aucun écran
+  'noms-pieges': { ls: { 'trr.champion': CHAMPION },
+    setup: `stable.data.horses.forEach((h,i)=>h.name=['"><img src onerror=__x(1)>',"<img src onerror=__x(2)>","'><svg onload=__x(3)>"][i%3]);
+      champion.set({...champion.get(),name:'"><img src onerror=__x(4)>'});career.data.face={'<img src onerror=__x(5)>':{n:3,devant:1}};
+      sync();stable.save();localStorage.setItem('trr.progress',JSON.stringify(career.data))` },
   'sauvegarde-abimee': { ls: { 'trr.champion': CHAMPION, 'trr.progress': '{"stats":{"races":4' , 'trr.bak': { t: 1, k: { 'trr.progress': JSON.stringify({ stats: { races: 4, wins: 1 } }) } } } },
 };
 const SCREENS = [
@@ -47,6 +52,7 @@ const SCREENS = [
       const p = await ctx.newPage(), errs = [];
       p.on('pageerror', e => errs.push(e.message));
       p.on('console', m => { if (m.type() === 'error') errs.push(m.text()) });
+      await p.addInitScript(() => { window.__x = n => { (window.__xss = window.__xss || []).push(n) } });
       await p.addInitScript(ls => { if (sessionStorage.getItem('smoke')) return; sessionStorage.setItem('smoke', 1); localStorage.clear();
         for (const [k, v] of Object.entries(ls || {})) localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)) }, P.ls);
       // le domaine est entièrement en 3D (2.5) : il doit apparaître, sans aucun calque 2D
@@ -61,11 +67,16 @@ const SCREENS = [
         await p.waitForTimeout(shotsDir ? 700 : 150);
         const bad = await p.evaluate(() => { const t = document.body.innerText; return ['undefined', 'NaN', '[object Object]', 'Infinity'].filter(w => t.includes(w)) });
         if (bad.length) errs.push(`${screen}: texte cassé (${bad.join(', ')})`);
+        // lisibilité (2.6) : aucun texte visible sous 10 px
+        const tiny = await p.evaluate(() => { const vis = e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > .05 };
+          return [...new Set([...document.querySelectorAll('body *')].filter(e => vis(e) && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && parseFloat(getComputedStyle(e).fontSize) < 10).map(e => `« ${e.textContent.trim().slice(0, 16)} » ${getComputedStyle(e).fontSize}`))] }).catch(() => []);
+        if (tiny.length) errs.push(`${screen}: texte trop petit (${tiny.slice(0, 4).join(', ')})`);
         if (shotsDir) await p.screenshot({ path: `${shotsDir}/${name}-${vp.tag}-${screen}.png` });
       }
       // erreurs rattrapées sans bruit (écouteurs de hooks, fichiers introuvables) : le journal du jeu les a notées
       const notees = await p.evaluate(() => typeof journal === 'undefined' ? [] : journal.erreurs.map(e => `${e.type} : ${e.msg}${e.src ? ' (' + e.src + ')' : ''}`)).catch(() => []);
       errs.push(...notees.map(m => 'journal · ' + m));
+      const xss = await p.evaluate(() => window.__xss || []).catch(() => []); if (xss.length) errs.push('code injecté exécuté (noms piégés) : ' + xss.join(', '));
       const ok = !errs.length && !missing.length; if (!ok) failed++;
       console.log(`${ok ? '✓' : '✗'} ${name} (${vp.tag})${missing.length ? ' · modules manquants : ' + missing.join(', ') : ''}${errs.length ? '\n    ' + [...new Set(errs)].slice(0, 8).join('\n    ') : ''}`);
       await ctx.close();

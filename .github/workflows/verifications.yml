@@ -1,0 +1,55 @@
+# Vérifications à chaque envoi : bundle à jour, syntaxe, tests du jeu, test de fumée (6 sauvegardes types)
+name: Vérifications
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: index.html régénéré depuis src/
+        run: |
+          npm run build
+          if ! git diff --quiet -- index.html; then
+            echo "::error file=index.html::index.html n'est pas à jour : lancer npm run build et commiter le résultat (ne jamais le modifier à la main)"
+            git diff --stat -- index.html
+            exit 1
+          fi
+
+      - name: Syntaxe des modules et du bundle
+        run: npm run check
+
+      - name: Installer Playwright et Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Servir le jeu
+        run: |
+          python3 -m http.server 8765 >/dev/null 2>&1 &
+          for i in $(seq 1 20); do curl -fs http://localhost:8765/index.html >/dev/null && break; sleep 0.5; done
+
+      - name: Tests du jeu (version rapide)
+        run: node tools/run-tests.cjs --quick
+
+      - name: Test de fumée (neuve → fin de partie, sauvegarde abîmée)
+        run: node tools/smoke.cjs --shots captures
+
+      - name: Captures en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures
+          path: captures
+          if-no-files-found: ignore

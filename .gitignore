@@ -6,3 +6,4 @@ node_modules/
 /assets/*.png
 # captures de l’audit du 23/09 (gardées en local)
 /audit/
+captures/

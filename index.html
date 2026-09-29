@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>The Royal Race</title>
   <meta name="description" content="Développez votre domaine équestre et préparez vos champions dans The Royal Race." />
   <link rel="manifest" href="manifest.webmanifest" />
@@ -704,6 +704,11 @@
     .energy-track em{position:absolute;z-index:2;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 6px #fff,0 0 2px #000;transition:left .3s}
     .energy-track em.off{display:none}
     .energy-track.low{border-color:#39c8ff}.energy-track.low em{background:#39c8ff;box-shadow:0 0 8px #39c8ff}
+    /* 2.5 : pas de zoom du navigateur (double-tap, pincement) — le jeu se joue en touchers rapides, surtout en course ;
+       le défilement reste possible (panneaux, classement de fin de course) ; le domaine 3D gère lui-même ses gestes (touch-action:none) */
+    html,body{touch-action:pan-x pan-y}
+    button,a,label,input,select,textarea,[role=button]{touch-action:manipulation}
+    .race-screen{touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   </style>
 </head>
 <body>
@@ -2309,9 +2314,15 @@ const ecuries = (() => {
   return { tirage, joueur, bilan, nom: id => id === 'valmont' ? 'Écurie du ' + VALMONT.owner : byId(id)?.n || '', get face() { return career.data.face || {} } };
 })();
 </script>
-<script type="text/x-module" data-f="11-studio.js">// quitter une course en cours (2.5) : pas de pause, donc on confirme d'abord — le bouton lui-même le demande, rien ne s'affiche par-dessus la course
-{const q=$('#quitRace');let t=0;const reset=()=>{clearTimeout(t);t=0;q.classList.remove('armed');q.textContent='Quitter'};
- q.onclick=()=>{const live=$('#raceScreen').classList.contains('open')&&finishOrder.length<6&&!tele.on;if(!live||q.classList.contains('armed')){reset();return leaveRace()}
+<script type="text/x-module" data-f="11-studio.js">// pas de zoom du navigateur (2.5) : Safari (iPhone) ignore en partie user-scalable=no et touch-action ; on bloque son pincement,
+// et en course un deuxième toucher rapproché (< 350 ms) est traité comme un toucher simple sur le bouton visé, jamais comme un zoom
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+{let last=0;document.addEventListener('touchend',e=>{const now=e.timeStamp,quick=now-last<350;last=now;if(!quick||e.touches.length||!$('#raceScreen').classList.contains('open')||e.target.closest('input,textarea,select'))return;
+ e.preventDefault();const b=e.target.closest('button');if(b&&!b.disabled&&b.id!=='quitRace')b.click()},{passive:false})} // double-tap sur Quitter : le bouton reste seulement armé
+// quitter une course en cours (2.5) : pas de pause, donc on confirme d'abord — le bouton lui-même le demande, rien ne s'affiche par-dessus la course
+{const q=$('#quitRace');let t=0,armedAt=0;const reset=()=>{clearTimeout(t);t=0;q.classList.remove('armed');q.textContent='Quitter'};
+ q.onclick=e=>{const live=$('#raceScreen').classList.contains('open')&&finishOrder.length<6&&!tele.on,ts=e.timeStamp;if(!live||q.classList.contains('armed')){if(live&&ts-armedAt<450)return;reset();return leaveRace()} // un double clic involontaire ne confirme pas l'abandon
+  armedAt=ts;
   q.classList.add('armed');q.innerHTML=`Abandonner ?<small>${RACE.fee&&!RACE.defi&&!RACE.duel&&!RACE.tour?'engagement perdu':'la course s’arrête'}</small>`;t=setTimeout(reset,3500)};
  hooks.on('race:leave',reset);hooks.on('race:start',reset)}
 $('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steer(-1);$('#moveRight').onclick=()=>steer(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;$('#paceUp').onclick=()=>setPace(playerPace+1);$('#paceDown').onclick=()=>setPace(playerPace-1);document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key==='ArrowLeft')steer(-1);if(e.key==='ArrowRight')steer(1);if(e.key===' ')sprint();if(!(typeof haies!=='undefined'&&haies.active)){if(e.key==='ArrowUp'){e.preventDefault();setPace(playerPace+1)}if(e.key==='ArrowDown'){e.preventDefault();setPace(playerPace-1)}}{const k=e.key.toLowerCase();if(k==='z'||k==='w')setPace(playerPace+1);if(k==='s')setPace(playerPace-1)}if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});

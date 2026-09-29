@@ -192,3 +192,8 @@
     .energy-track em{position:absolute;z-index:2;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 6px #fff,0 0 2px #000;transition:left .3s}
     .energy-track em.off{display:none}
     .energy-track.low{border-color:#39c8ff}.energy-track.low em{background:#39c8ff;box-shadow:0 0 8px #39c8ff}
+    /* 2.5 : pas de zoom du navigateur (double-tap, pincement) — le jeu se joue en touchers rapides, surtout en course ;
+       le défilement reste possible (panneaux, classement de fin de course) ; le domaine 3D gère lui-même ses gestes (touch-action:none) */
+    html,body{touch-action:pan-x pan-y}
+    button,a,label,input,select,textarea,[role=button]{touch-action:manipulation}
+    .race-screen{touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}

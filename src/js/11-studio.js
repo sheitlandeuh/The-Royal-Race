@@ -1,6 +1,12 @@
+// pas de zoom du navigateur (2.5) : Safari (iPhone) ignore en partie user-scalable=no et touch-action ; on bloque son pincement,
+// et en course un deuxième toucher rapproché (< 350 ms) est traité comme un toucher simple sur le bouton visé, jamais comme un zoom
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+{let last=0;document.addEventListener('touchend',e=>{const now=e.timeStamp,quick=now-last<350;last=now;if(!quick||e.touches.length||!$('#raceScreen').classList.contains('open')||e.target.closest('input,textarea,select'))return;
+ e.preventDefault();const b=e.target.closest('button');if(b&&!b.disabled&&b.id!=='quitRace')b.click()},{passive:false})} // double-tap sur Quitter : le bouton reste seulement armé
 // quitter une course en cours (2.5) : pas de pause, donc on confirme d'abord — le bouton lui-même le demande, rien ne s'affiche par-dessus la course
-{const q=$('#quitRace');let t=0;const reset=()=>{clearTimeout(t);t=0;q.classList.remove('armed');q.textContent='Quitter'};
- q.onclick=()=>{const live=$('#raceScreen').classList.contains('open')&&finishOrder.length<6&&!tele.on;if(!live||q.classList.contains('armed')){reset();return leaveRace()}
+{const q=$('#quitRace');let t=0,armedAt=0;const reset=()=>{clearTimeout(t);t=0;q.classList.remove('armed');q.textContent='Quitter'};
+ q.onclick=e=>{const live=$('#raceScreen').classList.contains('open')&&finishOrder.length<6&&!tele.on,ts=e.timeStamp;if(!live||q.classList.contains('armed')){if(live&&ts-armedAt<450)return;reset();return leaveRace()} // un double clic involontaire ne confirme pas l'abandon
+  armedAt=ts;
   q.classList.add('armed');q.innerHTML=`Abandonner ?<small>${RACE.fee&&!RACE.defi&&!RACE.duel&&!RACE.tour?'engagement perdu':'la course s’arrête'}</small>`;t=setTimeout(reset,3500)};
  hooks.on('race:leave',reset);hooks.on('race:start',reset)}
 $('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steer(-1);$('#moveRight').onclick=()=>steer(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;$('#paceUp').onclick=()=>setPace(playerPace+1);$('#paceDown').onclick=()=>setPace(playerPace-1);document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key==='ArrowLeft')steer(-1);if(e.key==='ArrowRight')steer(1);if(e.key===' ')sprint();if(!(typeof haies!=='undefined'&&haies.active)){if(e.key==='ArrowUp'){e.preventDefault();setPace(playerPace+1)}if(e.key==='ArrowDown'){e.preventDefault();setPace(playerPace-1)}}{const k=e.key.toLowerCase();if(k==='z'||k==='w')setPace(playerPace+1);if(k==='s')setPace(playerPace-1)}if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});

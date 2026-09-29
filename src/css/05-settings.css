@@ -7,3 +7,8 @@
     .sl{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;font-size:14px;margin:6px 0}.sl input{accent-color:#f0c457}
     .action.danger{border-color:#7a1414;background:linear-gradient(#e0484e,#8f1c22)}
     body.no-anim .map-shade{animation:none}
+    /* aide (2.5) : signaler un problème, confidentialité, crédits */
+    .aide{display:flex;flex-direction:column;gap:14px;margin-top:10px}.aide-btns{display:flex;flex-wrap:wrap;gap:8px}
+    .aide-t{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}.aide-t td{padding:6px 4px;border-bottom:1px solid #ffffff14;color:#cfe3f2}.aide-t td:last-child{text-align:right;white-space:nowrap;color:#9fb3c3}
+    .aide-plus{margin-top:8px}.aide-plus summary{cursor:pointer;color:#e8c875;font-size:13px;padding:4px 0}.aide .hint a{color:#e8c875}.aide #journalEffacer{margin-top:10px}
+    pre.savecode{white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto;margin:6px 0 0}

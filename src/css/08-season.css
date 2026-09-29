@@ -10,7 +10,6 @@
     .taunt b{font:800 15px var(--fd);color:#f3d27a}.taunt small{color:#b9a676;margin-left:6px}.taunt p{margin:3px 0 0;font-style:italic;font-size:13px;color:#e9e1c8}
     .nem{font-size:9px;font-weight:900;letter-spacing:.1em;background:#c8982c;color:#17181b;border-radius:5px;padding:2px 5px;vertical-align:2px}
     .action.ghost-red{background:linear-gradient(#5a1d22,#3a1114);border-color:#8f1c22}
-    .bld.ready .halo{opacity:.9!important;animation:haloPulse 1.2s ease-in-out infinite}
     .foal{width:200px;height:230px;border-radius:18px;background:radial-gradient(120% 70% at 50% 100%,#3d6b2e,#16281a 75%)}
     .coach{z-index:19}.coach-ring{z-index:18}.race-screen.open ~ .coach{z-index:70}.race-screen.open ~ .coach-ring{z-index:69}
     .breed .stat{grid-template-columns:96px 1fr 66px 0}

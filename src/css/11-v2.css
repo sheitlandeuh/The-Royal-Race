@@ -3,7 +3,7 @@
 @media(max-width:850px){.resources .gear{display:flex;position:absolute;right:0;top:44px;width:36px;height:36px;min-width:36px;padding:0;font-size:18px}}
 /* ----- domaine : niveaux, travaux, récoltes ----- */
 .bld-tag em{font-style:normal}
-.bld-harvest{position:absolute;z-index:3;transform:translate(-50%,-100%) scale(var(--inv,1));transform-origin:50% 100%;display:flex;align-items:center;gap:5px;padding:6px 11px 6px 8px;border-radius:999px;border:2px solid #fff3c4;background:linear-gradient(#6fdc5c,#2b9a2d);color:#fff;font:900 14px/1 var(--fu);box-shadow:0 6px 16px #0009;animation:harvestBob 1.6s ease-in-out infinite}
+.bld-harvest{position:absolute;z-index:3;transform:translate(-50%,-100%);transform-origin:50% 100%;display:flex;align-items:center;gap:5px;padding:6px 11px 6px 8px;border-radius:999px;border:2px solid #fff3c4;background:linear-gradient(#6fdc5c,#2b9a2d);color:#fff;font:900 14px/1 var(--fu);box-shadow:0 6px 16px #0009;animation:harvestBob 1.6s ease-in-out infinite}
 .bld-harvest b{text-shadow:0 1px 2px #0008}.bld-harvest:hover{filter:brightness(1.12)}
 @keyframes harvestBob{0%,100%{margin-top:0}50%{margin-top:-6px}}
 .sel-prog{display:block;height:6px;margin-top:6px;border-radius:9px;background:#0002;overflow:hidden}.sel-prog i{display:block;height:100%;background:linear-gradient(90deg,#eeb93d,#55c756)}
@@ -94,6 +94,5 @@
 /* domaine en 3D (50-domaine3d) : le canvas remplace la peinture, étiquettes et bulles placées par projection */
 #domain3d{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #world:not(.d3-on) #domain3d{display:none}
-.d3-on #map,.d3-on #villageGL,.d3-on #ambient,.d3-on #villageGlow{visibility:hidden}
 #d3ui{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden}
 #d3ui .bld-harvest{pointer-events:auto}

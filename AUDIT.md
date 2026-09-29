@@ -7,6 +7,38 @@
 
 > L'audit précédent (23/09, version 1) ne décrit plus le jeu : tous ses points bloquants ont été traités depuis (départ tactile, Three.js embarqué, sauvegarde, classement, mobile paysage, profondeur des choix, son…).
 
+## Suivi — version 2.5 (29/09/2026)
+
+La 2.5 traite dans le code tout ce que la phase 1 permettait sans compte, sans fournisseur et sans décision du propriétaire. Le reste de cet audit (écrit sur la 2.4) reste valable.
+
+| Point | Fait en 2.5 | Preuve |
+|---|---|---|
+| 6. Démarrage bloqué par la 3D | Écran titre animé jusqu'à la première image ; domaine 3D construit par étapes, shaders compilés en parallèle quand le pilote le permet ; peinture du domaine (2,3 Mo) chargée seulement si elle sert | Mobile 390×844, qualité moyenne, rendu logiciel : interface utilisable 15,8 s → 4,1 s ; premier téléchargement 3,4 Mo → 0,7 à 1,3 Mo |
+| 6 / 11. Domaine et identité visuelle | Domaine **uniquement en 3D** sur tous les appareils (qualité basse comprise) : peinture 2D, calques d'animation 2D et leurs images (2,3 Mo) supprimés ; première image dès l'essentiel construit, décor et chevaux ensuite | Rendu logiciel : domaine 3D visible 3 à 6 s après l'ouverture sur téléphone (auparavant ~11 s) ; test « Domaine 3D : affiché, sélection, aucun calque 2D » |
+| 6. Qualité selon les images/s réelles | `54-fluidite` : au-delà de 34 ms par image, résolution 100 → 85 → 72 → 60 %, puis niveau d'effets ; remonte sous 17 ms ; un choix manuel l'annule | Vérifié en rendu logiciel (ajustements successifs jusqu'à « basse » à 60 %) |
+| 5. Erreurs et mesures | `00-journal` (chargé en premier) + `55-mesures` : erreurs JS, promesses, erreurs rattrapées, fichiers introuvables ; entonnoir de la première partie, jours joués (J1 / J7 / J30), sessions, gains et dépenses par source ; rapport de problème à copier (Réglages → Aide). Envoi prêt à brancher, désactivé | Test « Journal » ; `docs/MESURES.md` |
+| 8. Rivaux aux noms figés | 12 écuries rivales avec casaque fixe, 72 chevaux nommés, face-à-face mémorisé par cheval | Test « Écuries rivales » : 66 chevaux différents sur 300 plateaux |
+| 7. Profondeur de course | Allure en course (presser / retenir), entrée enregistrée et rejouée, repère de réserve sur la jauge | Bot, rang moyen sur 3 distances : allure normale 2,56 · toujours retenir 3,98 · toujours presser 3,10 · lire sa jauge 2,33 ; test automatique |
+| 3. Vocabulaire des paris | Plus de cotes « 2.5/1 » : favori, prétendant, outsider, petite chance | — |
+| 3. Licences tierces | Écran Crédits (three.js MIT avec son texte, polices OFL) | — |
+| 3. Confidentialité | Page exacte dans le jeu : ce qui est gardé, où, ce qui sort ; voix de synthèse installée sur l'appareil de préférence | — |
+| 3. Droits sur les images | Inventaire `docs/ASSETS.md` : composants tiers, fichiers calculés par le jeu, et 10 images sources **sans provenance** (5 encore utilisées) | — |
+| 12. Ergonomie | Abandon de course confirmé sur le bouton lui-même ; barre du bas à 12 px sur téléphone ; manifeste aux couleurs actuelles | Captures PC, téléphone, paysage, tablette |
+| 14. Intégration continue | GitHub Actions à chaque envoi : `index.html` à jour, syntaxe, tests, test de fumée PC + mobile | Premier passage réussi |
+
+### Ce qui ne peut pas avancer sans toi
+
+| Sujet | Ce qu'il faut | Ce qui est prêt côté jeu |
+|---|---|---|
+| Comptes, sauvegarde en ligne, économie serveur (1) | Choisir un hébergement (Firebase, Supabase, serveur maison) et le financer | `replays.verify` rejoue et vérifie chaque course ; export / import de partie |
+| Monétisation (2) | Choisir le modèle ; comptes développeur Apple (99 $/an) et Google (25 $) ; emballage Capacitor | Boutique, Route des étoiles, cosmétiques |
+| Légal (3) | Identité de l'éditeur (mentions légales, CGU / CGV), classification IARC, recherche d'antériorité sur le nom | Page Confidentialité exacte, Crédits |
+| Images (3) | Retrouver l'auteur et la licence des sources listées dans `docs/ASSETS.md`, ou les faire remplacer | La 3D peut remplacer portraits, cheval peint, horizon et bord de piste |
+| Mesures en ligne (5) | Choisir un outil (Sentry, analytics conforme RGPD), renseigner `JOURNAL_ENVOI.url` ; adresse de support dans `JOURNAL_ENVOI.contact` | Journal, format d'envoi documenté, consentement déjà prévu (décoché par défaut) |
+| Vrais joueurs (4) et vrais téléphones (6) | 5 à 10 sessions de test ; iPhone SE / 11, Android 3–4 Go, tablette | Protocole `docs/PLAYTEST.md`, enregistreur `?test=Prénom`, qualité auto |
+| Audio, gros plans 3D, identité visuelle, anglais (9–11, 16) | Production (sons, musique, artiste 3D, traduction) | — |
+
+
 ---
 
 ## Verdict

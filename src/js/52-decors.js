@@ -16,7 +16,7 @@ const decors = (() => {
     const d = DECORS.find(x => x.id === id); if (!d || has(id)) return;
     if (d.gems ? state.gems < d.gems : state.gold < d.gold) return toast(d.gems ? `Il te manque ${d.gems - state.gems} 💎` : `Il te manque ${fmt(d.gold - state.gold)} or`);
     if (d.gems) state.gems -= d.gems; else state.gold -= d.gold; D.owned.push(id); save(); sync(); try { sound.coin(); buzz(20) } catch (e) { }
-    toast(`${d.i} ${d.n} installé au domaine${typeof domaine3d !== 'undefined' && domaine3d.on ? '' : ' (visible dans le domaine en 3D)'}`); hooks.emit('deco', id); render()
+    toast(`${d.i} ${d.n} installé au domaine`); hooks.emit('deco', id); render()
   }
   // section ajoutée à la Boutique royale
   function section() {

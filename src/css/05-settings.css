@@ -6,7 +6,6 @@
     .hint{margin:8px 0 0;color:#b9cbd8;font-size:13px}.tog{display:flex;gap:10px;align-items:center;font-size:14px;margin:6px 0}.tog input{width:20px;height:20px;accent-color:#f0c457}
     .sl{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;font-size:14px;margin:6px 0}.sl input{accent-color:#f0c457}
     .action.danger{border-color:#7a1414;background:linear-gradient(#e0484e,#8f1c22)}
-    body.no-anim .map-shade{animation:none}
     /* aide (2.5) : signaler un problème, confidentialité, crédits */
     .aide{display:flex;flex-direction:column;gap:14px;margin-top:10px}.aide-btns{display:flex;flex-wrap:wrap;gap:8px}
     .aide-t{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}.aide-t td{padding:6px 4px;border-bottom:1px solid #ffffff14;color:#cfe3f2}.aide-t td:last-child{text-align:right;white-space:nowrap;color:#9fb3c3}

@@ -81,8 +81,8 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.domUp){start(b.dataset.domUp);open(b.dataset.domUp)}else if(b.dataset.domRush){finishNow(b.dataset.domRush);open(b.dataset.domRush)}else if(b.dataset.domCollect){collect(b.dataset.domCollect,b);open()}});
  // ---------- affichage sur la carte : niveaux, minuteurs, bulles de récolte ----------
- const bubbles={};for(const id of Object.keys(PROD)){const m=VILLAGE.buildings[id],b=document.createElement('button');b.className='bld-harvest';b.hidden=true;Object.assign(b.style,{left:m.cx*100+'%',top:m.cy*100+'%'});
-  b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',e=>{e.stopPropagation();collect(id,b)});$('#map').appendChild(b);bubbles[id]=b}
+ const bubbles={};for(const id of Object.keys(PROD)){const b=document.createElement('button');b.className='bld-harvest';b.dataset.id=id;b.hidden=true;
+  b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',e=>{e.stopPropagation();collect(id,b)});village.layer.appendChild(b);bubbles[id]=b}
  function refresh(){for(const id of ORDER){const l=dlv(id);village.setTag(id,name(id),id==='chantier'&&!l?null:`NIV. ${l}`);const w=busy(id);if(w)village.setTimer(id,dureeTxt(left(w)));else village.clearTimer(id)}
   for(const id of Object.keys(PROD)){const n=dlv(id)?stock(id):0,b=bubbles[id];b.hidden=!(unlocked()&&n>=Math.max(20,cap(id)*.25));if(!b.hidden)b.innerHTML=`${PROD[id].ico}<b>+${fmt(n)}</b>`}
   const el=$('#builders');if(el)el.textContent=`${free()}/${builders()}`;

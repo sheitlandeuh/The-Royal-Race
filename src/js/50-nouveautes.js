@@ -1,6 +1,7 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🏰','Domaine 100 % 3D','Ton domaine s’affiche en 3D dès le lancement, sur tous les appareils : l’ancienne vue peinte a disparu.',0,'2.5'],
  ['🎚️','Allure en course','Pendant la course, presse ou retiens ton cheval (▲ / ▼). Bloqué derrière un cheval ? Retiens-le : il garde ses forces pour le sprint. Une ouverture ? Presse-le pour la prendre.',0,'2.5'],
  ['🏇','Écuries rivales','Tes adversaires courent pour 12 écuries, chacune avec sa casaque : tu les recroises de course en course et le jeu retient qui mène le face-à-face. Au départ, leurs chances s’affichent en mots : favori, prétendant, outsider.',0,'2.5'],
  ['⚡','Plus rapide, plus fluide','Écran de chargement animé et domaine construit par étapes. En qualité Auto, le jeu mesure sa fluidité et baisse la résolution si ton appareil peine.',0,'2.5'],

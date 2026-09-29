@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const URL = process.env.URL || 'http://localhost:8765/index.html';
 const shotsDir = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 const MODULES = ['hooks', 'stable', 'career', 'meta', 'season', 'breeding', 'rival', 'gear', 'tour', 'palmares', 'shop', 'moments', 'pace', 'ambiance', 'photo',
-  'villageGL', 'villageLife', 'villageVie', 'onboarding', 'replays', 'defi', 'partage', 'tele', 'installer', 'speaker', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes', 'HORSE3D', 'raceWorld', 'domaine3d', 'haies', 'decors', 'manette', 'direct', 'fluidite', 'journal', 'mesures', 'aide', 'ecuries'];
+  'onboarding', 'replays', 'defi', 'partage', 'tele', 'installer', 'speaker', 'jockeys', 'domaine', 'ventes', 'legendes', 'duel', 'couronne', 'nouveautes', 'HORSE3D', 'raceWorld', 'domaine3d', 'haies', 'decors', 'manette', 'direct', 'fluidite', 'journal', 'mesures', 'aide', 'ecuries'];
 const CHAMPION = { name: 'Éclair de Lune', coat: 'alezan', main: '#c21c27', second: '#f4f2ec', pattern: 'chevrons', cap: '#f4f2ec' };
 // chaque profil : état de départ (localStorage) + éventuellement du code joué dans le jeu avant de recharger la page
 const PROFILES = {
@@ -36,7 +36,7 @@ const SCREENS = [
   ['legendes', `typeof legendes!=='undefined'&&legendes.open()`], ['couronne', `typeof couronne!=='undefined'&&couronne.open()`],
   ['nouveautes', `typeof nouveautes!=='undefined'&&nouveautes.open()`], ['duel', `typeof duel!=='undefined'&&duel.list.length&&duel.card(duel.list[0])`],
   ['rapport', `aide.signaler();document.querySelector('#bugVoir').open=true;document.querySelector('#bugPre').textContent=mesures.rapport('essai')`], ['confidentialite', `aide.confidentialite()`], ['credits', `aide.credits()`],
-  ['domaine-peinture', `document.querySelector('#panel').classList.remove('open');domaine3d.set(false)`], ['domaine-3d', `domaine3d.set(true);village.select('haras')`],
+  ['domaine-3d', `document.querySelector('#panel').classList.remove('open');village.select('haras')`],
 ];
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -49,8 +49,11 @@ const SCREENS = [
       p.on('console', m => { if (m.type() === 'error') errs.push(m.text()) });
       await p.addInitScript(ls => { if (sessionStorage.getItem('smoke')) return; sessionStorage.setItem('smoke', 1); localStorage.clear();
         for (const [k, v] of Object.entries(ls || {})) localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)) }, P.ls);
-      await p.goto(URL); await p.waitForTimeout(2200);
-      if (P.setup) { await p.evaluate(P.setup).catch(e => errs.push('setup: ' + e.message)); await p.reload(); await p.waitForTimeout(2200) }
+      // le domaine est entièrement en 3D (2.5) : il doit apparaître, sans aucun calque 2D
+      const d3 = async () => { const ok = await p.waitForFunction(() => typeof domaine3d !== 'undefined' && domaine3d.on, null, { timeout: 90000, polling: 250 }).then(() => true, () => false); if (!ok) errs.push('domaine 3D jamais affiché'); };
+      await p.goto(URL); await p.waitForTimeout(1200); await d3();
+      if (P.setup) { await p.evaluate(P.setup).catch(e => errs.push('setup: ' + e.message)); await p.reload(); await p.waitForTimeout(1200); await d3() }
+      const flat = await p.evaluate(() => ['#map', '.map-base', '#ambient', '#villageGL', '#villageGlow'].filter(q => document.querySelector(q))); if (flat.length) errs.push('calques 2D présents : ' + flat.join(', '));
       const missing = await p.evaluate(list => list.filter(m => { try { return eval(`typeof ${m}`) === 'undefined' } catch (e) { return true } }), MODULES);
       const ko = await p.evaluate(() => window.__modulesKo || ['chargeur des modules absent']); if (ko.length) errs.push('modules en échec au chargement : ' + ko.join(', '));
       for (const [screen, js] of SCREENS) {

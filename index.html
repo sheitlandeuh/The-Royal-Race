@@ -711,6 +711,14 @@
     /* barre de l'écran titre animée par le compositeur (transform) : elle continue de défiler même quand le processeur prépare la 3D */
     .splash i{position:relative;overflow:hidden;background:#22e0ff22;animation:none}.splash i::after{content:'';position:absolute;inset:0;width:45%;background:linear-gradient(90deg,#22e0ff00,#22e0ff,#8b5cff,#22e0ff00);animation:gSplash 1.1s linear infinite;will-change:transform}
     @keyframes gSplash{from{transform:translateX(-110%)}to{transform:translateX(240%)}}
+
+    /* 2.5 : abandon confirmé sur le bouton, textes de la barre du bas lisibles sur téléphone */
+    #quitRace.armed{background:linear-gradient(180deg,#e0484e,#8f1c22)!important;border-color:#ff8a8a!important;color:#fff;display:flex;flex-direction:column;align-items:center;line-height:1.05}
+    #quitRace.armed{white-space:nowrap}#quitRace.armed small{display:block!important;font-size:10px;font-weight:600;letter-spacing:.02em;opacity:.9;text-transform:none;color:#fff}
+    @media(max-width:850px){#quitRace.armed{font-size:12px;letter-spacing:.02em;padding:4px 8px}}
+    @media(max-width:850px){.nav{font-size:12px;letter-spacing:.04em}}
+    @media(max-width:360px){.nav{font-size:11px;letter-spacing:.02em}}
+    @media (max-height:500px) and (orientation:landscape){.nav{font-size:11.5px}.slot small,.play small{font-size:10px}}
   </style>
 </head>
 <body>
@@ -2357,7 +2365,12 @@ const ecuries = (() => {
   return { tirage, joueur, bilan, nom: id => id === 'valmont' ? 'Écurie du ' + VALMONT.owner : byId(id)?.n || '', get face() { return career.data.face || {} } };
 })();
 </script>
-<script type="text/x-module" data-f="11-studio.js">$('#quitRace').onclick=leaveRace;$('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steer(-1);$('#moveRight').onclick=()=>steer(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key==='ArrowLeft')steer(-1);if(e.key==='ArrowRight')steer(1);if(e.key===' ')sprint();if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});
+<script type="text/x-module" data-f="11-studio.js">// quitter une course en cours (2.5) : pas de pause, donc on confirme d'abord — le bouton lui-même le demande, rien ne s'affiche par-dessus la course
+{const q=$('#quitRace');let t=0;const reset=()=>{clearTimeout(t);t=0;q.classList.remove('armed');q.textContent='Quitter'};
+ q.onclick=()=>{const live=$('#raceScreen').classList.contains('open')&&finishOrder.length<6&&!tele.on;if(!live||q.classList.contains('armed')){reset();return leaveRace()}
+  q.classList.add('armed');q.innerHTML=`Abandonner ?<small>${RACE.fee&&!RACE.defi&&!RACE.duel&&!RACE.tour?'engagement perdu':'la course s’arrête'}</small>`;t=setTimeout(reset,3500)};
+ hooks.on('race:leave',reset);hooks.on('race:start',reset)}
+$('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steer(-1);$('#moveRight').onclick=()=>steer(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key==='ArrowLeft')steer(-1);if(e.key==='ArrowRight')steer(1);if(e.key===' ')sprint();if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});
 /* ===== Atelier du champion ===== */
 const HN=()=>champion.get().name||'Mon champion';
 const studio=(()=>{const el=$('#studio'),cv=$('#studioCanvas'),ctx=cv.getContext('2d');let draft=null,view='portrait',anim=0,firstRun=false;

@@ -1,106 +1,205 @@
-# Audit — The Royal Race (version du 23/09/2026)
+# Audit — The Royal Race 2.4 (29/09/2026)
 
-**Périmètre :** dépôt `fish4win59/the-royal-race`, commit `36ab2e3` (8 commits, tous du 23/09/2026).
-**Méthode :** lecture intégrale du code (`index.html`, 222 lignes / 97 Ko, HTML + CSS + JS dans un seul fichier), puis parties complètes pilotées par script dans Chromium : PC 1440×900, mobile paysage 844×390, mobile portrait 390×844, et un test sans accès au CDN. Captures dans `audit/`.
+**Question posée :** que manque-t-il, que faut-il améliorer, pour une version commercialisable ?
+**Périmètre :** version 2.4 publiée (commit `96204a4`), 55 modules JS (~548 Ko), CSS, assets, outils et documentation.
+**Méthode :** relecture du code et des systèmes ; tests automatiques (tous verts) et test de fumée (6 sauvegardes types, PC et mobile, sans erreur) ; mesures dans Chromium piloté par Playwright (rendu **logiciel**, sans carte graphique : les temps absolus sont pessimistes, les rapports restent parlants).
+**Non vérifié :** comportement sur de vrais téléphones (fluidité, chauffe, batterie), avis de vrais joueurs, statut juridique des images. Ce sont justement trois des plus gros risques.
+
+> L'audit précédent (23/09, version 1) ne décrit plus le jeu : tous ses points bloquants ont été traités depuis (départ tactile, Three.js embarqué, sauvegarde, classement, mobile paysage, profondeur des choix, son…).
 
 ---
 
-## Verdict en une phrase
+## Verdict
 
-C'est une **démo de vitrine réussie visuellement** (village peint très joli, départ en stalles 3D spectaculaire, podium), mais pas encore un jeu : **la course est impossible à lancer sur mobile**, rien n'est sauvegardé, et toutes les couches « méta » (chevaux, entraînement, tactique, club, boutique, missions) sont des maquettes sans effet sur la partie.
+Le jeu est **complet et cohérent en solo**, et **techniquement sain** : simulation déterministe, rejeu vérifié, duels anti-triche, tests automatiques, hors ligne, adapté PC / mobile / tablette. Mais il **n'est pas commercialisable en l'état**. Il manque presque tout ce qui entoure un jeu vendu :
+
+- des comptes et une sauvegarde en ligne ;
+- une monétisation ;
+- de la mesure (analytics, remontée d'erreurs) ;
+- la conformité juridique et l'emballage pour les stores ;
+- une validation par de vrais joueurs.
+
+Sur le fond, quatre risques restent ouverts :
+
+- la profondeur de la course, réduite depuis la 2.4 ;
+- la variété du contenu ;
+- les performances sur les mobiles modestes ;
+- la qualité audio.
 
 | Axe | État | Note /10 |
 |---|---|---|
-| Direction artistique (village, stalles, podium) | Très bon niveau, cohérent | 7 |
-| Boucle de course (gameplay) | Jouable sur PC seulement, peu de décisions réelles | 3 |
-| Méta‑progression / économie | Maquette statique, non persistée | 1 |
-| Mobile (cible principale) | Bloquant | 1 |
-| Technique / architecture | Fichier unique, code mort, pas de build | 2 |
-| Multijoueur | Inexistant (5 IA) | 0 |
-| Prêt à commercialiser | Non | — |
+| Technique (simulation, rejeu, tests) | Solide, rare pour un projet de cette taille | 8 |
+| Méta-progression | Riche et cohérente (domaine, ventes, Légendes, Couronne, ligues, missions, saison) | 7 |
+| Direction artistique et 3D | Domaine et hippodrome agréables ; cheval « jouet » de près, style hybride peinture / 3D / néon | 6 |
+| Boucle de course | Lisible (couloirs, sillage, collisions, sprint), mais peu de décisions en course | 5 |
+| Mobile et performances | Interface adaptée ; démarrage bloqué par la 3D, scènes lourdes, jamais mesuré sur téléphone | 5 |
+| Contenu et rejouabilité | 9 courses, rivaux aux 5 mêmes noms à chaque course | 4 |
+| Audio | Sons synthétisés, voix de synthèse du navigateur | 3 |
+| Multijoueur | Moteur prêt ; duels par lien seulement, aucun classement | 3 |
+| Langues et accessibilité | Français seul, ~550 chaînes en dur, peu d'options | 3 |
+| Données, légal, stores | Rien en place | 1 |
+| Monétisation | Inexistante | 0 |
 
 ---
 
-## P0 — Bloquants (à corriger avant toute diffusion)
+## P0 — Bloquants pour vendre
 
-1. **Impossible de partir sur mobile / tablette.** Le départ des stalles n'est déclenché que par la touche `F` (`launchFromStalls` n'est appelé que dans le `keydown`). Sur écran tactile, le jeu reste figé sur « APPUYE SUR F ! » indéfiniment ; le bouton SPRINT est désactivé. *Vérifié en test tactile : phase `waiting`, boucle de course jamais lancée.* → Ajouter un gros bouton « PARTEZ ! » tactile (et le rendre aussi accessible à la souris).
-2. **Sans Three.js, aucune course possible.** Three.js est chargé depuis un CDN ; si le CDN est bloqué (réseau d'entreprise, hors‑ligne, bloqueur), `launchFromStalls` sort immédiatement (`if(!q) return`) et le rendu de secours 2D est cassé (chevaux géants superposés, cf. `audit/course-sans-cdn.png`). → Embarquer Three.js dans le projet (bundle), supprimer le rendu 2D de secours.
-3. **Aucune sauvegarde.** Pas de `localStorage`, pas de serveur : un rechargement remet l'or, les trophées et le fourrage à leurs valeurs initiales. *Vérifié : or 87 200 → 85 400 après rechargement.*
-4. **Classement affiché faux après l'arrivée.** `markFinish` attribue une progression croissante aux chevaux dans l'ordre d'arrivée, donc le dernier arrivé a la plus grande valeur : le HUD affiche « 1er » alors que le joueur est 6e (cf. `audit/podium-position-fausse.png`).
-5. **Mobile paysage : la barre de navigation disparaît.** `.game{min-height:600px}` (500 px sur mobile) dépasse la hauteur d'un téléphone en paysage (≈390 px) → le dock est coupé, plus aucune navigation (cf. `audit/mobile-paysage-sans-dock.png`).
-6. **Les panneaux bloquent la navigation.** Quand un panneau est ouvert (Chevaux, Courses…), il recouvre le dock (z-index 20 contre 9) : il faut fermer avant de changer d'onglet.
+### 1. Comptes, sauvegarde en ligne, économie côté serveur
 
-## P1 — Le jeu n'a pas encore de profondeur
+Aujourd'hui, tout est en `localStorage`. Conséquences :
 
-7. **Les choix d'avant-course n'ont aucun effet.** `state.strategy` est enregistré mais jamais lu par la simulation. Les stats du cheval et du jockey (88/82/79…) sont du HTML en dur. « Entraîner » et « Coaching » retirent des ressources puis affichent un texte, sans rien modifier.
-8. **L'endurance ne compte pas.** Le sprint coûte ~15 % et la récupération est quasi permanente : dans nos parties la jauge était à 100 % en milieu et en fin de course. Il n'y a donc pas de vrai dilemme « quand sprinter ».
-9. **Un seul cheval jouable, une seule course, 5 rivaux figés** (mêmes noms à chaque course). Pas de progression, pas de ligues, pas de récompense autre que de l'or.
-10. **Tout le reste est décoratif :** bouton « + » des ressources (« boutique bientôt disponible »), réglages ⚙️ (aucune action), Club, Boutique, Événements, Trophées, Missions (une seule récompense récupérable, recréée à chaque ouverture = or infini).
-11. **Aucun son.** Pas de musique, pas de galop, pas de foule, pas de speaker : c'est l'un des plus gros leviers de sensation pour une course.
-12. **HUD de course : le bloc « ROYAL THUNDER / ENDURANCE » est coupé à gauche** sur PC comme sur mobile (reste d'un ancien `transform: translateX(-50%)`). En portrait, la carte profil est recouverte par les ressources.
-13. **Textes :** « APPUYE SUR F » → « APPUIE ». Le badge « 6 joueurs » est trompeur (ce sont des IA). Temps de course ≈ 44 s pour 1 600 m (≈ 130 km/h) : à assumer comme « arcade » ou recaler.
+- la partie est perdue si le cache est vidé ou si le joueur change d'appareil ;
+- Safari efface le stockage d'un site après 7 jours sans visite, sauf si l'application est installée ;
+- l'or et les gemmes se modifient en deux lignes de console.
 
-## P2 — Technique et performance
+Tout cela est incompatible avec des achats ou des classements. Ce qu'il faut mettre en place :
 
-14. **Tout dans un seul fichier de 97 Ko**, CSS réécrit par couches successives (« Course v4 » par‑dessus v1–v3), JS minifié à la main. Code mort : `runRace` et `finishRace` (ancienne version), `addNaturalTrees` défini deux fois, tout le rendu canvas 2D, les éléments `.opponent` masqués. → Passer à un vrai projet (Vite + modules), un fichier par système.
-15. **Images : 20 Mo de PNG**, dont 5,2 Mo jamais utilisés (`croise-panorama-loop.png`, `croise-track-pov.png`). Conversion WebP/AVIF → ~2–3 Mo au total, et un écran de chargement.
-16. **Rendu 3D lourd pour mobile :** ombres 2048² en PCF soft, `pixelRatio` jusqu'à 2,5, 5 lumières ponctuelles sur l'arche, antialias. À mesurer sur un Android d'entrée de gamme ; prévoir un réglage qualité (bas/moyen/haut). *Notre environnement de test n'a pas de GPU, donc aucune mesure de FPS fiable n'a pu être faite.*
-17. **Simulation liée à l'horloge réelle** (`setInterval` 100 ms, temps mesurés avec `performance.now`, rivaux avec `Math.random`). Onglet en arrière‑plan = course ralentie ; résultats non reproductibles ; impossible à valider côté serveur. Three.js r160 utilisé via la build globale `three.min.js`, dépréciée.
-18. **Outils `document.modelContext`** (expérimentaux) exposés en production, dont un qui dépense 25 000 or : à retirer.
+- **Comptes** : Apple, Google ou e-mail.
+- **Sauvegarde en ligne** avec gestion des conflits entre appareils.
+- **Économie côté serveur** : monnaies et inventaire tenus par le serveur, pas par le navigateur.
+- **Vérification des résultats côté serveur** avec `replays.verify`. Le moteur a été conçu pour ça : c'est le principal atout technique du projet.
+
+### 2. Monétisation
+
+Rien n'est implémenté : la boutique ne vend que contre des gemmes gagnées en jouant. Il faut :
+
+1. **Choisir un modèle.** Conforme à la promesse (`docs/VISION.md` : « pas de pay-to-win ») : jeu gratuit avec cosmétiques (casaques, robes, décors), passe de saison premium (la Route des étoiles existe déjà) et confort (places d'écurie, travaux accélérés). Une publicité récompensée est possible, en option.
+2. **Brancher les achats intégrés** (StoreKit, Google Play Billing via Capacitor), avec **validation des reçus côté serveur**.
+3. **Faire attention aux coffres aléatoires.** S'ils deviennent achetables, il faut afficher les probabilités (exigence Apple et Google), et ils sont interdits à la vente en Belgique. Recommandation : coffres uniquement gagnés, vente d'objets en direct.
+
+### 3. Légal et conformité
+
+- Mentions légales, CGU / CGV, politique de confidentialité (RGPD), consentement dès qu'il y a analytics ou publicité.
+- Classification d'âge (questionnaire IARC / PEGI).
+- **Vocabulaire des paris.** L'écran des courses affiche « Partants & cotes » avec des cotes « 2.5/1 ». Cela peut valoir une classification « jeu d'argent simulé » ou des refus selon les pays, alors que le jeu ne mise rien. → Renommer en « indice de forme » ou « favori / outsider », sans cote chiffrée.
+- **Droits sur les images.** La peinture du domaine, les feuilles de sprites, l'atlas du bord de piste et les chevaux du podium (`assets/`, `assets-src/`) n'ont pas de provenance documentée. Pour chaque image, il faut prouver le droit d'usage commercial. Si elles ont été générées par IA, vérifier les conditions de l'outil utilisé.
+- **Licences tierces** (Three.js MIT, polices OFL) : les regrouper dans un écran « Crédits ». Aujourd'hui, elles ne sont visibles que dans les fichiers.
+- **Marque** : recherche d'antériorité sur « The Royal Race » avant d'investir dans le nom.
+
+### 4. Validation par de vrais joueurs
+
+`docs/PLAYTEST.md` contient un protocole complet, mais aucune session n'a été consignée. Tout l'équilibrage a été mesuré par un bot, qui ne dit rien du plaisir, de la compréhension ni de l'envie de revenir. Ordre recommandé :
+
+1. 5 à 10 sessions en personne.
+2. Corrections.
+3. Bêta fermée avec analytics.
+
+### 5. Analytics et remontée d'erreurs
+
+Le jeu ne mesure rien et ne remonte aucune erreur. Impossible de piloter un lancement sans :
+
+- l'entonnoir de la première course ;
+- la rétention J1 / J7 / J30 (objectifs fixés dans VISION : 40 / 15 / 6 %) ;
+- la durée des sessions ;
+- les sources et dépenses d'or ;
+- les plantages par appareil.
+
+→ Un SDK analytics conforme RGPD et un outil de suivi d'erreurs (type Sentry).
+
+### 6. Performances sur de vrais téléphones
+
+Mesures prises sur mobile 390×844, en rendu logiciel :
+
+| Mesure | Domaine 3D actif | Qualité basse (sans 3D) |
+|---|---|---|
+| Interface utilisable après (DOMContentLoaded) | **9 à 13 s** | **0,7 s** |
+
+Cause : l'exécution des modules ne prend que 0,1 à 0,4 s ; ce sont la construction et la première image de la 3D qui bloquent la page. Sur un vrai GPU l'écart sera plus petit, mais l'écran reste figé pendant ce temps. → Écran de chargement, puis construction progressive (bâtiments, arbres et chevaux en plusieurs images).
+
+| Coût d'une image | Triangles | Appels de dessin | Mémoire JS |
+|---|---|---|---|
+| Domaine 3D | ~264 000 | ~139 | ~60 Mo |
+| Course (ombres comprises) | ~355 000 | ~155 | ~64 Mo |
+
+C'est correct pour un milieu de gamme, risqué pour un Android d'entrée de gamme. Pour le mobile :
+
+- **Tester sur un parc réel** : iPhone SE / 11, Android 3 à 4 Go de RAM, tablette. Relever les images par seconde, la chauffe et la batterie sur 10 minutes.
+- **Fixer des budgets** de triangles, d'appels de dessin et de mémoire par niveau de qualité.
+- **Choisir la qualité automatiquement** d'après les images par seconde réellement mesurées, et pas seulement d'après l'appareil.
+
+Premier téléchargement : **3,4 Mo** non compressés (16 requêtes), dont 2,3 Mo pour la peinture du domaine. Cette peinture n'est plus que le repli de la 3D : elle peut se charger à la demande.
 
 ---
 
-## Ce qui est déjà bien (à garder)
+## P1 — Qualité de jeu (ce qui fera revenir les joueurs)
 
-- Le **village peint** : lisible, riche, cohérent avec la marque ; bonne base pour la navigation par bâtiments.
-- La **séquence de départ** : survol de l'hippodrome, compte à rebours, stalles, bonus de réaction (<180 ms « PARFAIT »). C'est le meilleur moment du jeu.
-- **Placement / aspiration / virage large** : bonne intuition de gameplay, à rendre plus lisible et plus punitive.
-- **Classement officiel + podium 3D** : belle récompense de fin de course.
-- Ton, identité « royale » et interface en français soignées.
+### 7. Profondeur de la course
+
+Depuis la 2.4, le joueur agit en course sur trois choses : son couloir, le moment du sprint et l'élan avant les haies. Sur quelques courses, c'est clair et agréable. Sur des centaines, le risque de passivité est réel : le résultat se décide surtout avant le départ (cheval, tactique, jockey, équipement).
+
+Pistes non intrusives, sans fenêtre ni texte :
+
+- un geste pour tenir ou relâcher le cheval (gestion du rythme) ;
+- une cravache à doser, avec une jauge ;
+- des ouvertures signalées visuellement dans le peloton ;
+- des défauts propres à chaque cheval : il tire à l'intérieur, il déteste être enfermé…
+
+À valider en playtest (point 4).
+
+### 8. Contenu et variété
+
+- **Courses et lieux** : 9 courses, 4 distances, 3 terrains, un seul hippodrome. → D'autres hippodromes (tracé, sens de rotation, dénivelé, décor), un calendrier de saison, des événements limités dans le temps.
+- **Rivaux aux noms figés** : les 5 adversaires portent **toujours les mêmes noms** (`raceNames[1..5]` dans `buildField`) ; seules leurs statistiques changent. Cela casse l'immersion dès la troisième course. → Générateur de noms, écuries rivales persistantes avec leurs couleurs, des rivaux qui progressent.
+- **Autres contenus** : 6 jockeys, 5 équipements, 7 décors, 6 talents, 20 paliers de saison. Correct pour un lancement discret ; il faudra un rythme de nouveautés (live ops) ensuite.
+- **Long terme** : l'élevage et les Légendes sont la bonne direction. À approfondir : lignées, caractères héréditaires, collection.
+
+### 9. Audio
+
+Bruitages synthétisés en WebAudio et commentaire par la voix de synthèse du navigateur : la qualité varie fortement d'un appareil à l'autre et fait « prototype ». → Bruitages enregistrés (galop sur gazon, stalles, foule, cloche), musique composée (menus, course, victoire) et commentateur enregistré, même avec un nombre limité de phrases.
+
+### 10. Chevaux et jockeys en gros plan
+
+En course, les chevaux sont convaincants. De près (podium, présentation, écurie), la tête reste simplifiée et le jockey ressemble à un mannequin. → Une passe d'artiste 3D, ou des modèles dédiés aux gros plans (glTF animés), en gardant le modèle procédural pour la course.
+
+### 11. Identité visuelle
+
+Plusieurs styles cohabitent : domaine peint (repli), domaine 3D stylisé, interface néon « gaming », chevaux 3D. → Arrêter une identité et l'appliquer partout : écran titre, icône, fiche store, bande-annonce. Le manifeste utilise encore les anciennes couleurs (`#071a2d`).
+
+### 12. Parcours et ergonomie
+
+- **Écran titre / chargement** : il n'y en a pas (voir point 6).
+- **Textes trop petits sur mobile** : la barre du bas descend à 10 px, à agrandir.
+- **Sortir d'une course** : il faut toucher « Quitter » et la course est perdue. Ce comportement doit être annoncé clairement, puisqu'il n'y a plus de pause.
+
+### 13. Multijoueur
+
+Le moteur est prêt pour des courses partagées (même graine, horloge commune, entrées datées, aucun chevauchement), mais seuls existent les duels asynchrones par lien. Progression proposée :
+
+1. Classements en ligne (Défi du jour, duels).
+2. Courses asynchrones contre des fantômes choisis par niveau.
+3. Courses en temps réel à 6.
 
 ---
 
-## Feuille de route vers une version commercialisable
+## P2 — Industrialisation
 
-### Étape 1 — « Jeu jouable partout » (1–2 semaines)
-- Corriger les P0 (bouton de départ tactile, Three.js embarqué, sauvegarde locale, classement, dock, panneaux).
-- Migrer vers Vite + modules ; supprimer le code mort et les images inutilisées ; convertir les images.
-- Réglage qualité graphique + test réel sur iPhone et Android d'entrée de gamme (objectif 60 fps / 30 fps minimum).
-
-### Étape 2 — « Boucle de jeu qui donne envie de rejouer » (3–5 semaines)
-- **Simulation déterministe** (graine + entrées du joueur) où stats, tactique, jockey et endurance comptent vraiment.
-- Écurie réelle : plusieurs chevaux, stats par cheval, fatigue/repos (Clinique), entraînement qui fait progresser.
-- Ligues à trophées, plusieurs hippodromes/distances/terrains, rivaux générés.
-- Missions quotidiennes, coffres, événement hebdomadaire.
-- Son : musique, galop, foule, speaker ; retours haptiques sur mobile.
-- Tutoriel de 60 secondes (premier départ guidé).
-
-### Étape 3 — « Produit commercial » (6–10 semaines)
-- **Backend** : comptes, sauvegarde cloud, économie validée côté serveur, anti‑triche (la simulation déterministe permet de rejouer la course sur le serveur).
-- **Multijoueur** : d'abord asynchrone (courir contre les « fantômes » d'autres joueurs, bien plus simple et robuste), puis temps réel en option.
-- **Monétisation** : passe de saison + cosmétiques (casaques, robes, décors du domaine) ; éviter le « pay‑to‑win » sur les stats.
-- **Stores** : emballage PWA + Capacitor pour iOS/Android ; les achats de gemmes doivent passer par l'In‑App Purchase Apple/Google.
-- **Analytics & live ops** : funnel du tutoriel, rétention J1/J7/J30, équilibrage de l'économie.
-
-### Étape 4 — Conformité avant lancement
-- RGPD (consentement, politique de confidentialité, suppression de compte), CGU, classification PEGI / âge.
-- **Pas de paris** en monnaie réelle ni rien qui y ressemble (sinon régulation jeux d'argent) ; prudence avec les coffres aléatoires (interdits ou encadrés dans certains pays, ex. Belgique) → afficher les probabilités.
-- Vérifier les droits commerciaux des images générées par IA et la disponibilité du nom « The Royal Race » (marque, stores, nom de domaine).
+14. **Code et intégration continue.**
+   - Le JS (~548 Ko) est écrit en lignes très denses : efficace en solo, difficile à relire et à reprendre en équipe.
+   - Pas de typage, pas de lint.
+   - Tests et fumée se lancent à la main. → Intégration continue GitHub Actions (build, `check`, tests, test de fumée à chaque push), formatage imposé des nouveaux fichiers, découpage progressif des plus gros modules.
+15. **Three.js r160 en « build global »** : ce format est déprécié (avertissement dans la console). → Passer aux modules ES avant la prochaine mise à jour de Three.js.
+16. **Langues.** Français seul, environ 550 chaînes en dur dans le code, aucun système de traduction. → Extraire les textes et ajouter l'anglais : le marché est au moins 10 fois plus grand.
+17. **Accessibilité.** 29 `aria-label`, 2 règles `prefers-reduced-motion`. → Taille du texte, mode daltonien (casaques et pastilles), réduction des animations et des flashs, commandes entièrement au clavier et à la manette, contrastes vérifiés.
+18. **Stores.** Emballage Capacitor (iOS / Android), icônes adaptatives, écran de démarrage, notifications (fin de travaux, Défi du jour), fiche store (captures, vidéo), tests sur WKWebView (iOS) et sur les WebView Android.
+19. **Live ops.** Événements, équilibrage et messages sont figés dans le code. → Configuration à distance, calendrier d'événements côté serveur, messages dans le jeu.
 
 ---
 
-## Checklist « 100 % complet »
+## Points forts à préserver
 
-- [ ] Jouable au tactile, à la souris et au clavier
-- [ ] Fonctionne hors CDN, chargement < 5 s en 4G
-- [ ] Sauvegarde (locale puis cloud)
-- [ ] Stats, tactique, jockey et endurance influencent réellement la course
-- [ ] Plusieurs chevaux, entraînement, repos, progression
-- [ ] Ligues, missions, événements fonctionnels
-- [ ] Boutique et réglages fonctionnels (son, qualité, langue)
-- [ ] Musique et effets sonores
-- [ ] Tutoriel
-- [ ] Multijoueur (au minimum asynchrone)
-- [ ] Économie validée côté serveur
-- [ ] Builds iOS / Android + PWA
-- [ ] Analytics, CGU, confidentialité, PEGI
+- **Simulation déterministe et rejeu vérifié.** Le serveur pourra valider chaque course avec le même moteur : l'anti-triche est prête avant même d'avoir un serveur.
+- **Tests automatiques utiles** : équilibrage mesuré au bot, rejeu identique, aucun chevauchement, duels falsifiés refusés, course sans interruption. S'y ajoute un test de fumée sur 6 profils de sauvegarde, PC et mobile.
+- **Méta-progression riche et reliée** : chaque bâtiment a un effet réel, ventes, Légendes, Couronne, ligues, missions, Défi du jour.
+- **Hors ligne complet** (PWA), aucune dépendance réseau, qualité graphique réglable, interface adaptée PC / mobile / tablette.
+
+---
+
+## Feuille de route proposée vers un lancement discret
+
+Durées indicatives, à affiner selon l'équipe.
+
+| Phase | Durée | Contenu |
+|---|---|---|
+| **1. Prouver le plaisir** | 4 à 6 semaines | 5 à 10 playtests, analytics et suivi d'erreurs, écran de chargement et construction progressive de la 3D, tests sur vrais téléphones, noms de rivaux, remplacement des cotes, écran Crédits, provenance des images |
+| **2. Construire le service** | 2 à 3 mois | Comptes et sauvegarde en ligne, économie et vérification côté serveur, classements, traduction et anglais, audio professionnel, 2 à 3 hippodromes et une vingtaine de courses, profondeur de la course (selon playtests) |
+| **3. Lancer** | 1 à 2 mois | Capacitor, achats intégrés, conformité stores et classification d'âge, bêta fermée, lancement discret dans 1 à 2 pays avec les indicateurs de `docs/VISION.md` |

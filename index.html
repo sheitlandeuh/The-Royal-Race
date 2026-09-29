@@ -1586,7 +1586,7 @@ float rfxF(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*rfxN(p);p*=2.03;a*=
   const mat=new THREE.MeshStandardMaterial({map:t,roughness:1,color:track?0xf4ffe6:0xe8f0dc});
   mat.onBeforeCompile=s=>{s.uniforms.uRep={value:rep};s.vertexShader='varying vec3 vW;\n'+s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvW=(modelMatrix*vec4(position,1.)).xyz;');
    s.fragmentShader='varying vec3 vW;uniform vec2 uRep;\n'+NOISE+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n'+(track?
-    `{vec2 tu=vMapUv/uRep;float band=step(.5,fract(tu.y*3.06));diffuseColor.rgb*=mix(.9,1.07,band);float wear=exp(-pow((tu.x-.16)/.11,2.));float div=smoothstep(.62,.8,rfxF(vW.xz*.55));diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.12,.94,.7),wear*.32);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.16,.11,.06),div*wear*.55);diffuseColor.rgb*=mix(.9,1.06,rfxF(vW.xz*.008));float near=1.-smoothstep(8.,70.,distance(vW,cameraPosition));float bl=rfxF(vW.xz*vec2(2.6,2.6))*.55+rfxF(vW.xz*9.)*.45;diffuseColor.rgb*=mix(1.,mix(.84,1.12,bl),near);float clod=smoothstep(.8,.9,rfxF(vW.xz*1.7+11.))*wear;diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.2,.14,.08),clod*near*.7);}`:
+    `{vec2 tu=vMapUv/uRep;float bf=fract(tu.y*3.06),band=smoothstep(.47,.53,bf)*(1.-smoothstep(.97,1.,bf));diffuseColor.rgb*=mix(.87,1.1,band);float wear=exp(-pow((tu.x-.16)/.11,2.));float div=smoothstep(.62,.8,rfxF(vW.xz*.55));diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.12,.94,.7),wear*.32);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.16,.11,.06),div*wear*.55);diffuseColor.rgb*=mix(.9,1.06,rfxF(vW.xz*.008));float near=1.-smoothstep(8.,70.,distance(vW,cameraPosition));float bl=rfxF(vW.xz*vec2(2.6,2.6))*.55+rfxF(vW.xz*9.)*.45;diffuseColor.rgb*=mix(1.,mix(.84,1.12,bl),near);float clod=smoothstep(.8,.9,rfxF(vW.xz*1.7+11.))*wear;diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.2,.14,.08),clod*near*.7);}`:
     `{float m=rfxF(vW.xz*.005),m2=rfxF(vW.xz*.035+7.),dry=smoothstep(.56,.78,rfxF(vW.xz*.011+3.));diffuseColor.rgb*=mix(.74,1.1,m)*mix(.92,1.05,m2);diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.16,1.04,.72),dry*.55);}`))};
   return mat}
  function ground(scene,renderer){const turf=new THREE.Mesh(new THREE.PlaneGeometry(2200,2200),turfMaterial(renderer,false));turf.rotation.x=-Math.PI/2;turf.position.y=-.1;turf.receiveShadow=true;scene.add(turf);
@@ -1610,15 +1610,17 @@ float rfxF(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*rfxN(p);p*=2.03;a*=
   const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');x.fillStyle='#fff';x.beginPath();x.arc(16,16,13,0,7);x.fill();
   const pts=new THREE.Points(g,new THREE.PointsMaterial({size:.55,vertexColors:true,map:new THREE.CanvasTexture(c),alphaTest:.4,sizeAttenuation:true}));pts.frustumCulled=false;scene.add(pts);
   return{pts,pos,vel:new Float32Array(N*3),life:new Float32Array(N),next:0,N}}
- function post(){const mat=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{tDiffuse:{value:null},uRes:{value:new THREE.Vector2(1,1)},uTime:{value:0},uBlur:{value:0},uExp:{value:1}},
+ function post(){const mat=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{tDiffuse:{value:null},uRes:{value:new THREE.Vector2(1,1)},uTime:{value:0},uBlur:{value:0},uExp:{value:1},uBloom:{value:0}},
    vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
-   fragmentShader:`uniform sampler2D tDiffuse;uniform vec2 uRes;uniform float uTime,uBlur,uExp;varying vec2 vUv;
+   fragmentShader:`uniform sampler2D tDiffuse;uniform vec2 uRes;uniform float uTime,uBlur,uExp,uBloom;varying vec2 vUv;
 vec3 rrt(vec3 v){vec3 a=v*(v+.0245786)-.000090537;vec3 b=v*(.983729*v+.4329510)+.238081;return a/b;}
 vec3 aces(vec3 c){const mat3 I=mat3(vec3(.59719,.07600,.02840),vec3(.35458,.90834,.13383),vec3(.04823,.01566,.83777));const mat3 O=mat3(vec3(1.60475,-.10208,-.00327),vec3(-.53108,1.10813,-.07276),vec3(-.07367,-.00605,1.07602));c*=uExp/.6;c=I*c;c=rrt(c);c=O*c;return clamp(c,0.,1.);}
 float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
 void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
  if(uBlur>.002){float w=1.,e=smoothstep(.12,.55,length(d));for(int i=1;i<8;i++){col+=texture2D(tDiffuse,vUv-d*(float(i)/8.)*.045*uBlur*e).rgb;w+=1.;}col/=w;}
  float r2=dot(d,d);col.r=mix(col.r,texture2D(tDiffuse,vUv-d*.005*r2).r,.6);col.b=mix(col.b,texture2D(tDiffuse,vUv+d*.005*r2).b,.6);
+ // halo (bloom) : les zones plus lumineuses que le blanc (reflets du soleil sur les robes et les casaques, ciel autour du soleil) débordent en douceur
+ if(uBloom>0.){vec3 b=vec3(0.);vec2 k=vec2(uRes.y/uRes.x,1.)*.028;for(int i=0;i<10;i++){float fi=float(i)+.5,a=fi*2.39996;vec2 o=vec2(cos(a),sin(a))*sqrt(fi/10.)*k;b+=max(texture2D(tDiffuse,vUv+o).rgb-.95,0.);}col+=b*(uBloom/10.);}
  col=aces(col);float l=dot(col,vec3(.2126,.7152,.0722));
  col=mix(col,col*vec3(1.05,1.01,.92),smoothstep(.35,1.,l)*.55);col=mix(col,col*vec3(.93,.98,1.07),(1.-smoothstep(0.,.3,l))*.6);col=mix(vec3(l),col,.94);
  col=mix(col*12.92,pow(max(col,vec3(0.)),vec3(1./2.4))*1.055-.055,step(vec3(.0031308),col));
@@ -1674,7 +1676,7 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   m.position.set(slot.x,slot.h,.4);m.rotation.y=-Math.PI/2+(slot.x<0?.42:slot.x>0?-.42:.2);HORSE3D.pose(m,(now*.0004+i*.3)%1,.05,0);return true}
  function render(q){const r=q.renderer;if(!fx)return r.render(q.scene,q.camera);const now=performance.now(),dt=Math.min(.05,(now-fx.last)/1000);fx.last=now;
   r.getDrawingBufferSize(fx.size);const P=fx.post;if(!P.rt){P.rt=new THREE.WebGLRenderTarget(fx.size.x,fx.size.y,{type:THREE.HalfFloatType,samples:r.capabilities.isWebGL2?4:0});P.mat.uniforms.tDiffuse.value=P.rt.texture}
-  if(P.rt.width!==fx.size.x||P.rt.height!==fx.size.y)P.rt.setSize(fx.size.x,fx.size.y);
+  if(P.rt.width!==fx.size.x||P.rt.height!==fx.size.y)P.rt.setSize(fx.size.x,fx.size.y);P.mat.uniforms.uBloom.value=fx.bloom=({haute:.55,moyenne:.4,basse:0})[settings.level()]??.4;
   const cam=q.camera;for(const b of fx.boards)b.rotation.y=Math.atan2(cam.position.x-b.position.x,cam.position.z-b.position.z);
   if(fx.world)raceWorld.update(q,now);if(fx.skyMat)fx.skyMat.uniforms.uTime.value=now*.001;
   // ombres nettes : la zone d'ombre du soleil suit ce que regarde la caméra (la direction du soleil vient de l'ambiance)

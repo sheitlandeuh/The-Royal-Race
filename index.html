@@ -699,12 +699,19 @@
     @media(max-width:850px),(max-height:520px){.standings{display:none}.rtag b{font-size:12px}}
     /* domaine 3D : léger vignettage cinéma (2.4) */
     #world.d3-on::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 46%,transparent 58%,#05081a4d 100%)}
+    /* écran titre : étape du chargement (2.5) */
+    .splash em{display:block;margin-top:16px;font:600 13px/1 var(--fu);font-style:normal;letter-spacing:.12em;color:#a3acd6;min-height:13px}
+    .splash{background:radial-gradient(circle at 50% 40%,#1b2459,#070a18 75%)}.splash strong{font-family:var(--fd);font-weight:400;color:#fff;text-shadow:0 0 22px #8b5cffcc}.splash span{font-family:var(--fu);font-weight:700;color:var(--neon2)}
+    .splash i{background:linear-gradient(90deg,#22e0ff00,#22e0ff,#8b5cff,#22e0ff00) 0 0/200% 100%}
+    /* barre de l'écran titre animée par le compositeur (transform) : elle continue de défiler même quand le processeur prépare la 3D */
+    .splash i{position:relative;overflow:hidden;background:#22e0ff22;animation:none}.splash i::after{content:'';position:absolute;inset:0;width:45%;background:linear-gradient(90deg,#22e0ff00,#22e0ff,#8b5cff,#22e0ff00);animation:gSplash 1.1s linear infinite;will-change:transform}
+    @keyframes gSplash{from{transform:translateX(-110%)}to{transform:translateX(240%)}}
   </style>
 </head>
 <body>
 <main class="game" id="game">
-  <div class="splash" id="splash" aria-hidden="true"><div><strong>THE ROYAL RACE</strong><span>DOMAINE ÉQUESTRE</span><i></i></div></div>
-  <div class="world" id="world"><div class="map" id="map"><img class="map-base" src="assets/village/estate.webp" alt="Domaine équestre royal vu du ciel" draggable="false" /><div class="map-shade"></div><div class="map-light"></div></div><canvas class="ambient" id="ambient" aria-hidden="true"></canvas></div><div class="vignette"></div>
+  <div class="splash" id="splash" aria-hidden="true"><div><strong>THE ROYAL RACE</strong><span>DOMAINE ÉQUESTRE</span><i></i><em>Chargement…</em></div></div>
+  <div class="world" id="world"><div class="map" id="map"><img class="map-base" data-src="assets/village/estate.webp" alt="Domaine équestre royal vu du ciel" draggable="false" /><div class="map-shade"></div><div class="map-light"></div></div><canvas class="ambient" id="ambient" aria-hidden="true"></canvas></div><div class="vignette"></div>
   <div class="brand"><strong>THE ROYAL RACE</strong><span>DOMAINE ÉQUESTRE</span></div>
   <section class="profile" aria-label="Profil du joueur"><div class="avatar">♞</div><div class="profile-card"><b>Écurie Royale</b><small>🏆 <span id="trophies">1 245</span> trophées</small></div><div class="level">12</div></section>
   <section class="resources" aria-label="Ressources">
@@ -859,7 +866,14 @@ const village=(()=>{
  setTag(id,name,lvl){const t=els[id].tag,i=t.querySelector('i');t.querySelector('em').textContent=name;i.hidden=lvl==null;if(lvl!=null)i.textContent=lvl},set onSelect(f){onSelect=f}};
 })();
 // carte d'un bâtiment sélectionné : remplie par 45-domaine (niveau, travaux, action du bâtiment)
-(()=>{const base=$('.map-base'),hide=()=>setTimeout(()=>$('#splash').classList.add('gone'),350);base.complete?hide():(base.addEventListener('load',hide),base.addEventListener('error',hide));setTimeout(hide,6000)})();
+/* peinture du domaine (2,3 Mo) : téléchargée seulement si elle sert — le domaine 3D la remplace ; elle reste le repli (qualité basse, pas de WebGL2, contexte perdu) */
+function loadPainting(){const b=$('.map-base');if(b&&!b.getAttribute('src'))b.src=b.dataset.src}
+/* écran titre : reste affiché jusqu'à la première vraie image du domaine (peinture chargée ou première image 3D), 15 s au plus ; step() montre l'étape en cours */
+const splash=(()=>{const sp=$('#splash');let done=false,wait3d=false;const hide=()=>{if(done)return;done=true;setTimeout(()=>sp.classList.add('gone'),250)};
+ const base=$('.map-base');base.addEventListener('load',()=>{if(!wait3d)hide()});base.addEventListener('error',hide);setTimeout(hide,15000);
+ hooks.on('ready',()=>{let d3=false;try{d3=domaine3d.wanted()&&domaine3d.supported()}catch(e){}if(d3){wait3d=true;step('Construction du domaine…')}else loadPainting()});
+ function step(t){const e=sp.querySelector('em');if(e)e.textContent=t}
+ return{hide,step,get done(){return done},set wait3d(v){wait3d=v}}})();
 </script>
 <script type="text/x-module" data-f="03-panels.js">// panneau générique (bâtiments sans écran dédié)
 const content={};
@@ -2673,7 +2687,7 @@ const villageLife=(()=>{
   ctx.fillStyle='#f3c64a';ctx.beginPath();ctx.arc(x,yy+l*.5,2.6*k,0,6.283);ctx.fill();for(const dx of[-.5,.5]){ctx.fillStyle='#ffe7a0';ctx.beginPath();ctx.arc(x+dx*w,yy+(down?l:0),1.8*k,0,6.283);ctx.fill()}}
  const dirOf=(du,dv)=>{const yaw=Math.atan2(-dv*1882/Math.sin(PITCH),du*3344);return((Math.round(yaw/(Math.PI*2)*DIRS)%DIRS)+DIRS)%DIRS};
  // appelé par la boucle d'animation du village
- function draw(ctx,now,dt,toScreen,sc,vw,vh){if(!sheets){if(now>6000)render();return}if(!sheets.length)return;
+ function draw(ctx,now,dt,toScreen,sc,vw,vh){if(!sheets){let d3=false;try{d3=domaine3d.on||domaine3d.wanted()}catch(e){}if(now>6000&&!d3)render();return}// domaine en 3D : ces images ne servent pas, on ne les calcule pasif(!sheets.length)return;
   const list=[];
   for(const R of runners){R.th=(R.th+R.sp*dt)%TOT;R.f+=dt*.016;const[u,v]=pt(R.th,R.lane),[u2,v2]=pt(R.th+6,R.lane);if(v>.298&&u>.452&&u<.515)continue;list.push({u,v,s:R.s,k:.62,fr:Math.floor(R.f)%FR,d:dirOf(u2-u,v2-v)})}
   for(const R of riders){R.a=(R.a+dt*.00032)%(Math.PI*2);R.f=(R.f||0)+dt*.011;const[u,v]=onArena(R.a),[u2,v2]=onArena(R.a+.03);list.push({u,v,s:R.s,k:1.2,fr:Math.floor(R.f)%FR,d:dirOf(u2-u,v2-v)})}
@@ -3036,7 +3050,7 @@ void main(){
  function fail(e){console.warn('rendu du domaine : repli sur l’image',e);ready=false;world.classList.remove('gl-on')}
  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;fail('contexte perdu')});
  let off=false;// villageGL.off = true : revient à l'image simple (comparaison avant / après)
- function frame(now){requestAnimationFrame(frame);const on=settings.level()!=='basse'&&!off;if(!on){world.classList.remove('gl-on');return}if(!gl&&!lost)init();if(!ready)return;
+ function frame(now){requestAnimationFrame(frame);const on=settings.level()!=='basse'&&!off;if(!on){world.classList.remove('gl-on');return}if(!gl&&!lost){if(!$('.map-base').getAttribute('src'))return;init()}if(!ready)return;
   if($('#raceScreen').classList.contains('open')||document.hidden)return;if(settings.level()==='moyenne'&&(skip^=1))return;
   draw(now/1000)}
  function draw(time,W4){const V=village.view;if(!V.vw||!ready)return;const dpr=Math.min(settings.level()==='haute'?2:1.25,devicePixelRatio||1),W=Math.round(V.vw*dpr),H=Math.round(V.vh*dpr);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
@@ -4103,8 +4117,13 @@ const domaine3d = (() => {
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t
   }
   // ---------- montage de la scène ----------
-  function build() {
-    const Q = QUALITY[settings.level()], season = villageVie.season(), kit = K();
+  // construction en étapes : build() les enchaîne d'un coup (réglages, tests), buildAsync() rend la main au navigateur entre deux
+  // étapes (démarrage du jeu : l'écran titre reste fluide pendant que le domaine se monte)
+  function buildSteps() {
+    const Q = QUALITY[settings.level()], season = villageVie.season(), kit = K(), steps = [];
+    const lv = id => { try { return dlv(id) } catch (e) { return 1 } }, pick = [], fenceP = [];
+    const makers = { haras, ecurie, clinique, moulin, chantier, carriere, paddocks, hippodrome };
+    steps.push(() => {
     S = new THREE.Scene(); S.background = new THREE.Color(0x9cc4e4); S.fog = new THREE.Fog(0x9cc4e4, 380, 900);
     const hemi = new THREE.HemisphereLight(0xdcebff, 0x3a4a26, 1.25), sun = new THREE.DirectionalLight(0xfff2dc, 3); sun.castShadow = !!Q.shadow; sun.shadow.mapSize.set(Q.shadow || 1024, Q.shadow || 1024); sun.shadow.bias = -.0005; sun.shadow.normalBias = .05;
     S.add(hemi, sun, sun.target); T = { hemi, sun, bmats: {}, glows: [], lamps: null, season };
@@ -4115,11 +4134,9 @@ const domaine3d = (() => {
         s.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n{float n=gn(vW.xz*1.3)*.5+gn(vW.xz*5.)*.3+gn(vW.xz*.2)*.2;diffuseColor.rgb*=mix(.86,1.1,n);float near=1.-smoothstep(25.,110.,distance(vW,cameraPosition));diffuseColor.rgb*=mix(1.,mix(.84,1.1,gn(vW.xz*4.3)*.55+gn(vW.xz*13.)*.45),near);}') };
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(GW, GD).rotateX(-Math.PI / 2), gm); ground.receiveShadow = true; S.add(ground);
     const far = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: season === 'hiver' ? 0xd8e0e6 : 0x3f6a2a, roughness: 1 })); far.position.y = -.05; S.add(far);
+    T.blds = {} });
     // bâtiments (un maillage et un matériau par bâtiment, pour la surbrillance)
-    const lv = id => { try { return dlv(id) } catch (e) { return 1 } }, pick = [];
-    const makers = { haras, ecurie, clinique, moulin, chantier, carriere, paddocks, hippodrome }, fenceP = [];
-    T.blds = {};
-    for (const id of VILLAGE.order) {
+    for (const id of VILLAGE.order) steps.push(() => {
       const [x, z, , ry] = B[id], g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; S.add(g);
       const r = makers[id](lv(id)), mat = bldMat(); T.bmats[id] = mat;
       if (r.P.length) { const m = mesh(r.P, mat); m.userData.id = id; g.add(m); pick.push(m) }
@@ -4130,14 +4147,16 @@ const domaine3d = (() => {
       // anneau doré au sol pour la sélection
       const ring = new THREE.Mesh(new THREE.RingGeometry(1, 1.12, 64).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffd66b, transparent: true, opacity: 0, depthWrite: false })); const rr = { hippodrome: 66, carriere: 34, paddocks: 34, haras: 40 }[id] || 26; ring.scale.setScalar(rr); ring.position.y = .15; g.add(ring);
       T.blds[id] = { g, ring, lv: lv(id), top: B[id][2] }
-    }
+    });
+    steps.push(() => {
     T.pick = pick;
     fences([rect(112, 4, 27, 13)], new THREE.Matrix4(), fenceP);
-    if (fenceP.length) { const f = new THREE.Mesh(kit.merge(fenceP), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6 })); f.castShadow = true; f.receiveShadow = true; S.add(f) }
-    decor(season, Q); decos();
-    buildHorses();
-    built = true
+    if (fenceP.length) { const f = new THREE.Mesh(kit.merge(fenceP), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6 })); f.castShadow = true; f.receiveShadow = true; S.add(f) } },
+    () => decor(season, Q), () => decos(), () => { buildHorses(); built = true });
+    return steps
   }
+  function build() { for (const st of buildSteps()) st() }
+  async function buildAsync(onStep) { const L = buildSteps(); for (let k = 0; k < L.length; k++) { L[k](); onStep && onStep(k + 1, L.length); await new Promise(r => setTimeout(r, 0)) } }
   // ---------- décor : rivière, ponts, fontaine, réverbères, haies, arbres ----------
   function decor(season, Q) {
     const kit = K(), P = [], r = kit.rng(31);
@@ -4387,7 +4406,8 @@ const domaine3d = (() => {
     if (sails) sails.rotation.z -= dt * .9;
     if (chk && decoOwned().join(',') !== decoSig) decos();
     for (const w of swans) { w.a += dt * w.sp; w.o.position.set(-38 + Math.cos(w.a) * w.r, .1, 88 + Math.sin(w.a) * w.r * 1.25); w.o.rotation.y = -w.a - Math.PI / 2 }
-    stepHorses(dt, t); stepLife(dt, t); camera(); R.render(S, cam); placeUI()
+    stepHorses(dt, t); stepLife(dt, t); camera(); R.render(S, cam); placeUI();
+    if (!T.shown) { T.shown = true; try { splash.hide() } catch (e) { } hooks.emit('domaine3d:pret', T.ms) }
   }
   function rebuild(id) {
     const b = T.blds[id], l = dlv(id), r = ({ haras, ecurie, clinique, moulin, chantier, carriere, paddocks, hippodrome })[id](l); b.lv = l;
@@ -4396,23 +4416,37 @@ const domaine3d = (() => {
     (r.flags || []).forEach(([fx, fy, fz], k) => { const f = K().flagMesh(k % 2 ? C.red : C.navy, C.gold, 3.2, 2); f.position.set(fx, fy + 3.5, fz); b.g.add(f) })
   }
   // ---------- activation ----------
-  function set(v) {
-    v = !!v && supported(); if (v === on) return on;
-    if (v) {
-      try {
+  function renderer() {
         if (R && R.getContext().isContextLost()) { R.domElement.remove(); R = null }
         if (!R) { const cv = document.createElement('canvas'); cv.id = 'domain3d'; world.prepend(cv); R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' }); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05; R.shadowMap.enabled = !!QUALITY[settings.level()].shadow; R.shadowMap.type = THREE.PCFSoftShadowMap; input(cv);
           // contexte WebGL perdu (mémoire du téléphone) : retour à la peinture, sans jamais provoquer de perte nous-mêmes
           cv.addEventListener('webglcontextlost', e => { e.preventDefault(); set(false); settings.set('d3', false); try { toast('Domaine 3D indisponible : retour à la peinture') } catch (x) { } }) }
-        R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1));
+        R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1)) }
+  // démarrage du jeu : construction en étapes, puis compilation des shaders en parallèle quand le pilote le permet (KHR_parallel_shader_compile),
+  // et seulement ensuite la première image — l'écran titre reste animé et affiche l'étape en cours
+  let starting = false;
+  async function start() {
+    if (on || starting || !supported()) return; starting = true; const t0 = performance.now();
+    try {
+      renderer(); if (!built) await buildAsync((k, n) => { try { splash.step(`Construction du domaine… ${Math.round(k / n * 100)} %`) } catch (e) { } });
+      light(); camera(); try { splash.step('Préparation de la lumière…') } catch (e) { }
+      if (R.compileAsync) await R.compileAsync(S, cam).catch(() => { });
+      T.ms = Math.round(performance.now() - t0); starting = false; set(true)
+    } catch (e) { starting = false; console.warn('domaine 3D', e); try { loadPainting(); splash.hide() } catch (x) { } }
+  }
+  function set(v) {
+    v = !!v && supported(); if (v === on) return on;
+    if (v) {
+      try {
+        renderer();
         if (!built) { const t0 = performance.now(); build(); T.ms = Math.round(performance.now() - t0); if (world.clientWidth < world.clientHeight * .8) { W3.dist = 280; W3.tz = -4 } } light(); camera()
-      } catch (e) { console.warn('domaine 3D', e); return on = false }
+      } catch (e) { console.warn('domaine 3D', e); try { loadPainting(); splash.hide() } catch (x) { } return on = false }
       on = true; world.classList.add('d3-on');
       setTimeout(() => { try { if (on && !$('#panel').classList.contains('open') && career.data.stats.races >= 1) coach.tip('d3', matchMedia('(pointer:coarse)').matches ? 'Ton domaine est maintenant en <b>3D</b> : glisse pour te déplacer, pince pour zoomer, <b>deux doigts</b> pour tourner autour. Touche un bâtiment pour l’ouvrir.' : 'Ton domaine est maintenant en <b>3D</b> : glisse ou utilise les flèches pour te déplacer, molette ou + / − pour zoomer, <b>clic droit</b> ou A / E pour tourner autour. Clique sur un bâtiment pour l’ouvrir.') } catch (e) { } }, 7000); try { villageGL.off = true } catch (e) { } adopt(); if (!raf) raf = requestAnimationFrame(frame)
-    } else { on = false; world.classList.remove('d3-on'); try { villageGL.off = false } catch (e) { } release(); try { village.layout() } catch (e) { } }
+    } else { on = false; world.classList.remove('d3-on'); try { loadPainting(); villageGL.off = false } catch (e) { } release(); try { village.layout() } catch (e) { } }
     return on
   }
-  hooks.on('ready', () => { if (wanted()) setTimeout(() => set(true), 60) });
+  hooks.on('ready', () => { if (wanted()) setTimeout(start, 60) });
   return { get on() { return on }, set, view: W3, supported, wanted, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls } },
     // capture sans attendre requestAnimationFrame (panneau masqué) : fait avancer la vie de ms millisecondes puis dessine
     snap(ms = 0) { if (!on) return; const t = performance.now() / 1000; for (let k = 0; k < 4; k++) { stepHorses(ms / 4000, t); stepLife(ms / 4000, t) } raceWorld.uniforms.uTime.value = t; light(); camera(); R.render(S, cam); placeUI() } }

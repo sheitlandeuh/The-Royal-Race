@@ -101,7 +101,7 @@ void main(){
  function fail(e){console.warn('rendu du domaine : repli sur l’image',e);ready=false;world.classList.remove('gl-on')}
  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;fail('contexte perdu')});
  let off=false;// villageGL.off = true : revient à l'image simple (comparaison avant / après)
- function frame(now){requestAnimationFrame(frame);const on=settings.level()!=='basse'&&!off;if(!on){world.classList.remove('gl-on');return}if(!gl&&!lost)init();if(!ready)return;
+ function frame(now){requestAnimationFrame(frame);const on=settings.level()!=='basse'&&!off;if(!on){world.classList.remove('gl-on');return}if(!gl&&!lost){if(!$('.map-base').getAttribute('src'))return;init()}if(!ready)return;
   if($('#raceScreen').classList.contains('open')||document.hidden)return;if(settings.level()==='moyenne'&&(skip^=1))return;
   draw(now/1000)}
  function draw(time,W4){const V=village.view;if(!V.vw||!ready)return;const dpr=Math.min(settings.level()==='haute'?2:1.25,devicePixelRatio||1),W=Math.round(V.vw*dpr),H=Math.round(V.vh*dpr);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}

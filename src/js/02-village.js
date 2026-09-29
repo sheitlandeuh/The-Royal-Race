@@ -86,4 +86,11 @@ const village=(()=>{
  setTag(id,name,lvl){const t=els[id].tag,i=t.querySelector('i');t.querySelector('em').textContent=name;i.hidden=lvl==null;if(lvl!=null)i.textContent=lvl},set onSelect(f){onSelect=f}};
 })();
 // carte d'un bâtiment sélectionné : remplie par 45-domaine (niveau, travaux, action du bâtiment)
-(()=>{const base=$('.map-base'),hide=()=>setTimeout(()=>$('#splash').classList.add('gone'),350);base.complete?hide():(base.addEventListener('load',hide),base.addEventListener('error',hide));setTimeout(hide,6000)})();
+/* peinture du domaine (2,3 Mo) : téléchargée seulement si elle sert — le domaine 3D la remplace ; elle reste le repli (qualité basse, pas de WebGL2, contexte perdu) */
+function loadPainting(){const b=$('.map-base');if(b&&!b.getAttribute('src'))b.src=b.dataset.src}
+/* écran titre : reste affiché jusqu'à la première vraie image du domaine (peinture chargée ou première image 3D), 15 s au plus ; step() montre l'étape en cours */
+const splash=(()=>{const sp=$('#splash');let done=false,wait3d=false;const hide=()=>{if(done)return;done=true;setTimeout(()=>sp.classList.add('gone'),250)};
+ const base=$('.map-base');base.addEventListener('load',()=>{if(!wait3d)hide()});base.addEventListener('error',hide);setTimeout(hide,15000);
+ hooks.on('ready',()=>{let d3=false;try{d3=domaine3d.wanted()&&domaine3d.supported()}catch(e){}if(d3){wait3d=true;step('Construction du domaine…')}else loadPainting()});
+ function step(t){const e=sp.querySelector('em');if(e)e.textContent=t}
+ return{hide,step,get done(){return done},set wait3d(v){wait3d=v}}})();

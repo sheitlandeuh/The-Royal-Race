@@ -40,7 +40,7 @@ const villageLife=(()=>{
   ctx.fillStyle='#f3c64a';ctx.beginPath();ctx.arc(x,yy+l*.5,2.6*k,0,6.283);ctx.fill();for(const dx of[-.5,.5]){ctx.fillStyle='#ffe7a0';ctx.beginPath();ctx.arc(x+dx*w,yy+(down?l:0),1.8*k,0,6.283);ctx.fill()}}
  const dirOf=(du,dv)=>{const yaw=Math.atan2(-dv*1882/Math.sin(PITCH),du*3344);return((Math.round(yaw/(Math.PI*2)*DIRS)%DIRS)+DIRS)%DIRS};
  // appelé par la boucle d'animation du village
- function draw(ctx,now,dt,toScreen,sc,vw,vh){if(!sheets){if(now>6000)render();return}if(!sheets.length)return;
+ function draw(ctx,now,dt,toScreen,sc,vw,vh){if(!sheets){let d3=false;try{d3=domaine3d.on||domaine3d.wanted()}catch(e){}if(now>6000&&!d3)render();return}// domaine en 3D : ces images ne servent pas, on ne les calcule pasif(!sheets.length)return;
   const list=[];
   for(const R of runners){R.th=(R.th+R.sp*dt)%TOT;R.f+=dt*.016;const[u,v]=pt(R.th,R.lane),[u2,v2]=pt(R.th+6,R.lane);if(v>.298&&u>.452&&u<.515)continue;list.push({u,v,s:R.s,k:.62,fr:Math.floor(R.f)%FR,d:dirOf(u2-u,v2-v)})}
   for(const R of riders){R.a=(R.a+dt*.00032)%(Math.PI*2);R.f=(R.f||0)+dt*.011;const[u,v]=onArena(R.a),[u2,v2]=onArena(R.a+.03);list.push({u,v,s:R.s,k:1.2,fr:Math.floor(R.f)%FR,d:dirOf(u2-u,v2-v)})}

@@ -1,7 +1,7 @@
 // Test de fumée (nécessite Playwright) : charge le jeu avec plusieurs sauvegardes types et ouvre tous les écrans.
 //   node tools/smoke.cjs                 le jeu doit être servi sur http://localhost:8765 (python3 -m http.server 8765)
 //   node tools/smoke.cjs --shots dossier captures de chaque écran, en 1280×800 et 390×844
-//   ONLY=confirme,neuf node tools/smoke.cjs   seulement ces profils
+//   ONLY=confirme,neuf node tools/smoke.cjs   seulement ces profils ; MOBILE=1 : aussi en 390×844, sans captures (intégration continue)
 // Échoue (code 1) à la moindre erreur JavaScript, à un module manquant ou à un texte cassé (undefined, NaN).
 const { chromium } = require('playwright');
 const URL = process.env.URL || 'http://localhost:8765/index.html';
@@ -42,7 +42,7 @@ const SCREENS = [
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   let failed = 0;
   for (const [name, P] of Object.entries(PROFILES).filter(([n]) => !process.env.ONLY || process.env.ONLY.split(',').includes(n))) {
-    for (const vp of shotsDir ? [{ width: 1280, height: 800, tag: 'pc' }, { width: 390, height: 844, tag: 'mobile' }] : [{ width: 1280, height: 800, tag: 'pc' }]) {
+    for (const vp of shotsDir || process.env.MOBILE ? [{ width: 1280, height: 800, tag: 'pc' }, { width: 390, height: 844, tag: 'mobile' }] : [{ width: 1280, height: 800, tag: 'pc' }]) {
       const ctx = await b.newContext({ viewport: { width: vp.width, height: vp.height }, hasTouch: vp.tag === 'mobile' });
       const p = await ctx.newPage(), errs = [];
       p.on('pageerror', e => errs.push(e.message));

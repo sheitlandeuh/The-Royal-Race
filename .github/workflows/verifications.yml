@@ -43,13 +43,5 @@ jobs:
       - name: Tests du jeu (version rapide)
         run: node tools/run-tests.cjs --quick
 
-      - name: Test de fumée (neuve → fin de partie, sauvegarde abîmée)
-        run: node tools/smoke.cjs --shots captures
-
-      - name: Captures en cas d'échec
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: captures
-          path: captures
-          if-no-files-found: ignore
+      - name: Test de fumée PC et mobile (neuve → fin de partie, sauvegarde abîmée)
+        run: MOBILE=1 node tools/smoke.cjs

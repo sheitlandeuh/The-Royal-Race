@@ -23,6 +23,7 @@ const mesures = (() => {
     etape('arrivee_1'); if (rank === 1) etape('victoire_1');
     const n = J.mesures.compteurs.arrivees; if (n === 3) etape('arrivee_3'); if (n === 10) etape('arrivee_10'); if (n === 50) etape('arrivee_50');
   });
+  hooks.on('race:pace', v => { if (!replays.busy) { J.compte('allure'); etape('allure_1') } });
   hooks.on('race:leave', fini => { if (!fini && !replays.busy) { J.compte('abandons'); J.trace('abandon', RACE.n) } });
   const suivi = { 'domaine:travaux': ['travaux', 'travaux_1'], 'domaine:recolte': ['recoltes', 'recolte_1'], 'vente:debut': ['ventes_lancees'], 'vente:fin': ['ventes', 'vente_1'],
     legende: ['legendes', 'legende_1'], 'duel:partage': ['duels_partages', 'duel_partage_1'], 'duel:end': ['duels_joues', 'duel_joue_1'], 'defi:end': ['defis', 'defi_1'],

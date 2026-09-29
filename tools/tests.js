@@ -28,6 +28,21 @@ export async function run({ quick = false } = {}) {
     completeRace = completeOrig; if (career.data.jockeys) career.data.jockeys.sel = 'paul'; // équilibrage mesuré sans bonus de jockey
     pass('Rejeu identique', det === D, `${det}/${D} courses`);
     { const r = JSON.parse(JSON.stringify(replays.last())); r.result.times[0] -= .3; pass('Falsification détectée', replays.verify(r).ok === false, 'temps truqué refusé') }
+    // allure en course (2.5) : entrée enregistrée et rejouée à l'identique ; elle change vraiment la course ; ignorée pendant le sprint
+    { const one = plan => { RACE = { ...MEETINGS[1] }; currentField = null; buildField(424242); stable.active().fatigue = 10; state.feed = 99999; state.strategy = 'stalker';
+        bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+        while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); const v = plan(progress[0]); if (v !== playerPace) setPace(v);
+          if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
+        raceLoop = null; const r = replays.last(), t = raceFinishTimes[0]; while (coach.open) coach.hide(); const ok = replays.verify(r).ok; leaveRace(); while (coach.open) coach.hide(); return { r, t, ok } };
+      const a = one(() => 0), b = one(p => p < 25 ? 1 : p < 50 ? -1 : 0), paces = b.r.inputs.filter(x => x[1] === 'pace').map(x => x[2]);
+      const ok = a.ok && b.ok && !a.r.inputs.some(x => x[1] === 'pace') && paces[0] === 1 && paces[1] === -1 && Math.abs(a.t - b.t) > .01;
+      pass('Allure en course : enregistrée, rejouée, efficace', ok, `rejeux ${a.ok && b.ok ? 'identiques' : 'DIFFÉRENTS'} · entrées ${paces.join(' → ') || 'aucune'} · temps ${a.t.toFixed(2)} s → ${b.t.toFixed(2)} s`); await tick() }
+    // allure : aucune allure fixe ne paie, retenir en lisant sa jauge d'endurance oui (2 000 m, mêmes graines, joueur confirmé)
+    { const keepRaces = career.data.stats.races; career.data.stats.races = 10; const done = completeRace; completeRace = () => {}; const R = {}, NA = quick ? 40 : 80;
+      try { for (const [k, pace] of [['normal', 0], ['retenir', -1], ['presser', 1], ['jauge', bot.gestion]]) { let s = 0;
+        for (let n = 1; n <= NA; n++) { const seed = n * 7919 + 13; RACE = { ...MEETINGS.find(m => m.id === 'm3') }; currentField = null; buildField(seed); s += bot.race('m3', seed, 'stalker', { ...bot.smart, pace }).rank }
+        R[k] = s / NA; await tick() } } finally { completeRace = done; career.data.stats.races = keepRaces }
+      pass('Allure : lire sa jauge bat toute allure fixe', R.jauge < R.normal && R.jauge < R.retenir && R.jauge < R.presser, Object.entries(R).map(([k, v]) => `${k} ${v.toFixed(2)}`).join(' · ') + ' (rang moyen)') }
     await tick();
 
     // 2 bis. moteur 3 : départ commun, chevaux solides (jamais superposés), dépassements par le côté

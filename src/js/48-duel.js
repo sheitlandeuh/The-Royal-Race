@@ -22,7 +22,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
   if(!P||!['cruise','sprint','sprintDrain','drain','draft','noise'].every(k=>num(P[k]))||!P.tactic||!num(P.tactic.c))return false;
   if(o.e!==undefined&&(!num(o.e)||o.e>=2&&!['jump','wideK','save','nerve'].every(k=>num(P[k]))||o.e>=3&&!num(P.check)))return false;
   if(!F.rivals.every(r=>r&&str(r.name,24)&&r.stats&&STATS.every(s=>num(r.stats[s.k]))&&num(r.pref)&&livOk(r.livery)&&TALENTS[r.talent]&&['leader','stalker','finisher'].includes(r.tac)))return false;
-  if(!Array.isArray(o.inputs)||o.inputs.length>3000||!o.inputs.every(x=>Array.isArray(x)&&num(x[0])&&['steer','sprint','moment','jump'].includes(x[1])))return false;
+  if(!Array.isArray(o.inputs)||o.inputs.length>3000||!o.inputs.every(x=>Array.isArray(x)&&num(x[0])&&['steer','sprint','moment','jump','pace'].includes(x[1])&&(x[1]!=='pace'||[-1,0,1].includes(x[2]))))return false;
   if(!o.result||!Array.isArray(o.result.times)||!o.result.times.every(num)||!str(o.horse,24)||!['leader','stalker','finisher'].includes(o.strategy))return false;
   return !o.liv||livOk(o.liv)}catch(e){return false}}
  // la course reçue est reconstruite à partir de champs connus : rien de ce qui vient du lien n'est affiché sans contrôle

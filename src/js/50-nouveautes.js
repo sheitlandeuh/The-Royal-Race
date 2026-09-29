@@ -1,6 +1,10 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🎚️','Allure en course','Pendant la course, presse ou retiens ton cheval (▲ / ▼). Bloqué derrière un cheval ? Retiens-le : il garde ses forces pour le sprint. Une ouverture ? Presse-le pour la prendre.',0,'2.5'],
+ ['🏇','Écuries rivales','Tes adversaires courent pour 12 écuries, chacune avec sa casaque : tu les recroises de course en course et le jeu retient qui mène le face-à-face. Au départ, leurs chances s’affichent en mots : favori, prétendant, outsider.',0,'2.5'],
+ ['⚡','Plus rapide, plus fluide','Écran de chargement animé et domaine construit par étapes. En qualité Auto, le jeu mesure sa fluidité et baisse la résolution si ton appareil peine.',0,'2.5'],
+ ['🛟','Aide','Réglages → Aide : signale un problème avec un rapport prêt à copier, et retrouve la confidentialité et les crédits. Avant d’abandonner une course, le jeu te demande confirmation.',0,'2.5'],
  ['🤫','Course sans interruption','Plus de conseils ni de temps forts à choisir pendant la course : tu ne penses qu’à ton couloir, ton sprint et tes sauts. Nouvelle mission : doubler 5 adversaires.',0,'2.4'],
  ['〰️','Déplacements fluides','Les chevaux changent de couloir en douceur, s’orientent et s’inclinent dans le mouvement : plus aucun à-coup à l’image.',0,'2.4'],
  ['✨','Chevaux et jockeys plus réalistes','Robe lustrée qui reflète le ciel, muscles en relief, crinière plus fournie, casaques en soie satinée, reflets lumineux sur l’hippodrome.',0,'2.4'],

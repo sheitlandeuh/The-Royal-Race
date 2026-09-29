@@ -25,6 +25,8 @@ export const bot = window.bot = (() => {
       else { let c = policy[moments.cur.k] || 'b'; if (typeof c === 'function') c = c(moments.cur); if (c !== 'b') moments.choose(c) }
       // haies : élan choisi un peu avant l'obstacle (politique.haie : 'p' | 'n' | 'f' | fonction)
       if (typeof haies !== 'undefined' && policy.haie) { const u = haies.upcoming(); if (u && u.m < RACE.dist * .03 && haies.state.choice === 'n') { const c = typeof policy.haie === 'function' ? policy.haie(u) : policy.haie; if (c !== 'n') haies.choose(c) } }
+      // allure en course (2.5) : politique.pace = -1 | 0 | 1 | fonction, appliquée hors sprint final
+      if (policy.pace !== undefined && !playerFinal) { const v = typeof policy.pace === 'function' ? policy.pace() : policy.pace; if (v !== playerPace) setPace(v) }
       runRaceV2(); n++;
     }
     const r = { rank: finishOrder.indexOf(0) + 1, aheadBM: finishOrder.indexOf(0) < finishOrder.indexOf(1), log: moments.log.map(e => e.k + e.ch + (e.k === 'breche' && e.ch === 'a' ? (e.ok ? '+' : '-') : '')) };
@@ -53,6 +55,8 @@ export const bot = window.bot = (() => {
     finally { completeRace = done }
     console.table(out); return out;
   }
+  // allure d'un joueur qui lit sa jauge : retenir tant que l'endurance (en %) est sous 1,2 × la distance restante (en %), sinon allure normale
+  const gestion = () => playerEnergy / Math.max(1, 100 - progress[0]) < 1.2 ? -1 : 0;
   const smart = {
     tire: () => RACE.dist <= 1200 ? 'b' : 'a',
     breche: 'a',
@@ -80,5 +84,5 @@ export const bot = window.bot = (() => {
     finally { completeRace = done }
     return out;
   }
-  return { race, one, run, pair, tactics, smart, headless, get gl() { return gl } };
+  return { race, one, run, pair, tactics, smart, gestion, headless, get gl() { return gl } };
 })();

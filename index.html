@@ -2302,23 +2302,25 @@ $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button');
 document.addEventListener('click',e=>{const b=e.target.closest('[data-adv]');if(!b)return;leaveRace();openStable({tab:'train'});stUI.int='normal';setTimeout(()=>{const c=$(`[data-train=${b.dataset.adv}]`);c?.closest('.ses')?.scrollIntoView({block:'center'});c?.closest('.ses')?.classList.add('flash')},200)});
 </script>
 <script type="text/x-module" data-f="13-settings.js">/* ===== Réglages : qualité graphique, animations, son, sauvegarde ===== */
+// qualité « auto » (2.5) : le niveau estimé d'après l'appareil peut être plafonné (cap) et la résolution réduite (rs) par la mesure réelle des images/s (54-fluidite)
 const settings=(()=>{let S={q:'auto',anim:true,sfx:.8,music:.45,voice:true};try{Object.assign(S,JSON.parse(localStorage.getItem('trr.settings')||'{}'))}catch(e){}
  const save=()=>{try{localStorage.setItem('trr.settings',JSON.stringify(S))}catch(e){}};
  const auto=()=>{const touch=matchMedia('(pointer:coarse)').matches,cores=navigator.hardwareConcurrency||4,mem=navigator.deviceMemory||4;return touch&&(cores<=4||mem<=3)?'basse':touch||cores<=4?'moyenne':'haute'};
- return{get:k=>S[k],set(k,v){S[k]=v;save();apply()},level:()=>S.q==='auto'?auto():S.q}})();
+ const ORD=['basse','moyenne','haute'],capped=l=>S.cap&&ORD.indexOf(S.cap)<ORD.indexOf(l)?S.cap:l;
+ return{get:k=>S[k],set(k,v){S[k]=v;save();apply()},level:()=>S.q==='auto'?capped(auto()):S.q,scale:()=>S.q==='auto'?(S.rs||1):1,device:auto}})();
 const QUALITY={basse:{pr:1,shadow:0,post:false,n:'Basse',d:'Pour les téléphones modestes : pas d’ombres ni d’effets caméra.'},moyenne:{pr:1.5,shadow:1024,post:true,n:'Moyenne',d:'Ombres légères et effets caméra.'},haute:{pr:2,shadow:2048,post:true,n:'Haute',d:'Tous les effets, ombres fines. Pour PC et téléphones récents.'}};
-function applyRaceQuality(q){if(!q)return;const Q=QUALITY[settings.level()];q.renderer.setPixelRatio(Math.min(Q.pr,devicePixelRatio||1));const had=q.renderer.shadowMap.enabled;q.renderer.shadowMap.enabled=!!Q.shadow;
+function applyRaceQuality(q){if(!q)return;const Q=QUALITY[settings.level()];q.renderer.setPixelRatio(Math.min(Q.pr,devicePixelRatio||1)*settings.scale());const had=q.renderer.shadowMap.enabled;q.renderer.shadowMap.enabled=!!Q.shadow;
  q.scene.traverse(o=>{if(o.isDirectionalLight&&o.castShadow&&Q.shadow&&o.shadow.mapSize.x!==Q.shadow){o.shadow.mapSize.set(Q.shadow,Q.shadow);o.shadow.map?.dispose();o.shadow.map=null}if(had!==!!Q.shadow&&o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.needsUpdate=true)}});q.lastW=0}
-function apply(){document.body.classList.toggle('no-anim',!settings.get('anim'));if(typeof threeRace!=='undefined'&&threeRace)applyRaceQuality(threeRace);try{sound.volumes()}catch(e){}}
+function apply(){document.body.classList.toggle('no-anim',!settings.get('anim'));if(typeof threeRace!=='undefined'&&threeRace)applyRaceQuality(threeRace);try{domaine3d.quality()}catch(e){}try{sound.volumes()}catch(e){}}
 function openSettings(){$('#panelTitle').textContent='Réglages';$('#panel .card').classList.remove('wide');const lv=settings.get('q');
  $('#panelBody').innerHTML=`<div class="set">
  <section><h4>QUALITÉ GRAPHIQUE</h4><div class="seg">${['auto','basse','moyenne','haute'].map(k=>`<button data-q="${k}" class="${lv===k?'on':''}">${k==='auto'?'Auto':QUALITY[k].n}</button>`).join('')}</div>
-  <p class="hint">${lv==='auto'?`Auto : ${QUALITY[settings.level()].n.toLowerCase()} sur cet appareil. `:''}${QUALITY[settings.level()].d}</p></section>
+  <p class="hint">${lv==='auto'?`Auto : ${QUALITY[settings.level()].n.toLowerCase()} sur cet appareil${settings.scale()<1?`, résolution ${Math.round(settings.scale()*100)} % pour rester fluide`:''}. `:''}${QUALITY[settings.level()].d}</p></section>
  <section><h4>AFFICHAGE</h4><label class="tog"><input type="checkbox" id="setAnim" ${settings.get('anim')?'checked':''}> Animations du domaine (nuages, oiseaux, bannières)</label>${typeof domaine3d!=='undefined'&&domaine3d.supported()?`<label class="tog"><input type="checkbox" id="setD3" ${domaine3d.wanted()?'checked':''}> Domaine en 3D (sinon : la peinture du domaine)</label>`:''}</section>
  <section><h4>SON</h4><label class="sl">Effets <input type="range" id="setSfx" min="0" max="1" step=".05" value="${settings.get('sfx')}"></label><label class="sl">Musique <input type="range" id="setMusic" min="0" max="1" step=".05" value="${settings.get('music')}"></label><label class="tog"><input type="checkbox" id="setVoice" ${settings.get('voice')?'checked':''}> Commentaire du speaker</label></section>
  <section><h4>SAUVEGARDE</h4><p class="hint">Ta partie est enregistrée dans ce navigateur (${stable.data.horses.length} chevaux, ${fmt(state.gold)} or).</p><button class="action green" id="saveTools">TRANSFÉRER / SAUVEGARDER MA PARTIE</button> <button class="action" id="resetSave">Recommencer une partie</button></section><p class="hint set-version">The Royal Race ${VERSION} · <a href="#" data-news>quoi de neuf ?</a></p></div>`;
  $('#panel').classList.add('open')}
-$('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){settings.set('q',b.dataset.q);openSettings();toast(`Qualité : ${QUALITY[settings.level()].n.toLowerCase()}`)}
+$('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){settings.set('cap',undefined);settings.set('rs',undefined);settings.set('q',b.dataset.q);openSettings();toast(`Qualité : ${QUALITY[settings.level()].n.toLowerCase()}`)}
  if(e.target.id==='resetSave'){const r=e.target;if(r.dataset.armed){try{window.__noSave=true;['trr.stable','trr.champion','trr.progress','trr.bak'].forEach(k=>localStorage.removeItem(k))}catch(err){}location.reload()}else{r.dataset.armed=1;r.textContent='Confirmer : tout effacer';r.classList.add('danger');setTimeout(()=>{if(r.isConnected){delete r.dataset.armed;r.textContent='Recommencer une partie';r.classList.remove('danger')}},4000)}}});
 $('#panelBody').addEventListener('change',e=>{if(e.target.id==='setAnim')settings.set('anim',e.target.checked);if(e.target.id==='setD3'){settings.set('d3',e.target.checked);domaine3d.set(e.target.checked)}if(e.target.id==='setVoice')settings.set('voice',e.target.checked)});
 $('#panelBody').addEventListener('input',e=>{if(e.target.id==='setSfx')settings.set('sfx',+e.target.value);if(e.target.id==='setMusic')settings.set('music',+e.target.value)});
@@ -4421,7 +4423,7 @@ const domaine3d = (() => {
         if (!R) { const cv = document.createElement('canvas'); cv.id = 'domain3d'; world.prepend(cv); R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' }); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05; R.shadowMap.enabled = !!QUALITY[settings.level()].shadow; R.shadowMap.type = THREE.PCFSoftShadowMap; input(cv);
           // contexte WebGL perdu (mémoire du téléphone) : retour à la peinture, sans jamais provoquer de perte nous-mêmes
           cv.addEventListener('webglcontextlost', e => { e.preventDefault(); set(false); settings.set('d3', false); try { toast('Domaine 3D indisponible : retour à la peinture') } catch (x) { } }) }
-        R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1)) }
+        R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }
   // démarrage du jeu : construction en étapes, puis compilation des shaders en parallèle quand le pilote le permet (KHR_parallel_shader_compile),
   // et seulement ensuite la première image — l'écran titre reste animé et affiche l'étape en cours
   let starting = false;
@@ -4447,7 +4449,7 @@ const domaine3d = (() => {
     return on
   }
   hooks.on('ready', () => { if (wanted()) setTimeout(start, 60) });
-  return { get on() { return on }, set, view: W3, supported, wanted, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls } },
+  return { get on() { return on }, set, view: W3, supported, wanted, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls } },
     // capture sans attendre requestAnimationFrame (panneau masqué) : fait avancer la vie de ms millisecondes puis dessine
     snap(ms = 0) { if (!on) return; const t = performance.now() / 1000; for (let k = 0; k < 4; k++) { stepHorses(ms / 4000, t); stepLife(ms / 4000, t) } raceWorld.uniforms.uTime.value = t; light(); camera(); R.render(S, cam); placeUI() } }
 })();
@@ -4516,6 +4518,27 @@ const direct=(()=>{
       t.d.style.opacity=Math.min(1,(170-t.dist)/40).toFixed(2);t.d.style.transform=`translate(${t.x.toFixed(1)}px,${t.y.toFixed(1)}px) translate(-50%,-100%) scale(${t.k.toFixed(2)})`}}
   requestAnimationFrame(frame);
   return{order,update}})();
+</script>
+<script type="text/x-module" data-f="54-fluidite.js">/* ===== Fluidité : la qualité « auto » s'ajuste aux images par seconde réellement mesurées =====
+   On mesure le temps entre deux images quand le joueur regarde vraiment la 3D (course en cours, ou domaine 3D sans panneau ouvert).
+   Médiane glissante sur ~2 s : au-delà de 34 ms (moins de 30 images/s), la résolution de rendu baisse d'un cran (100 → 85 → 72 → 60 %),
+   puis, si ça ne suffit pas, le niveau d'effets (haute → moyenne → basse). Sous 17 ms pendant 8 s, la résolution remonte d'un cran.
+   Les ajustements sont retenus pour la partie suivante ; choisir un niveau à la main dans Réglages les annule. Rien ne change hors « Auto ». */
+const fluidite=(()=>{const STEPS=[1,.85,.72,.6],ORD=['basse','moyenne','haute'];let last=0,buf=[],next=0,good=0,said=false;
+ const watching=()=>{if(document.hidden)return false;if($('#raceScreen').classList.contains('open'))return !!(typeof threeRace!=='undefined'&&threeRace&&!threeRace.headless&&threeRace.startPhase==='running');
+  try{return domaine3d.on&&!$('#panel').classList.contains('open')}catch(e){return false}};
+ const median=a=>{const s=a.slice().sort((x,y)=>x-y);return s[s.length>>1]};
+ function adjust(dir){const rs=settings.scale(),i=STEPS.indexOf(STEPS.find(x=>x<=rs+1e-6)??1);
+  if(dir<0){if(i<STEPS.length-1){settings.set('rs',STEPS[i+1]);return true}const l=settings.level(),k=ORD.indexOf(l);if(k>0){settings.set('cap',ORD[k-1]);settings.set('rs',STEPS[1]);return true}return false}
+  if(i>0){settings.set('rs',STEPS[i-1]);return true}return false}
+ function frame(now){requestAnimationFrame(frame);const dt=now-last;last=now;if(settings.get('q')!=='auto'||!watching()){buf.length=0;good=0;return}if(dt<=0||dt>3000)return;// > 3 s : pause du système, pas une image
+  // fenêtre : 20 images couvrant 1,5 s, ou 5 s de mesure pour un appareil très lent
+  buf.push(dt);if(buf.length>120)buf.shift();const sum=buf.reduce((a,x)=>a+x,0);if(now<next||!(buf.length>=20&&sum>=1500||sum>=5000&&buf.length>=3))return;next=now+2000;const m=median(buf);
+  if(m>34){if(adjust(-1)){buf.length=0;good=0;hooks.emit('fluidite',{ms:Math.round(m),rs:settings.scale(),niveau:settings.level()});if(!said){said=true;toast('Qualité ajustée pour garder le jeu fluide')}}}
+  else if(m<17){good+=2;if(good>=8&&adjust(1)){good=0;buf.length=0;hooks.emit('fluidite',{ms:Math.round(m),rs:settings.scale(),niveau:settings.level()})}}else good=0}
+ requestAnimationFrame(frame);
+ // état (rapport de bug, tests) : images mesurées, médiane, mesure active ou non, résolution et niveau
+ return{get etat(){return{n:buf.length,ms:buf.length?Math.round(median(buf)):0,mesure:watching(),rs:settings.scale(),niveau:settings.level()}},reset(){settings.set('cap',undefined);settings.set('rs',undefined)}}})();
 </script>
 <script>(()=>{const ko=[];let cur='';const on=()=>{if(cur)ko.push(cur)};addEventListener('error',on);for(const m of document.querySelectorAll('script[type="text/x-module"]')){cur=m.dataset.f;const s=document.createElement('script');s.textContent=m.textContent+'\n//# sourceURL='+cur;document.body.appendChild(s)}cur='';removeEventListener('error',on);window.__modulesKo=ko;if(ko.length)console.error('Modules en échec :',ko.join(', '));try{hooks.emit('ready')}catch(e){}})()</script>
 

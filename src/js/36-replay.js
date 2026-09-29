@@ -3,7 +3,7 @@
    qu'on retrouve exactement le même classement et les mêmes temps. C'est la base des courses fantômes et de la validation
    côté serveur : un serveur qui dispose du même moteur peut refaire la course et refuser un résultat truqué. */
 // ENGINE : version des formules de course ; un enregistrement d'une autre version ne peut pas être refait à l'identique (ok:null, why:'version')
-const ENGINE=3;
+const ENGINE=4;
 const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o));let rec=null,busy=false,toCheck=null;
  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}},store=list=>{try{localStorage.setItem(KEY,JSON.stringify(list.slice(-10)))}catch(e){}};
  const at=(type,v)=>{if(rec&&!busy)rec.inputs.push([raceTime,type,v])};

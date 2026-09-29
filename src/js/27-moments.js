@@ -1,6 +1,6 @@
 /* ===== Temps forts (jusqu’en 2.3) : décisions tactiques en 4 secondes pendant la course =====
-   Depuis la 2.4, la course ne s’interrompt plus : aucun temps fort n’est programmé (plan vide) et aucune annonce ne s’affiche.
-   Le moteur reste en place pour rejouer à l’identique les courses et duels enregistrés en 2.3 (plan et choix enregistrés). */
+   Depuis la 2.4 (moteur 4), la course ne s’interrompt plus : aucun temps fort n’est programmé (plan vide), aucune carte ni annonce ne s’affiche.
+   Le module reste branché (moments.fx, choix enregistrés) pour pouvoir réintroduire des décisions sans toucher au moteur de course. */
 /* Déterministe : tirage sur un flux dérivé de la graine (le flux des adversaires reste inchangé) + choix du joueur enregistrés au pas près (M.log) */
 const MOMENT_TYPES={
  tire:{a:'Le reprendre',b:'Le laisser aller',t:h=>`${h} tire sur les rênes !`,d:()=>`Il veut accélérer tout de suite. ${RACE.dist<=1200?'Sur une course courte, il peut se le permettre.':'Sur cette distance, chaque effort se paiera dans la ligne droite.'}`},
@@ -18,10 +18,8 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_F
  const say=t=>{news.textContent=t;news.classList.add('show');clearTimeout(news._t);news._t=setTimeout(()=>news.classList.remove('show'),2600)};
  const lane=i=>i?rivalLanes[i-1]:playerLane,rankNow=()=>raceFinished[0]?finishOrder.indexOf(0)+1:progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i===0)+1;
  // le programme des temps forts est tiré au départ : chacun a sa chance et son point de déclenchement (en % de course)
- function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0),tem=stable.active().stats.tem;M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
-  plan:{tire:null,breche:null,attaque:null}};
-  // mêmes tirages qu'en 2.3 (résultats ignorés) : le flux M.rng reste aligné pour rejouer à l'identique une course 2.3 qui avait une brèche
-  if(r()<.35+(70-tem)*.015)r();if(r()<.7)r();if(r()<.8)r();card.hidden=true;news.classList.remove('show')}
+ function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0);M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
+  plan:{tire:null,breche:null,attaque:null}};card.hidden=true;news.classList.remove('show')}
  function fx(i){const f=M&&M.fx[i];return f&&raceTime<f.until?f:{speed:0,drain:1}}
  // quel temps fort peut surgir maintenant ?
  function pick(){const ph=progress[0],h=stable.active(),due=(k,max)=>M.plan[k]!=null&&ph>=M.plan[k]&&ph<max;

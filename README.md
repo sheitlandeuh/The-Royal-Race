@@ -2,6 +2,8 @@
 
 Jeu de courses hippiques pour navigateur (PC et mobile) : domaine équestre, écurie, entraînement, courses en 3D.
 
+**Version 2.4** — des courses sans interruption (plus de conseils ni de temps forts à choisir en pleine course), des déplacements gauche / droite fluides (le cheval s'oriente et s'incline en changeant de couloir), des chevaux et jockeys plus réalistes (robe lustrée qui reflète le ciel, relief musculaire, soie satinée), un hippodrome plus lumineux et un domaine plus détaillé. Détails dans « Nouveautés de la 2.4 ».
+
 **Version 2.3** — des courses pensées pour le multijoueur : départ commun sans bouton (les stalles s'ouvrent pour tous au GO), plus de pause, des chevaux solides qui ne se traversent plus (on double par le côté), le nom et la place de chaque partant au-dessus de lui avec un classement en direct, et une interface repensée façon jeu vidéo (nouvelles polices, néons, HUD). Détails dans « Nouveautés de la 2.3 ».
 
 **Version 2.2** — courses de haies (un choix d'élan avant chaque obstacle), un moteur de course où le Départ, l'Intelligence et le Tempérament comptent enfin, la Nocturne sous les projecteurs, tes chevaux dans les prés du domaine, des décors à acheter pour l'embellir, des allures réalistes (pas, trot) et un affichage adapté aux téléphones en paysage et aux tablettes. Détails dans « Nouveautés de la 2.2 ».
@@ -32,7 +34,7 @@ npm run build      # src/ -> index.html
 python3 tools/build.py   # idem, sans Node
 ```
 
-Tests automatiques, dans la console du jeu servi en local : `await import('./tools/tests.js').then(m => m.run())` (rejeu identique, falsification détectée, équilibrage des tactiques et des temps forts, déblocages, défi identique pour tous, effets du domaine, duel vérifié et triche refusée, chapitre de la Couronne, catalogue des ventes, modules chargés, aucun texte factice).
+Tests automatiques, dans la console du jeu servi en local : `await import('./tools/tests.js').then(m => m.run())` (rejeu identique, falsification détectée, équilibrage des tactiques, course sans interruption, déblocages, défi identique pour tous, effets du domaine, duel vérifié et triche refusée, chapitre de la Couronne, catalogue des ventes, modules chargés, aucun texte factice).
 
 Test de fumée (Playwright) : `python3 -m http.server 8765` puis `node tools/smoke.cjs` — charge le jeu avec six sauvegardes types (neuve, débutant, une course, confirmé, fin de partie, sauvegarde abîmée) et ouvre tous les écrans ; échoue à la moindre erreur JavaScript, à un module en échec ou à un texte cassé. `--shots dossier` produit les captures en 1280×800 et 390×844.
 
@@ -57,14 +59,9 @@ Départ automatique : au GO, les stalles s’ouvrent pour tout le monde en même
 
 **Installer le jeu** : proposé une fois, au retour de la 3e course, puis dans Réglages (Android / Chrome : installation système ; iPhone : marche à suivre Safari).
 
-**Manette** : A = sprint / valider · croix ou stick gauche = se décaler · X / Y = choix des temps forts · ↑ / ↓ de la croix = élan (haies) · LB / RB = regarder.
+**Manette** : A = sprint / valider · croix ou stick gauche = se décaler · ↑ / ↓ de la croix = élan (haies) · LB / RB = regarder.
 
-**Temps forts** : jusqu’à 3 fois par course, une décision surgit et laisse 4 secondes (boutons, ou touches `1` / `2`). Sans réponse, le choix de droite s’applique.
-- *Il tire sur les rênes* : le reprendre (économise l’énergie, perd un peu de vitesse) ou le laisser aller (plus vite, mais cher en énergie — surtout sur 1 200 m).
-- *Brèche / ouverture* : quand tu es enfermé ou à l’extérieur ; la chance de passer dépend de l’Intelligence du cheval (affichée).
-- *Un adversaire attaque de loin* : le suivre ou le laisser s’user ; la carte montre ton énergie et une estimation de la sienne.
-Le bilan de course détaille chaque temps fort et les places gagnées ou perdues.
-
+**En course, rien ne s’interrompt** (2.4) : ni conseil de l’entraîneur, ni temps fort à choisir. Les décisions se prennent avant (cheval, tactique, jockey, équipement) et pendant par le jeu lui-même : couloir, sillage, moment du sprint, élan sur les haies. 
 **Rythme de course** : la tactique de chaque adversaire est affichée avant le départ. Seul en tête, un cheval « aux avant-postes » s’économise ; à deux ou plus, ils se disputent la tête et s’usent. En résumé : course lente → mener ; un seul animateur → le suivre « dans les dos » ; course rapide → attentiste.
 
 **Ambiances** : terrain souple = ciel couvert, terrain lourd = pluie, Critérium et Derby au coucher du soleil (et toutes les courses en terrain bon le soir). Le domaine suit l’heure réelle : matin, jour, soir, nuit.
@@ -89,11 +86,22 @@ Un niveau toutes les 5 courses montées (niveau 5 au plus), +15 % d’effet par 
 Chaque jour (changement à minuit UTC), une course identique pour tous les joueurs : même graine, même plateau. On la retente gratuitement, sans fatigue ni trophées ; le meilleur essai du jour court à côté de soi en cheval fantôme, et un bandeau indique l’écart en mètres. Récompenses : un coffre d’argent à la première arrivée du jour, 3 gemmes par record battu (3 fois par jour au plus). Débloqué après 3 courses. Après un essai, **PARTAGER MON TEMPS** génère une carte image (casaque, temps, « Tu fais mieux ? », adresse du jeu) envoyée par le partage natif du téléphone, ou téléchargée sur PC.
 
 ## Premières minutes
-Un nouveau joueur ne voit que le domaine et la course. Les systèmes s’ouvrent au fil des courses terminées : coffres et missions (1), écurie et travaux du domaine (2), ligues, Route des étoiles et Défi du jour (3), jockeys et La Couronne (4), tournoi et palmarès (5), ventes aux enchères (6), boutique et sellerie (7). Un objectif est toujours affiché au-dessus du bouton COURIR. La toute première course ne propose qu’un temps fort, expliqué.
+Un nouveau joueur ne voit que le domaine et la course. Les systèmes s’ouvrent au fil des courses terminées : coffres et missions (1), écurie et travaux du domaine (2), ligues, Route des étoiles et Défi du jour (3), jockeys et La Couronne (4), tournoi et palmarès (5), ventes aux enchères (6), boutique et sellerie (7). Un objectif est toujours affiché au-dessus du bouton COURIR.
 
 ## Simulation
 La course est **déterministe** : avec la même graine (tirée à la création du plateau) et les mêmes actions du joueur, le résultat est identique. C’est ce qui permettra au serveur de revérifier les courses (étape 3).
 Voir `claude/the-royal-race-systeme-ecurie.md` (projet) pour les formules.
+
+## Nouveautés de la 2.4
+
+### Course sans interruption
+Plus aucun conseil de Maître Armand, carte de temps fort ni annonce pendant la course (les conseils attendent le retour au domaine). La mission « Gagner 3 places sur des temps forts » devient « Doubler 5 adversaires en course » (chaque nouvelle meilleure place après la sortie des stalles compte). Sans temps forts, le rythme a été remesuré au bot : la tactique lue sur le plateau bat chaque tactique fixe de 1 200 à 2 400 m, 47 % de victoires sur 1 600 m (un seul animateur favorise davantage le cheval qui le suit « dans les dos »).
+
+### Déplacements fluides
+L'image montre la course un pas (100 ms) en retard, en interpolant entre les deux derniers états de la simulation : l'avance est continue, sans à-coups. Les couloirs affichés passent par un ressort amorti ; le cheval s'oriente dans le sens du changement de couloir et s'incline légèrement. Mesuré à 60 images/s : à-coups latéraux divisés par ~45, à-coups d'avance par ~100. La caméra, les étiquettes, les fantômes et le replay télévisé suivent le même lissage. Affichage seulement : la simulation n'en dépend pas. Le rythme ayant été rééquilibré, `ENGINE` passe à 4 : un duel 2.3 est refusé poliment (« autre version »).
+
+### Chevaux, jockeys, hippodrome, domaine
+Lumière d'environnement (ciel en dégradé + soleil filtrés en carte PMREM, `raceFX.skyEnv`) calée sur l'ambiance de la course et sur l'heure du domaine ; robe lustrée (vernis, reflet de poil, relief musculaire procédural), ganaches et menton, crinière plus fournie ; casaques en soie satinée avec plis ; halo lumineux (bloom HDR) et bandes de tonte sur l'hippodrome ; au domaine, assises de pierre, rangs de tuiles et patine au pied des murs (le détail s'efface au loin pour ne pas scintiller), grain d'herbe de près, vignettage. En qualité basse, ni environnement, ni satin, ni halo.
 
 ## Nouveautés de la 2.3
 

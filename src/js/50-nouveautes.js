@@ -1,9 +1,13 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🤫','Course sans interruption','Plus de conseils ni de temps forts à choisir pendant la course : tu ne penses qu’à ton couloir, ton sprint et tes sauts. Nouvelle mission : doubler 5 adversaires.',0,'2.4'],
+ ['〰️','Déplacements fluides','Les chevaux changent de couloir en douceur, s’orientent et s’inclinent dans le mouvement : plus aucun à-coup à l’image.',0,'2.4'],
+ ['✨','Chevaux et jockeys plus réalistes','Robe lustrée qui reflète le ciel, muscles en relief, crinière plus fournie, casaques en soie satinée, reflets lumineux sur l’hippodrome.',0,'2.4'],
+ ['🏰','Domaine plus beau','Pierre et tuiles sur les bâtiments, reflets du ciel selon l’heure, herbe plus fine quand tu zoomes.',0,'2.4'],
  ['🏁','Départ commun','Plus de bouton PARTEZ : au GO, les stalles s’ouvrent pour tout le monde en même temps. Ton cheval jaillit selon son Départ, depuis la stalle que le tirage lui a donnée.',0,'2.3'],
  ['🐎','Chevaux solides','Les chevaux ne se traversent plus : pour doubler, il faut trouver l’ouverture sur le côté. Enfermé derrière un cheval, tu cours à son allure, dans son sillage, jusqu’à ce que le passage s’ouvre.',0,'2.3'],
- ['⏱️','Course sans pause','Comme une course en ligne, elle ne s’arrête jamais, même si tu quittes l’écran. Les conseils de Maître Armand s’affichent en bandeau, sans rien bloquer.',0,'2.3'],
+ ['⏱️','Course sans pause','Comme une course en ligne, elle ne s’arrête jamais, même si tu quittes l’écran.',0,'2.3'],
  ['📡','Course en direct','Le nom et la place de chaque partant au-dessus de lui, et le classement en direct avec les écarts en longueurs.',0,'2.3'],
  ['🎮','Nouveau look','Interface repensée façon jeu vidéo : nouvelles polices, néons, boutons et HUD de course plus lisibles.',0,'2.3'],
  ['🏇','Courses de haies','Prix des Haies et Grand Steeple Royal : avant chaque haie, choisis ton élan, prudent ou à fond. Un cheval intelligent et calme fait moins de fautes.',0,'2.2'],

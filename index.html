@@ -752,7 +752,7 @@
   <div class="toast" id="toast">Action effectuée</div>
 </main>
 <script src="assets/vendor/three.min.js"></script>
-<script type="text/x-module" data-f="01-core.js">const VERSION='2.3';
+<script type="text/x-module" data-f="01-core.js">const VERSION='2.4';
 const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
@@ -2116,7 +2116,7 @@ function lateral(i){const L=laneOf(i),T=i?rivalAI[i-1].targetLane:playerTarget,V
  let nl=clampRace(L+d,i?8:7,i?90:93);const p=progress[i];
  for(let j=0;j<6;j++){if(j===i||raceFinished[j]||Math.abs(progress[j]-p)>=HORSE_LEN)continue;const lj=laneOf(j);if(d>0&&lj>=L)nl=Math.min(nl,Math.max(L,lj-HORSE_W));else if(d<0&&lj<=L)nl=Math.max(nl,Math.min(L,lj+HORSE_W))}
  setLane(i,nl)}
-// allure : mêmes formules pour tous (vitesse de croisière, sprint, énergie, sillage, trajectoire en virage, nervosité, haies ; temps forts des courses 2.3 rejouées)
+// allure : mêmes formules pour tous (vitesse de croisière, sprint, énergie, sillage, trajectoire en virage, nervosité, haies)
 function paceStep(i){const ai=i?rivalAI[i-1]:null,P=i?ai.P:racePlayer,own=progress[i],early=own<55,MF=moments.fx(i),shelter=!!drafting(i),curve=courseTurn(Math.min(1,own/100)),wide=curve*Math.max(0,laneOf(i)-18)/75*(P.wideK||1),
   cr=P.cruise*(early?P.tactic.c:1)*(own<12?P.jump||1:1)*(P.talent==='fusee'&&own<20?1.03:1)*(P.talent==='coeur'&&own>75&&progress.some((p,j)=>j!==i&&p>own)?1.03:1);
  let energy=i?ai.energy:playerEnergy;if(i&&!ai.final&&own>40&&sprintReach(P,energy,cr)>=remainingM(own)*(1+ai.err))ai.final=true;
@@ -2753,8 +2753,8 @@ $('#race3d')?.addEventListener('webglcontextrestored',()=>{try{threeRace&&threeR
 if('serviceWorker' in navigator&&/^https:|^http:\/\/localhost/.test(location.href)&&window.top===window){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
 <script type="text/x-module" data-f="27-moments.js">/* ===== Temps forts (jusqu’en 2.3) : décisions tactiques en 4 secondes pendant la course =====
-   Depuis la 2.4, la course ne s’interrompt plus : aucun temps fort n’est programmé (plan vide) et aucune annonce ne s’affiche.
-   Le moteur reste en place pour rejouer à l’identique les courses et duels enregistrés en 2.3 (plan et choix enregistrés). */
+   Depuis la 2.4 (moteur 4), la course ne s’interrompt plus : aucun temps fort n’est programmé (plan vide), aucune carte ni annonce ne s’affiche.
+   Le module reste branché (moments.fx, choix enregistrés) pour pouvoir réintroduire des décisions sans toucher au moteur de course. */
 /* Déterministe : tirage sur un flux dérivé de la graine (le flux des adversaires reste inchangé) + choix du joueur enregistrés au pas près (M.log) */
 const MOMENT_TYPES={
  tire:{a:'Le reprendre',b:'Le laisser aller',t:h=>`${h} tire sur les rênes !`,d:()=>`Il veut accélérer tout de suite. ${RACE.dist<=1200?'Sur une course courte, il peut se le permettre.':'Sur cette distance, chaque effort se paiera dans la ligne droite.'}`},
@@ -2772,10 +2772,8 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_F
  const say=t=>{news.textContent=t;news.classList.add('show');clearTimeout(news._t);news._t=setTimeout(()=>news.classList.remove('show'),2600)};
  const lane=i=>i?rivalLanes[i-1]:playerLane,rankNow=()=>raceFinished[0]?finishOrder.indexOf(0)+1:progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i===0)+1;
  // le programme des temps forts est tiré au départ : chacun a sa chance et son point de déclenchement (en % de course)
- function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0),tem=stable.active().stats.tem;M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
-  plan:{tire:null,breche:null,attaque:null}};
-  // mêmes tirages qu'en 2.3 (résultats ignorés) : le flux M.rng reste aligné pour rejouer à l'identique une course 2.3 qui avait une brèche
-  if(r()<.35+(70-tem)*.015)r();if(r()<.7)r();if(r()<.8)r();card.hidden=true;news.classList.remove('show')}
+ function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0);M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
+  plan:{tire:null,breche:null,attaque:null}};card.hidden=true;news.classList.remove('show')}
  function fx(i){const f=M&&M.fx[i];return f&&raceTime<f.until?f:{speed:0,drain:1}}
  // quel temps fort peut surgir maintenant ?
  function pick(){const ph=progress[0],h=stable.active(),due=(k,max)=>M.plan[k]!=null&&ph>=M.plan[k]&&ph<max;
@@ -3208,7 +3206,7 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
    qu'on retrouve exactement le même classement et les mêmes temps. C'est la base des courses fantômes et de la validation
    côté serveur : un serveur qui dispose du même moteur peut refaire la course et refuser un résultat truqué. */
 // ENGINE : version des formules de course ; un enregistrement d'une autre version ne peut pas être refait à l'identique (ok:null, why:'version')
-const ENGINE=3;
+const ENGINE=4;
 const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o));let rec=null,busy=false,toCheck=null;
  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}},store=list=>{try{localStorage.setItem(KEY,JSON.stringify(list.slice(-10)))}catch(e){}};
  const at=(type,v)=>{if(rec&&!busy)rec.inputs.push([raceTime,type,v])};
@@ -3886,9 +3884,13 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
 <script type="text/x-module" data-f="50-nouveautes.js">/* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🤫','Course sans interruption','Plus de conseils ni de temps forts à choisir pendant la course : tu ne penses qu’à ton couloir, ton sprint et tes sauts. Nouvelle mission : doubler 5 adversaires.',0,'2.4'],
+ ['〰️','Déplacements fluides','Les chevaux changent de couloir en douceur, s’orientent et s’inclinent dans le mouvement : plus aucun à-coup à l’image.',0,'2.4'],
+ ['✨','Chevaux et jockeys plus réalistes','Robe lustrée qui reflète le ciel, muscles en relief, crinière plus fournie, casaques en soie satinée, reflets lumineux sur l’hippodrome.',0,'2.4'],
+ ['🏰','Domaine plus beau','Pierre et tuiles sur les bâtiments, reflets du ciel selon l’heure, herbe plus fine quand tu zoomes.',0,'2.4'],
  ['🏁','Départ commun','Plus de bouton PARTEZ : au GO, les stalles s’ouvrent pour tout le monde en même temps. Ton cheval jaillit selon son Départ, depuis la stalle que le tirage lui a donnée.',0,'2.3'],
  ['🐎','Chevaux solides','Les chevaux ne se traversent plus : pour doubler, il faut trouver l’ouverture sur le côté. Enfermé derrière un cheval, tu cours à son allure, dans son sillage, jusqu’à ce que le passage s’ouvre.',0,'2.3'],
- ['⏱️','Course sans pause','Comme une course en ligne, elle ne s’arrête jamais, même si tu quittes l’écran. Les conseils de Maître Armand s’affichent en bandeau, sans rien bloquer.',0,'2.3'],
+ ['⏱️','Course sans pause','Comme une course en ligne, elle ne s’arrête jamais, même si tu quittes l’écran.',0,'2.3'],
  ['📡','Course en direct','Le nom et la place de chaque partant au-dessus de lui, et le classement en direct avec les écarts en longueurs.',0,'2.3'],
  ['🎮','Nouveau look','Interface repensée façon jeu vidéo : nouvelles polices, néons, boutons et HUD de course plus lisibles.',0,'2.3'],
  ['🏇','Courses de haies','Prix des Haies et Grand Steeple Royal : avant chaque haie, choisis ton élan, prudent ou à fond. Un cheval intelligent et calme fait moins de fautes.',0,'2.2'],

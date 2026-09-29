@@ -92,7 +92,7 @@ function lateral(i){const L=laneOf(i),T=i?rivalAI[i-1].targetLane:playerTarget,V
  let nl=clampRace(L+d,i?8:7,i?90:93);const p=progress[i];
  for(let j=0;j<6;j++){if(j===i||raceFinished[j]||Math.abs(progress[j]-p)>=HORSE_LEN)continue;const lj=laneOf(j);if(d>0&&lj>=L)nl=Math.min(nl,Math.max(L,lj-HORSE_W));else if(d<0&&lj<=L)nl=Math.max(nl,Math.min(L,lj+HORSE_W))}
  setLane(i,nl)}
-// allure : mêmes formules pour tous (vitesse de croisière, sprint, énergie, sillage, trajectoire en virage, nervosité, haies ; temps forts des courses 2.3 rejouées)
+// allure : mêmes formules pour tous (vitesse de croisière, sprint, énergie, sillage, trajectoire en virage, nervosité, haies)
 function paceStep(i){const ai=i?rivalAI[i-1]:null,P=i?ai.P:racePlayer,own=progress[i],early=own<55,MF=moments.fx(i),shelter=!!drafting(i),curve=courseTurn(Math.min(1,own/100)),wide=curve*Math.max(0,laneOf(i)-18)/75*(P.wideK||1),
   cr=P.cruise*(early?P.tactic.c:1)*(own<12?P.jump||1:1)*(P.talent==='fusee'&&own<20?1.03:1)*(P.talent==='coeur'&&own>75&&progress.some((p,j)=>j!==i&&p>own)?1.03:1);
  let energy=i?ai.energy:playerEnergy;if(i&&!ai.final&&own>40&&sprintReach(P,energy,cr)>=remainingM(own)*(1+ai.err))ai.final=true;

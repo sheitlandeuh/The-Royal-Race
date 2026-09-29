@@ -3,7 +3,7 @@
 ## La promesse, en une phrase
 **Le jeu de courses hippiques où tu lis la course comme un vrai jockey.**
 
-Chaque course dure moins d'une minute, et elle se gagne sur trois ou quatre décisions : la tactique choisie face au plateau, un temps fort en pleine course, le moment du sprint. Le domaine, l'écurie et la carrière existent pour donner du sens à ces décisions, pas l'inverse.
+Chaque course dure moins d'une minute, et elle se gagne sur trois ou quatre décisions : la tactique choisie face au plateau, le placement (sillage, ouverture pour doubler), le moment du sprint. Le domaine, l'écurie et la carrière existent pour donner du sens à ces décisions, pas l'inverse.
 
 ## Les trois piliers
 1. **Lire la course.** Le joueur voit les tactiques adverses, le rythme prévu, l'énergie qui fond, les rivaux qui craquent. Une bonne lecture bat un meilleur cheval. Chaque nouvelle fonctionnalité doit enrichir cette lecture, sinon elle attend.

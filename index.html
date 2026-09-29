@@ -697,6 +697,8 @@
     .standings li.me{background:linear-gradient(90deg,#ffc83d33,#ffc83d0a);box-shadow:inset 0 0 0 1px #ffc83d66}.standings li.me b{color:var(--gold)}
     .race-screen:not(.open) .standings,.race-screen.tv .standings{display:none}
     @media(max-width:850px),(max-height:520px){.standings{display:none}.rtag b{font-size:12px}}
+    /* domaine 3D : léger vignettage cinéma (2.4) */
+    #world.d3-on::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 46%,transparent 58%,#05081a4d 100%)}
   </style>
 </head>
 <body>
@@ -3948,8 +3950,15 @@ const domaine3d = (() => {
   // matériau des bâtiments : couleurs par sommet, fenêtres qui s'allument la nuit, surbrillance au survol / à la sélection
   function bldMat() {
     const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78 }); m.userData.u = { uNight: { value: 0 }, uHi: { value: 0 } };
-    m.onBeforeCompile = s => { Object.assign(s.uniforms, m.userData.u); s.vertexShader = 'attribute float glow;varying float vGlow;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvGlow=glow;');
-      s.fragmentShader = 'uniform float uNight,uHi;varying float vGlow;\n' + s.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=vec3(1.,.72,.38)*vGlow*uNight*1.6+vec3(1.,.85,.45)*uHi*.18;') };
+    // 2.4 : matières procédurales (assises de pierre et joints sur les murs, rangs de tuiles sur les toits, grain, patine au pied des murs) ; le détail fin s'efface au loin (fwidth) pour ne pas scintiller
+    m.onBeforeCompile = s => { Object.assign(s.uniforms, m.userData.u); s.vertexShader = 'attribute float glow;varying float vGlow;varying vec3 vWp;varying vec3 vWn;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvGlow=glow;vWp=(modelMatrix*vec4(transformed,1.)).xyz;vWn=normalize(mat3(modelMatrix)*objectNormal);');
+      s.fragmentShader = 'uniform float uNight,uHi;varying float vGlow;varying vec3 vWp;varying vec3 vWn;float bh(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}float bn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(bh(i),bh(i+vec3(1,0,0)),f.x),mix(bh(i+vec3(0,1,0)),bh(i+vec3(1,1,0)),f.x),f.y),mix(mix(bh(i+vec3(0,0,1)),bh(i+vec3(1,0,1)),f.x),mix(bh(i+vec3(0,1,1)),bh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n' + s.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      {vec3 N=normalize(vWn);float wall=1.-smoothstep(.2,.45,abs(N.y)),roof=smoothstep(.22,.38,N.y)*(1.-smoothstep(.93,.99,N.y));float lum=dot(diffuseColor.rgb,vec3(.3,.59,.11));
+       float u=dot(vWp.xz,normalize(vec2(-N.z,N.x)+1e-4)),fw=fwidth(vWp.y)+fwidth(u),fine=1.-smoothstep(.06,.22,fw);
+       float row=floor(vWp.y/.7),jy=smoothstep(.9,.97,fract(vWp.y/.7)),jx=smoothstep(.95,.985,fract(u/1.5+row*.5));float stone=max(jy,jx)*fine*wall*step(.45,lum);
+       diffuseColor.rgb*=1.-stone*.2;diffuseColor.rgb*=mix(.93,1.06,bn(vWp*1.7+row));
+       float tile=smoothstep(.62,.95,fract(vWp.y/.42))*fine*roof;diffuseColor.rgb*=1.-tile*.26;diffuseColor.rgb*=mix(1.,mix(.9,1.08,bn(vWp*.9)),roof);
+       diffuseColor.rgb*=mix(.74,1.,smoothstep(0.,2.6,vWp.y));}`).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=vec3(1.,.72,.38)*vGlow*uNight*1.6+vec3(1.,.85,.45)*uHi*.18;') };
     return m
   }
   // ---------- bâtiments ----------
@@ -4101,7 +4110,7 @@ const domaine3d = (() => {
     const gm = new THREE.MeshStandardMaterial({ map: groundTexture(season), roughness: 1 });
     gm.onBeforeCompile = s => { s.vertexShader = 'varying vec3 vW;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvW=(modelMatrix*vec4(position,1.)).xyz;');
       s.fragmentShader = 'varying vec3 vW;float gh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float gn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(gh(i),gh(i+vec2(1,0)),f.x),mix(gh(i+vec2(0,1)),gh(i+vec2(1,1)),f.x),f.y);}\n' +
-        s.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n{float n=gn(vW.xz*1.3)*.5+gn(vW.xz*5.)*.3+gn(vW.xz*.2)*.2;diffuseColor.rgb*=mix(.86,1.1,n);}') };
+        s.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n{float n=gn(vW.xz*1.3)*.5+gn(vW.xz*5.)*.3+gn(vW.xz*.2)*.2;diffuseColor.rgb*=mix(.86,1.1,n);float near=1.-smoothstep(25.,110.,distance(vW,cameraPosition));diffuseColor.rgb*=mix(1.,mix(.84,1.1,gn(vW.xz*4.3)*.55+gn(vW.xz*13.)*.45),near);}') };
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(GW, GD).rotateX(-Math.PI / 2), gm); ground.receiveShadow = true; S.add(ground);
     const far = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: season === 'hiver' ? 0xd8e0e6 : 0x3f6a2a, roughness: 1 })); far.position.y = -.05; S.add(far);
     // bâtiments (un maillage et un matériau par bâtiment, pour la surbrillance)
@@ -4293,7 +4302,9 @@ const domaine3d = (() => {
   function light() {
     const k = document.body.dataset.tod || 'jour', A = TOD[k] || TOD.jour; if (T.tod === k) return; T.tod = k;
     T.sun.color.set(A.sun[0]); T.sun.intensity = A.sun[1]; T.sunDir = new THREE.Vector3(A.sun[2], A.sun[3], A.sun[4]).normalize(); T.hemi.color.set(A.hemi[0]); T.hemi.groundColor.set(A.hemi[1]); T.hemi.intensity = A.hemi[2];
-    S.background.set(A.bg); S.fog.color.set(A.bg); for (const id in T.bmats) T.bmats[id].userData.u.uNight.value = A.night; T.lampMat.userData.u.uNight.value = A.night; T.halo.opacity = A.night * .85
+    S.background.set(A.bg); S.fog.color.set(A.bg);
+    // reflets du ciel de l'heure (toits vernissés, eau, dorures, vitres), sauf en qualité basse
+    if (settings.level() !== 'basse') { try { const c = x => { const k = new THREE.Color(x); return [k.r, k.g, k.b] }, sk = c(A.hemi[0]), bg = c(A.bg); S.environment = raceFX.skyEnv(R, { zen: [sk[0] * .45, sk[1] * .6, sk[2] * .9], hor: bg, gnd: c(A.hemi[1]), sun: [A.sun[2], A.sun[3], A.sun[4]], sunC: c(A.sun[0]), sunK: A.night ? .05 : 1, k: A.night ? .2 : .38 }); T.hemi.intensity = A.hemi[2] * .86 } catch (e) { } } for (const id in T.bmats) T.bmats[id].userData.u.uNight.value = A.night; T.lampMat.userData.u.uNight.value = A.night; T.halo.opacity = A.night * .85
   }
   // ---------- caméra ----------
   function camera() {

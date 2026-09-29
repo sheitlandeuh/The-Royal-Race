@@ -45,7 +45,6 @@ const haies = (() => {
   function ui() {
     const c = ensure(), u = raceLoop > 0 && !replays.busy ? upcoming() : null, show = !!u && u.m < RACE.dist * .045 && u.m > -2;
     c.hidden = !show; if (!show) return;
-    coach.tip('haies', 'Une <b>haie</b> arrive : choisis ton élan. <b>À FOND</b> fait gagner du terrain mais double le risque de faute ; <b>PRUDENT</b> est presque sans risque. Un cheval fatigué, peu intelligent ou nerveux fait plus de fautes.', '.jump-card');
     c.querySelector('.jc-h span').textContent = `${u.k + 1} / ${u.n} · ${Math.max(0, Math.round(u.m / 5) * 5)} m`;
     c.querySelectorAll('[data-j]').forEach(b => b.classList.toggle('on', S.choice === b.dataset.j));
     const r = u.risk, lvl = r < .08 ? ['faible', 'ok'] : r < .13 ? ['moyen', 'mid'] : ['élevé', 'bad'];

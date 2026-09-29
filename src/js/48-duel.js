@@ -73,11 +73,11 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  hooks.on('race:start',()=>{gv=0;gap.classList.remove('show');if(ghost)ghost.visible=false;if(RACE.duel&&cur&&threeRace&&!threeRace.headless)LIVERY.ready.then(()=>{const L={...stable.silks,...(cur.rec.liv||{})};tex?.dispose();tex=new THREE.CanvasTexture(LIVERY.gallop(L,.5));tex.colorSpace=THREE.SRGBColorSpace;tex.repeat.set(1/8,1);if(ghost)ghost.material.map=tex,ghost.material.needsUpdate=true})});
  hooks.on('race:tick',()=>{if(!RACE.duel||!G||raceFinished[0])return;const gp=G.p[Math.min(raceTime,G.p.length-1)]??101,m=Math.round((gp-progress[0])*RACE.dist/100);
   gap.innerHTML=Math.abs(m)<2?`⚔️ Au coude à coude avec ${escapeHTML(cur.rec.horse)}`:m>0?`⚔️ ${escapeHTML(cur.rec.horse)} <b>${m} m</b> devant`:`⚔️ Tu as <b>${-m} m</b> d’avance`;gap.classList.add('show');gap.classList.toggle('ahead',m<=0)});
- {const r0=raceFX.render;let last=0;raceFX.render=function(q){const on=RACE.duel&&G&&tex&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView&&!q.tvView,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
+ {const r0=raceFX.render;let last=0,gl=null;raceFX.render=function(q){const on=RACE.duel&&G&&tex&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView&&!q.tvView,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
   if(on){if(!ghost){ghost=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:.5,depthWrite:false,color:0xffe7b8}));ghost.frustumCulled=false;q.scene.add(ghost)}
-   const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??101,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);phase+=dt*(2.1+.5*1.6)*8;tex.offset.x=(Math.floor(phase)%8)/8;
-   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(ln-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
-  else if(ghost)ghost.visible=false;return r0.call(this,q)}}
+   const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??101,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);gl=gl==null?ln:gl+(ln-gl)*Math.min(1,dt*6);phase+=dt*(2.1+.5*1.6)*8;tex.offset.x=(Math.floor(phase)%8)/8;
+   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(gl-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
+  else{gl=null;if(ghost)ghost.visible=false}return r0.call(this,q)}}
  // ---------- bilan ----------
  hooks.on('duel:end',()=>{const d=cur;if(!d)return;const mine=raceFinishTimes[0],his=d.rec.result.times[0],rank=finishOrder.indexOf(0)+1,won=mine<his,first=!d.won&&won;gap.classList.remove('show');
   d.tries++;d.best=d.best==null?mine:Math.min(d.best,mine);if(won){if(!d.won)D.wins++;d.won=true}else if(d.tries===1)D.losses++;save();

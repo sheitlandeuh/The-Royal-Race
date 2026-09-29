@@ -1,6 +1,6 @@
 /* ===== Musique de course adaptative (synthétisée, aucun fichier) =====
    Couches ajoutées selon la tension : pulsation grave dès le départ, charleston à mi-course, nappe et tempo plus vif
-   dans la dernière ligne droite, doubles croches pendant le sprint. Accent sonore à chaque temps fort.
+   dans la dernière ligne droite, doubles croches pendant le sprint.
    Planification sur l'horloge audio (anticipation de 150 ms) : aucun décalage, même si l'affichage ralentit.
    Volume : curseur « Musique » des réglages. */
 const raceMusic=(()=>{let timer=0,next=0,step=0,nb=null;

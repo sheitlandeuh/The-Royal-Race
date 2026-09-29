@@ -22,7 +22,7 @@ const COURONNE=[
   after:'« … Profitez-en. Cela ne se reproduira pas. »'},
  {id:'c5',n:'Le Sprint des Rois',race:{n:'Sprint des Rois',dist:1200,terrain:'bon',diff:2.5,purse:26000,fee:1000},goal:'win',req:{league:2},reward:{gems:30,pattern:'damier'},
   intro:'« Sur 1 200 m, pas de place pour la tactique. Seulement pour la vitesse. Black Majesty en a à revendre. »',
-  armand:'Tout se joue au départ : un sprinter, une sortie des stalles éclair, et aucune hésitation sur les temps forts.',
+  armand:'Tout se joue au départ : un sprinter, une sortie des stalles éclair, et un placement sans hésitation.',
   after:'« Vous commencez à m’agacer. La Couronne, en revanche, ne vous échappera pas… à moi. »'},
  {id:'c6',n:'La Couronne',race:{n:'Grand Prix de la Couronne',dist:2400,terrain:'souple',amb:'couchant',diff:2,purse:60000,fee:2500},goal:'win',bm:3,req:{league:2,haras:3},reward:{gems:100,pattern:'couronne',horse:true},
   intro:'« Le Grand Prix de la Couronne. Son vainqueur devient le premier éleveur du royaume. Black Majesty n’a jamais été aussi prêt. Et vous ? »',

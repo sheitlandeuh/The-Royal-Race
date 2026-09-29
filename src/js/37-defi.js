@@ -29,11 +29,11 @@ const defi=(()=>{
   const G=today().ghost;if(G&&gap){const gp=G.p[Math.min(raceTime,G.p.length-1)]??100,m=Math.round((gp-progress[0])*RACE.dist/100);gap.innerHTML=Math.abs(m)<2?'👻 Au coude à coude avec ton fantôme':m>0?`👻 Fantôme <b>${m} m</b> devant`:`👻 Tu as <b>${-m} m</b> d’avance`;gap.classList.add('show');gap.classList.toggle('ahead',m<=0)}});
  hooks.on('race:header',()=>{if(!RACE.defi)return;const T=today();$('.race-head small').textContent+=T.best?` • Record ${T.best.toFixed(2)} s`:' • Premier essai'});
  // fantôme : un cheval translucide qui rejoue le meilleur essai, sans gêner la course (hors simulation)
- {const r0=raceFX.render;let last=0;raceFX.render=function(q){const G=RACE.defi&&today().ghost,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
+ {const r0=raceFX.render;let last=0,gl=null;raceFX.render=function(q){const G=RACE.defi&&today().ghost,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
   if(G&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView){if(!ghost){ghost=new THREE.Sprite(new THREE.SpriteMaterial({map:q.horseTextures[0],transparent:true,opacity:.36,depthWrite:false,color:0xcfe6ff}));ghost.frustumCulled=false;q.scene.add(ghost)}
-   ghost.material.map=q.horseTextures[0];const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??100,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);
-   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(ln-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
-  else if(ghost)ghost.visible=false;return r0.call(this,q)}}
+   ghost.material.map=q.horseTextures[0];const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??100,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);gl=gl==null?ln:gl+(ln-gl)*Math.min(1,dt*6);
+   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(gl-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
+  else{gl=null;if(ghost)ghost.visible=false}return r0.call(this,q)}}
  // bilan du défi
  hooks.on('defi:end',()=>{const T=today(),rank=finishOrder.indexOf(0)+1,time=raceFinishTimes[0],old=T.best,first=!T.first;T.tries++;let gain=[];
   const rec=old==null||time<old;if(rec){T.best=time;if(track){const n=track.p.length;for(let k=0;k<n;k++){if(track.p[k]==null){track.p[k]=track.p[k-1]??0;track.l[k]=track.l[k-1]??44}}track.p.push(101);T.ghost=track}}

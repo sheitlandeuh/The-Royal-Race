@@ -873,6 +873,8 @@ $('#closePanel').onclick=()=>$('#panel').classList.remove('open');$('#panel').on
    LANE_V : vitesse latérale maximale (couloirs par pas). Deux chevaux ne peuvent jamais se superposer : on double par le côté. */
 const STALL_LANES=[12,26,40,54,68,82],HORSE_LEN=.62,HORSE_W=8,LANE_V=1.6;
 let playerTarget=44,stallOf=[0,1,2,3,4,5],raceBlocked=[0,0,0,0,0,0];
+// affichage : état juste avant le dernier pas (raceSnap), couloirs affichés lissés (visualLane) et leur vitesse (laneVel, couloirs / s)
+let raceSnap=null,visualLane=[],laneVel=[0,0,0,0,0,0];
 let playerFinal=false,raceLoop=null,progress=[],visualProgress=[],raceTime=0,playerLane=50,lookDir=0,autoSpeed=.42,playerEnergy=100,rivalAI=[],raceFinished=[],raceFinishTimes=[],finishOrder=[];state.strategy='stalker';
 const rivalLanes=[46,25,70,58,12],rivalBase=[.432,.405,.448,.415,.424];
 const raceNames=['Royal Thunder','Black Majesty','Éclair Rouge','Silver Crown','Royal Shadow','Golden Star'];
@@ -888,7 +890,7 @@ function createPodium(scene){const group=new THREE.Group(),navy=new THREE.MeshSt
 function enhancePodium(group){const navy=new THREE.MeshStandardMaterial({color:0x071a2d,metalness:.35,roughness:.38}),gold=new THREE.MeshStandardMaterial({color:0xe9bb49,metalness:.72,roughness:.24}),back=new THREE.Mesh(new THREE.BoxGeometry(26,10,.65),navy);back.position.set(0,5,-4);group.add(back);for(const x of[-12.6,12.6]){const column=new THREE.Mesh(new THREE.CylinderGeometry(.45,.7,10,12),gold);column.position.set(x,5,-3.6);group.add(column)}const top=new THREE.Mesh(new THREE.BoxGeometry(27,.45,1.1),gold);top.position.set(0,10,-3.6);group.add(top);const title=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel('PODIUM ROYAL',520,110),transparent:true}));title.position.set(0,8.3,-3.2);title.scale.set(15,3.2,1);group.add(title);for(let i=0;i<4;i++){const stair=new THREE.Mesh(new THREE.BoxGeometry(20-i*2,.32+i*.04,1.15),i%2?gold:navy);stair.position.set(0,.18+i*.18,4.2-i*.85);group.add(stair)}for(const x of[-9,9]){const light=new THREE.SpotLight(0xffd77b,2.3,45,.42,.45,1.2);light.position.set(x,12,8);light.target.position.set(x*.35,3,0);group.add(light,light.target)}const confettiGeo=new THREE.BoxGeometry(.1,.32,.04),confetti=new THREE.InstancedMesh(confettiGeo,new THREE.MeshBasicMaterial({color:0xffffff}),150),colors=[0xf4c64e,0xffffff,0xb92c32,0x1769aa],m=new THREE.Matrix4();for(let i=0;i<150;i++){m.compose(new THREE.Vector3((Math.random()-.5)*25,2+Math.random()*10,(Math.random()-.5)*8),new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.random()*3,Math.random()*3,Math.random()*3)),new THREE.Vector3(1,1,1));confetti.setMatrixAt(i,m);confetti.setColorAt(i,new THREE.Color(colors[i%4]))}confetti.instanceMatrix.needsUpdate=true;if(confetti.instanceColor)confetti.instanceColor.needsUpdate=true;group.add(confetti)}
 function createStartingStalls(scene){const root=new THREE.Group(),steel=new THREE.MeshStandardMaterial({color:0xd7dddd,metalness:.78,roughness:.25}),navy=new THREE.MeshStandardMaterial({color:0x102d4b,metalness:.3,roughness:.42}),doors=[],laneValues=[12,28,44,56,72,88];for(let i=0;i<6;i++){const p=trackPose(RACE_ORIGIN,(laneValues[i]-50)*.38),stall=new THREE.Group();stall.position.copy(p.p);stall.rotation.y=Math.atan2(p.f.x,p.f.z);for(const x of[-2.65,2.65])for(const z of[-3.5,0,3.5]){const post=new THREE.Mesh(new THREE.BoxGeometry(.25,8.4,.25),steel);post.position.set(x,4.2,z);stall.add(post)}for(const x of[-2.65,2.65])for(const y of[1.1,2.5,4,5.5,7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,7.2),steel);rail.position.set(x,y,0);stall.add(rail)}const roof=new THREE.Mesh(new THREE.BoxGeometry(5.7,.42,7.6),navy);roof.position.y=8.45;stall.add(roof);const number=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(String(i+1),120,120),transparent:true}));number.position.set(0,7.35,3.75);number.scale.set(1.4,1.4,1);stall.add(number);const gate=new THREE.Group();gate.position.set(0,0,3.58);for(let x=-2.35;x<=2.36;x+=.67){const bar=new THREE.Mesh(new THREE.BoxGeometry(.14,6.8,.14),steel);bar.position.set(x,3.4,0);gate.add(bar)}for(const y of[.2,3.4,6.7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(5.1,.18,.18),steel);rail.position.set(0,y,0);gate.add(rail)}stall.add(gate);doors.push(gate);root.add(stall)}root.userData.doors=doors;scene.add(root);return root}
 // introduction commune : survol, présentation, stalles, 3-2-1, puis les stalles s'ouvrent pour tous à l'heure prévue (RACE_GO_MS)
-function renderRaceIntro(q,now){const elapsed=now-q.introStart,overlay=$('#startSequence'),count=$('#startCount'),hint=$('#startHint');overlay.classList.add('show');overlay.classList.remove('waiting');const par=elapsed>=2200&&elapsed<4200&&raceFX.parade(q,now,(elapsed-2200)/2000);overlay.classList.toggle('parade',!!par);if(par){count.textContent=HN();count.style.fontSize='clamp(30px,6vw,64px)';hint.textContent='AU ROND DE PRÉSENTATION'}else if(elapsed<4200){const t=RACE_ORIGIN+.06+Math.min(1,elapsed/2200)*.82,p=trackPose(t,-105),look=trackPose(t+.075,0).p;q.camera.position.set(p.p.x,48+Math.sin(elapsed*.0015)*8,p.p.z);q.camera.lookAt(look.x,0,look.z);count.textContent='THE ROYAL RACE';count.style.fontSize='clamp(34px,7vw,82px)';hint.textContent='SURVOL DE L’HIPPODROME'}else{const player=trackPose(RACE_ORIGIN,(playerLane-50)*.38),desired=player.p.clone().addScaledVector(player.f,-30);desired.y=10.5,q.camera.position.lerp(desired,.055);const aim=player.p.clone().addScaledVector(player.f,12);aim.y=3;q.camera.lookAt(aim);count.style.fontSize='';const c=elapsed<5200?'':elapsed<6200?'3':elapsed<7200?'2':elapsed<8200?'1':'GO';count.textContent=c||'EN STALLES';hint.textContent=elapsed<5200?`MISE EN PLACE · STALLE N°${RS.stall||1}`:'TOUT LE MONDE PART ENSEMBLE';overlay.classList.toggle('count',elapsed>=5200);if(!q.inStalls){q.inStalls=1;$('#raceComment').textContent='Entrée dans les stalles : départ commun au GO'}if(elapsed>=5200&&!q.tipped){q.tipped=1;coach.tip('depart3','Au <b>GO</b>, les stalles s’ouvrent <b>pour tout le monde en même temps</b> : ton cheval jaillit selon son <b>Départ</b>. Ensuite ◀ ▶ pour choisir ton couloir : un cheval ne se traverse pas, on le <b>double par le côté</b>.','.steer')}if(elapsed>=RACE_GO_MS)openGates()}raceFX.render(q);return true}
+function renderRaceIntro(q,now){const elapsed=now-q.introStart,overlay=$('#startSequence'),count=$('#startCount'),hint=$('#startHint');overlay.classList.add('show');overlay.classList.remove('waiting');const par=elapsed>=2200&&elapsed<4200&&raceFX.parade(q,now,(elapsed-2200)/2000);overlay.classList.toggle('parade',!!par);if(par){count.textContent=HN();count.style.fontSize='clamp(30px,6vw,64px)';hint.textContent='AU ROND DE PRÉSENTATION'}else if(elapsed<4200){const t=RACE_ORIGIN+.06+Math.min(1,elapsed/2200)*.82,p=trackPose(t,-105),look=trackPose(t+.075,0).p;q.camera.position.set(p.p.x,48+Math.sin(elapsed*.0015)*8,p.p.z);q.camera.lookAt(look.x,0,look.z);count.textContent='THE ROYAL RACE';count.style.fontSize='clamp(34px,7vw,82px)';hint.textContent='SURVOL DE L’HIPPODROME'}else{const player=trackPose(RACE_ORIGIN,(playerLane-50)*.38),desired=player.p.clone().addScaledVector(player.f,-30);desired.y=10.5,q.camera.position.lerp(desired,.055);const aim=player.p.clone().addScaledVector(player.f,12);aim.y=3;q.camera.lookAt(aim);count.style.fontSize='';const c=elapsed<5200?'':elapsed<6200?'3':elapsed<7200?'2':elapsed<8200?'1':'GO';count.textContent=c||'EN STALLES';hint.textContent=elapsed<5200?`MISE EN PLACE · STALLE N°${RS.stall||1}`:'TOUT LE MONDE PART ENSEMBLE';overlay.classList.toggle('count',elapsed>=5200);if(!q.inStalls){q.inStalls=1;$('#raceComment').textContent='Entrée dans les stalles : départ commun au GO'}if(elapsed>=RACE_GO_MS)openGates()}raceFX.render(q);return true}
 </script>
 <script type="text/x-module" data-f="06-livery.js">/* ===== Livrées : robe du cheval, casaque, toque — recoloration réaliste des sprites (course + podium) ===== */
 const LIVERY=(()=>{
@@ -1635,7 +1637,7 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   {const m=fx.h3d&&fx.h3d[i],u=m&&m.userData,three=!!u&&!u.pending;h.visible=!three;fx.use3d=fx.use3d||[];fx.use3d[i]=three;if(m)m.visible=three;
    if(three){if(!u.hashed){u.hashed=true;u.mats.forEach(x=>{if(!x.alphaTest)x.alphaHash=true})}if(!i)HORSE3D.setLod(m,settings.level()==='haute'?0:1);
     const c=q.camera.position,dx=c.x-p.p.x,dz=c.z-p.p.z,drive=!running?0:i?(rivalAI[i-1]&&rivalAI[i-1].final?1:.15):(playerFinal&&playerEnergy>0?1:.15);
-    m.position.set(p.p.x,0,p.p.z);m.rotation.y=Math.atan2(-p.f.z,p.f.x);HORSE3D.pose(m,((fx.phase[i]/8)%1+1)%1,running?1:.12,drive,0,running?jmp:-1);if(running&&jmp>=0)m.position.y=Math.sin(jmp*Math.PI)*5.4;const near=Math.min(1,Math.max(0,(Math.hypot(dx,dz)-8.5)/3)),op=near*near*(3-2*near);if(Math.abs((u.op??1)-op)>.02){u.op=op;u.mats.forEach(x=>{x.opacity=op});m.visible=op>.02}}}
+    m.position.set(p.p.x,0,p.p.z);{const t=Math.max(-.35,Math.min(.35,p.lat||0)),hx=p.f.x+p.n.x*t,hz=p.f.z+p.n.z*t;m.rotation.order='YXZ';m.rotation.y=Math.atan2(-hz,hx);m.rotation.x=t*.55}HORSE3D.pose(m,((fx.phase[i]/8)%1+1)%1,running?1:.12,drive,0,running?jmp:-1);if(running&&jmp>=0)m.position.y=Math.sin(jmp*Math.PI)*5.4;const near=Math.min(1,Math.max(0,(Math.hypot(dx,dz)-8.5)/3)),op=near*near*(3-2*near);if(Math.abs((u.op??1)-op)>.02){u.op=op;u.mats.forEach(x=>{x.opacity=op});m.visible=op>.02}}}
   fx.phase[i]+=(running?dt*(2.1+speed*1.6)*8:dt*1.2);const fr=Math.floor(fx.phase[i]+i*3)%8;fx.gallop[i].offset.x=fr/8;
   const lift=running?Math.abs(Math.sin(fx.phase[i]/8*Math.PI*2))*.22:0,H=12.6;
   h.position.copy(p.p);h.position.y=H*.5-H*.105+lift;h.scale.set(H*.375,H,1);h.material.rotation=running?Math.sin(fx.phase[i]/8*Math.PI*2)*.012:0;
@@ -1975,7 +1977,6 @@ const haies = (() => {
   function ui() {
     const c = ensure(), u = raceLoop > 0 && !replays.busy ? upcoming() : null, show = !!u && u.m < RACE.dist * .045 && u.m > -2;
     c.hidden = !show; if (!show) return;
-    coach.tip('haies', 'Une <b>haie</b> arrive : choisis ton élan. <b>À FOND</b> fait gagner du terrain mais double le risque de faute ; <b>PRUDENT</b> est presque sans risque. Un cheval fatigué, peu intelligent ou nerveux fait plus de fautes.', '.jump-card');
     c.querySelector('.jc-h span').textContent = `${u.k + 1} / ${u.n} · ${Math.max(0, Math.round(u.m / 5) * 5)} m`;
     c.querySelectorAll('[data-j]').forEach(b => b.classList.toggle('on', S.choice === b.dataset.j));
     const r = u.risk, lvl = r < .08 ? ['faible', 'ok'] : r < .13 ? ['moyen', 'mid'] : ['élevé', 'bad'];
@@ -2004,15 +2005,25 @@ const haies = (() => {
  for(let i=0;i<48;i++){const p=trackPose(i/48,33);put(new THREE.CylinderGeometry(.15,.18,.72,8),p.p.x,.34,p.p.z)}{const m=new THREE.Mesh(raceWorld.merge(RP),railMat);m.receiveShadow=true;scene.add(m)}
  const podium=createPodium(scene);enhancePodium(podium);const stalls=createStartingStalls(scene),loader=new THREE.TextureLoader(),horses=[],horseTextures=[],podiumTextures=[],silks=[];for(let i=0;i<6;i++){const configure=loaded=>{loaded.anisotropy=renderer.capabilities.getMaxAnisotropy();loaded.minFilter=THREE.LinearMipmapLinearFilter;loaded.magFilter=THREE.LinearFilter;loaded.needsUpdate=true},raceTex=new THREE.Texture(),frontTex=new THREE.Texture();const mat=new THREE.SpriteMaterial({map:raceTex,transparent:true,alphaTest:.025,color:0xffffff,depthWrite:false}),sprite=new THREE.Sprite(mat);sprite.scale.set(i?7.2:7.9,i?10.2:11.2,1);sprite.frustumCulled=false;scene.add(sprite);horses.push(sprite);horseTextures.push(raceTex);podiumTextures.push(frontTex);const kit=new THREE.Object3D();kit.visible=false;scene.add(kit);silks.push(kit)}threeRace={sun,hemi,scene,camera,renderer,horses,horseTextures,podiumTextures,silks,podium,stalls,startPhase:'idle',introStart:0,goTime:0,falseStartPenalty:0,podiumActive:false,podiumOrder:[],lastW:0,lastH:0,camPos:null,camTarget:null,markers};raceFX.build(threeRace);$('#raceScreen').classList.add('webgl-active');return true}
 function renderPodiumScene(q,now){const slots=[{x:0,h:3.3},{x:-6,h:2.2},{x:6,h:1.5}];q.podium.visible=true;for(let i=0;i<q.horses.length;i++){const slotIndex=q.podiumOrder.indexOf(i),visible=slotIndex>=0;q.horses[i].visible=visible;q.silks[i].visible=false;if(visible){const slot=slots[slotIndex],bounce=Math.sin(now*.003+i)*.025;q.horses[i].material.map=q.podiumTextures[i];if(raceFX.podium(q,i,slot,now))q.horses[i].visible=false;q.horses[i].position.set(slot.x,slot.h+4.3+bounce,0);q.horses[i].scale.set(4.3,8.6,1)}else raceFX.podium(q,i)}const desired=new THREE.Vector3(0,11.5,29),target=new THREE.Vector3(0,5,0);if(!q.camPos){q.camPos=desired.clone();q.camTarget=target.clone()}q.camPos.lerp(desired,.045);q.camTarget.lerp(target,.055);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);q.podium.rotation.y=Math.sin(now*.00035)*.025;raceFX.render(q);return true}
-function renderThreeRace(now,w,h){const q=threeRace;if(!q||w<2||h<2)return false;if(w!==q.lastW||h!==q.lastH){q.lastW=w;q.lastH=h;q.renderer.setSize(w,h,false);q.camera.aspect=w/h;q.camera.updateProjectionMatrix()}if(q.podiumActive)return renderPodiumScene(q,now);const source=visualProgress.length?visualProgress:progress;for(let i=0;i<q.horses.length;i++){const lane=i===0?(playerLane-50)*.38:(rivalLanes[i-1]-50)*.38,p=trackPose(RACE_ORIGIN+(source[i]||0)/100-(q.startPhase==='running'?0:.003),lane),speed=i?(rivalAI[i-1]?.speed||rivalBase[i-1]):autoSpeed,stride=now*(.0165+speed*.004)+i*1.7,beat=Math.sin(stride*Math.PI*.5),lift=Math.abs(Math.sin(stride*Math.PI));raceFX.horse(q,i,p,speed,now)}if(q.startPhase!=='running')return renderRaceIntro(q,now);if(q.stalls.visible&&source[0]>1.8)q.stalls.visible=false;
+function renderThreeRace(now,w,h){const q=threeRace;if(!q||w<2||h<2)return false;if(w!==q.lastW||h!==q.lastH){q.lastW=w;q.lastH=h;q.renderer.setSize(w,h,false);q.camera.aspect=w/h;q.camera.updateProjectionMatrix()}if(q.podiumActive)return renderPodiumScene(q,now);const source=visualProgress.length?visualProgress:progress;for(let i=0;i<q.horses.length;i++){const lane=((visualLane[i]??laneOf(i))-50)*.38,p=trackPose(RACE_ORIGIN+(source[i]||0)/100-(q.startPhase==='running'?0:.003),lane),speed=i?(rivalAI[i-1]?.speed||rivalBase[i-1]):autoSpeed;
+  // cap du cheval : la piste + sa dérive latérale (vitesse latérale / vitesse d'avance, en unités de scène par seconde)
+  p.lat=q.startPhase==='running'?(laneVel[i]||0)*.38/Math.max(6,speed*raceScaleNow()*207.7):0;raceFX.horse(q,i,p,speed,now)}if(q.startPhase!=='running')return renderRaceIntro(q,now);if(q.stalls.visible&&source[0]>1.8)q.stalls.visible=false;
  // ouverture des stalles : les portes basculent d'un coup (ressort), la caméra encaisse le départ
  const sinceGo=q.gatesAt?now-q.gatesAt:1e9;if(sinceGo<900){const k=Math.min(1,sinceGo/240),e=1+2.2*Math.pow(k-1,3)+1.2*Math.pow(k-1,2);(q.stalls.userData.doors||[]).forEach(door=>{door.rotation.x=-Math.PI/2*Math.min(1.08,e);door.position.y=.15*k})}else if(q.gatesAt&&!q.doorsDone){q.doorsDone=1;(q.stalls.userData.doors||[]).forEach(door=>{door.rotation.x=-Math.PI/2;door.position.y=.15})}
  // caméra télé (replay) : au bord de la piste, elle suit le centre du peloton en travelling latéral
  if(q.tvView){const act=source.map(p=>Math.min(100.6,p||0)),mid=act.reduce((a,b)=>a+b,0)/act.length*.5+Math.max(...act)*.5,c=trackPose(RACE_ORIGIN+Math.min(100.4,mid)/100,0),desired=c.p.clone().addScaledVector(c.n,58).addScaledVector(c.f,-3);desired.y=15;const aim=c.p.clone().addScaledVector(c.f,-1);aim.y=2;
   if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}q.camPos.lerp(desired,.06);q.camTarget.lerp(aim,.09);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
  if(q.finishView){const finish=trackPose(RACE_ORIGIN,0),desired=finish.p.clone().addScaledVector(finish.n,58);desired.y=13;const aim=finish.p.clone().addScaledVector(finish.f,-3);aim.y=4;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}q.camPos.lerp(desired,.09);q.camTarget.lerp(aim,.1);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
- const player=trackPose(RACE_ORIGIN+(source[0]||0)/100,(playerLane-50)*.38),side=lookDir*8,desired=player.p.clone().addScaledVector(player.f,-26).addScaledVector(player.n,side);desired.y=10.5;const aim=player.p.clone().addScaledVector(player.f,62).addScaledVector(player.n,side*.65);aim.y=3.6;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}{const k=Math.min(60,(now-(q.lastCam||now))/16.7);q.lastCam=now;q.camPos.lerp(desired,1-Math.pow(.85,k));q.camTarget.lerp(aim,1-Math.pow(.83,k))}q.camera.position.copy(q.camPos);if(sinceGo<900){const a=(1-sinceGo/900)*.45;q.camera.position.x+=Math.sin(now*.083)*a;q.camera.position.y+=Math.cos(now*.107)*a*.7}q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
-function renderScene(now=0){if(!$('#raceScreen').classList.contains('open'))return;const world=$('#povWorld'),w=world.clientWidth,h=world.clientHeight,dt=Math.min(34,now-lastScene||16.67);lastScene=now;if(!visualProgress.length)visualProgress=progress.slice();for(let i=0;i<progress.length;i++)visualProgress[i]+=(progress[i]-visualProgress[i])*Math.min(1,dt*.018);if(threeRace)renderThreeRace(now,w,h);sceneFrame=requestAnimationFrame(renderScene)}
+ const player=trackPose(RACE_ORIGIN+(source[0]||0)/100,((visualLane[0]??playerLane)-50)*.38),side=lookDir*8,desired=player.p.clone().addScaledVector(player.f,-26).addScaledVector(player.n,side);desired.y=10.5;const aim=player.p.clone().addScaledVector(player.f,62).addScaledVector(player.n,side*.65);aim.y=3.6;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}{const k=Math.min(60,(now-(q.lastCam||now))/16.7);q.lastCam=now;q.camPos.lerp(desired,1-Math.pow(.85,k));q.camTarget.lerp(aim,1-Math.pow(.83,k))}q.camera.position.copy(q.camPos);if(sinceGo<900){const a=(1-sinceGo/900)*.45;q.camera.position.x+=Math.sin(now*.083)*a;q.camera.position.y+=Math.cos(now*.107)*a*.7}q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
+/* affichage fluide : on montre la course un pas en retard, en interpolant entre les deux derniers états de la simulation
+   (vitesse constante entre deux pas, sans à-coups), puis les couloirs passent par un ressort amorti : un changement de couloir
+   démarre et s'achève en douceur, et sa vitesse (laneVel) sert à orienter et incliner le cheval. Affichage seulement. */
+function smoothRace(now,dt){if(raceLoop>0)raceClock.pump();const S=raceSnap,cur=[playerLane,...rivalLanes];let a=1;
+ if(S)a=raceLoop>0&&raceClock.t0?(now-raceClock.t0)/100-raceTime:(now-S.at)/(raceSnap.ms||100);a=Math.max(0,Math.min(1,a));
+ if(!visualLane.length)visualLane=cur.slice();const k=1-Math.exp(-dt/120),kv=1-Math.exp(-dt/160);
+ for(let i=0;i<6;i++){visualProgress[i]=S?S.p[i]+((progress[i]??0)-S.p[i])*a:progress[i]??0;const tl=S?S.l[i]+(cur[i]-S.l[i])*a:cur[i],nl=visualLane[i]+(tl-visualLane[i])*k;
+  laneVel[i]+=((nl-visualLane[i])/Math.max(1,dt)*1000-laneVel[i])*kv;visualLane[i]=nl}}
+function renderScene(now=0){if(!$('#raceScreen').classList.contains('open'))return;const world=$('#povWorld'),w=world.clientWidth,h=world.clientHeight,dt=Math.min(34,now-lastScene||16.67);lastScene=now;smoothRace(now,dt);if(threeRace)renderThreeRace(now,w,h);sceneFrame=requestAnimationFrame(renderScene)}
 function courseTurn(p){const bell=(a,b,x)=>{if(x<=a||x>=b)return 0;return Math.sin((x-a)/(b-a)*Math.PI)};return bell(.015,.265,p)+bell(.515,.765,p)}
 function startRace(){if(!window.THREE)return toast('Le moteur 3D n’a pas pu se charger. Recharge la page.');const RH=stable.active();if(RH.injury)return toast(`${RH.name} est blessé`);if(RH.fatigue>=90)return toast(`${RH.name} est trop fatigué pour courir`);if(!currentField)buildField();if(state.feed<RACE.fee)return toast('Fourrage insuffisant');racePlayer=gear.apply(terrainPerf(stable.racePerf(RH.stats,RH,RACE.dist,RH.dist,state.strategy),RH.stats,RH.talent));playerFinal=false;resetRaceStats();$('#mapIdeal').style.opacity=1;$('#sprintBtn').dataset.st='';$('#sprintBtn').innerHTML='SPRINT<small>plus tard</small>';$('#sprintInfo').textContent='';state.feed-=RACE.fee;sync();raceSeed=currentField.seed;raceRng=seeded(raceSeed);raceHeader();$('#panel').classList.remove('open');$('#raceScreen').classList.add('open');initThreeRace();if(threeRace){applyRaceQuality(threeRace);raceFX.liveries(threeRace);threeRace.markers.forEach(([f,s])=>{s.material.map?.dispose();s.material.map=makeLabel(String(Math.round(RACE.dist*(1-f)/100)*100));s.material.needsUpdate=true})}sound.music(false);sound.crowdStart();sound.crowdLevel(.1);resetRacers();if(threeRace){threeRace.camPos=null;threeRace.camTarget=null;threeRace.finishView=false;threeRace.podiumActive=false;threeRace.podium.visible=false;threeRace.stalls.visible=true;threeRace.stalls.userData.doors.forEach(d=>{d.rotation.x=0;d.position.set(0,0,3.58)});threeRace.startPhase='cinematic';threeRace.introStart=performance.now();threeRace.tipped=0;threeRace.inStalls=0;threeRace.gatesAt=0;threeRace.doorsDone=0;threeRace.horses.forEach((h,i)=>{h.visible=true;h.material.map=threeRace.horseTextures[i];h.material.needsUpdate=true});threeRace.silks.forEach(s=>s.visible=false)}$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('waiting');raceGoAt=performance.now()+RACE_GO_MS;clearTimeout(goTimer);goTimer=setTimeout(openGates,RACE_GO_MS);updateEnergy();$('#sprintBtn').disabled=true;$('#sprintBtn').classList.remove('active');lookDir=0;updateLane();cancelAnimationFrame(sceneFrame);lastScene=0;sceneFrame=requestAnimationFrame(renderScene);$('#raceComment').textContent='Présentation de l’hippodrome…';clearInterval(raceLoop);raceLoop=null;hooks.emit('race:start')}
 function clampRace(value,min,max){return Math.max(min,Math.min(max,value))}
@@ -2040,10 +2051,10 @@ function sprintReach(P,energy,cruise){const perTick=(cruise+P.sprint)*raceScaleN
 function remainingM(p){return Math.max(0,RACE.dist*(100-p)/100)}
 /* peloton serré autour d'un cheval (devant, à côté, derrière) : 0 à 1 — un cheval nerveux s'y use, un cheval calme s'y repose */
 function crowdAt(index){const own=progress[index],lane=index?rivalLanes[index-1]:playerLane;let n=0;for(let j=0;j<progress.length;j++){if(j===index||raceFinished[j])continue;if(Math.abs(progress[j]-own)<1.6&&Math.abs((j?rivalLanes[j-1]:playerLane)-lane)<14)n++}return Math.min(1,n/2)}
-const RS={};function resetRaceStats(){Object.assign(RS,{ticks:0,draft:0,rail:0,boxed:0,startRank:null,stall:0,sprintAtM:null,idealAtM:null,sprintLeft:null,exhaustedM:0,hadSprint:false})}
+const RS={};function resetRaceStats(){Object.assign(RS,{ticks:0,draft:0,rail:0,boxed:0,startRank:null,stall:0,best:null,pinned:false,sprintAtM:null,idealAtM:null,sprintLeft:null,exhaustedM:0,hadSprint:false})}
 /* ===== Moteur 3 : une course pensée pour le multijoueur =====
    Tous les chevaux, joueur compris, suivent exactement les mêmes règles ; seules les décisions changent (le joueur : couloir,
-   sprint, temps forts, haies ; les adversaires : leur IA). À chaque pas de 100 ms :
+   sprint, haies ; les adversaires : leur IA). À chaque pas de 100 ms :
    1. chacun vise un couloir ; 2. il s'y déplace (LANE_V au plus) sans jamais entrer dans un cheval qui court à sa hauteur ;
    3. il avance selon son allure, sans jamais traverser le cheval qui le précède dans son couloir : collé derrière lui, il court à
    son rythme (en profitant de son sillage) jusqu'à trouver l'ouverture sur le côté.
@@ -2057,7 +2068,7 @@ const speedOf=i=>i?(rivalAI[i-1]?rivalAI[i-1].speed:0):autoSpeed;
 function drawStalls(){const r=seeded((raceSeed^0x2c1b3c6d)>>>0),s=[0,1,2,3,4,5];for(let k=5;k>0;k--){const j=Math.floor(r()*(k+1));[s[k],s[j]]=[s[j],s[k]]}
  stallOf=s;playerLane=playerTarget=STALL_LANES[s[0]];for(let k=0;k<5;k++)rivalLanes[k]=STALL_LANES[s[k+1]];raceBlocked=[0,0,0,0,0,0]}
 // état de départ commun à la course, au rejeu et au replay télé
-function resetRacers(){progress=[0,0,0,0,0,0];visualProgress=progress.slice();raceFinished=Array(6).fill(false);raceFinishTimes=Array(6).fill(0);finishOrder=[];rivalAI=[];raceTime=0;playerEnergy=100;playerFinal=false;autoSpeed=0;drawStalls();resetRaceStats();RS.stall=stallOf[0]+1;updateLane()}
+function resetRacers(){progress=[0,0,0,0,0,0];visualProgress=progress.slice();raceFinished=Array(6).fill(false);raceFinishTimes=Array(6).fill(0);finishOrder=[];rivalAI=[];raceTime=0;playerEnergy=100;playerFinal=false;autoSpeed=0;drawStalls();resetRaceStats();raceSnap=null;visualLane=[playerLane,...rivalLanes];laneVel=[0,0,0,0,0,0];RS.stall=stallOf[0]+1;updateLane()}
 // horloge de course : le pas n tombe à GO + n × 100 ms, quoi qu'il arrive à l'onglet
 const raceClock={t0:0,start(t0){clearInterval(raceLoop);this.t0=t0||performance.now();raceLoop=setInterval(()=>raceClock.pump(),50);this.pump()},
  pump(){const due=Math.floor((performance.now()-this.t0)/100);let n=0;while(raceLoop>0&&raceTime<due&&n++<900)runRaceV2()}};
@@ -2079,7 +2090,7 @@ function lateral(i){const L=laneOf(i),T=i?rivalAI[i-1].targetLane:playerTarget,V
  let nl=clampRace(L+d,i?8:7,i?90:93);const p=progress[i];
  for(let j=0;j<6;j++){if(j===i||raceFinished[j]||Math.abs(progress[j]-p)>=HORSE_LEN)continue;const lj=laneOf(j);if(d>0&&lj>=L)nl=Math.min(nl,Math.max(L,lj-HORSE_W));else if(d<0&&lj<=L)nl=Math.max(nl,Math.min(L,lj+HORSE_W))}
  setLane(i,nl)}
-// allure : mêmes formules pour tous (vitesse de croisière, sprint, énergie, sillage, trajectoire en virage, nervosité, temps forts, haies)
+// allure : mêmes formules pour tous (vitesse de croisière, sprint, énergie, sillage, trajectoire en virage, nervosité, haies ; temps forts des courses 2.3 rejouées)
 function paceStep(i){const ai=i?rivalAI[i-1]:null,P=i?ai.P:racePlayer,own=progress[i],early=own<55,MF=moments.fx(i),shelter=!!drafting(i),curve=courseTurn(Math.min(1,own/100)),wide=curve*Math.max(0,laneOf(i)-18)/75*(P.wideK||1),
   cr=P.cruise*(early?P.tactic.c:1)*(own<12?P.jump||1:1)*(P.talent==='fusee'&&own<20?1.03:1)*(P.talent==='coeur'&&own>75&&progress.some((p,j)=>j!==i&&p>own)?1.03:1);
  let energy=i?ai.energy:playerEnergy;if(i&&!ai.final&&own>40&&sprintReach(P,energy,cr)>=remainingM(own)*(1+ai.err))ai.final=true;
@@ -2093,8 +2104,7 @@ function advance(i,ahead){let v=speedOf(i),np=progress[i]+v*raceScaleNow(),by=-1
  raceBlocked[i]=by>=0?raceBlocked[i]+1:0;
  if(by>=0){const P=i?rivalAI[i-1].P:racePlayer,cap=speedOf(by)*(P.check||.97);if(v>cap){if(i)rivalAI[i-1].speed=cap;else autoSpeed=cap}}
  progress[i]=np}
-function runRaceV2(){raceTime++;moments.tick();const phase=progress[0],turn=courseTurn(Math.min(1,phase/100));sound.crowdLevel(Math.max(0,(Math.max(...progress)-60)/40));
- if(phase>20&&phase<40&&!runRaceV2.tipd){runRaceV2.tipd=1;coach.tip('draft','Place-toi juste derrière un adversaire (◀ ▶) : dans son <b>sillage</b>, ton cheval dépense deux fois moins d’énergie.','.steer')}
+function runRaceV2(){raceSnap={at:performance.now(),p:progress.slice(),l:[playerLane,...rivalLanes]};raceTime++;moments.tick();const phase=progress[0],turn=courseTurn(Math.min(1,phase/100));sound.crowdLevel(Math.max(0,(Math.max(...progress)-60)/40));
  // 1. couloir visé : dans les virages, le cheval du joueur dérive vers l'extérieur s'il ne le corrige pas
  if(!raceFinished[0])playerTarget=clampRace(playerTarget+turn*.12,7,93);
  for(let k=0;k<5;k++)if(!raceFinished[k+1])aiLane(k);
@@ -2109,7 +2119,7 @@ function runRaceV2(){raceTime++;moments.tick();const phase=progress[0],turn=cour
   if(RS.startRank==null&&progress[0]>=12){RS.startRank=progress.filter((p,j)=>j&&p>progress[0]).length+1;if(RS.startRank<=2)career.bump('perfect')}
   // jauge de sprint : TROP TÔT / MAINTENANT / EN RETARD
   const rem=remainingM(progress[0]),reach=sprintReach(P,playerEnergy,S.cr),btn=$('#sprintBtn');
-  if(!playerFinal){const k=reach/Math.max(1,rem);if(RS.idealAtM==null&&k>=.97)RS.idealAtM=rem;const s=phase<35?'wait':k<.9?'early':k<=1.12?'now':'late';if(btn.dataset.st!==s){btn.dataset.st=s;btn.innerHTML={wait:'SPRINT<small>plus tard</small>',early:'SPRINT<small>trop tôt</small>',now:'SPRINT<small>maintenant !</small>',late:'SPRINT<small>vite !</small>'}[s];if(s==='now'){buzz(15);coach.tip('sprint','Le bouton <b>SPRINT</b> devient vert : ton cheval a juste assez d’énergie pour sprinter jusqu’au poteau. C’est le moment idéal !','#sprintBtn')}}
+  if(!playerFinal){const k=reach/Math.max(1,rem);if(RS.idealAtM==null&&k>=.97)RS.idealAtM=rem;const s=phase<35?'wait':k<.9?'early':k<=1.12?'now':'late';if(btn.dataset.st!==s){btn.dataset.st=s;btn.innerHTML={wait:'SPRINT<small>plus tard</small>',early:'SPRINT<small>trop tôt</small>',now:'SPRINT<small>maintenant !</small>',late:'SPRINT<small>vite !</small>'}[s];if(s==='now')buzz(15);}
    $('#sprintInfo').innerHTML=`Sprint possible : <b>${fmt(Math.round(Math.min(reach,9999)/10)*10)} m</b> · arrivée : <b>${fmt(Math.round(rem/10)*10)} m</b>`;const z=Math.max(0,Math.min(100,100-reach/RACE.dist*100));$('#mapIdeal').style.left=z+'%'}
   else $('#sprintInfo').innerHTML=playerEnergy>0?`Sprint final · <b>${fmt(Math.round(rem/10)*10)} m</b> à tenir`:'<b>Épuisé</b> : le cheval ralentit';
   const pinned=Math.abs(playerTarget-playerLane)>2&&raceBlocked[0]===0&&progress.some((p,j)=>j&&!raceFinished[j]&&Math.abs(p-progress[0])<HORSE_LEN&&Math.abs(laneOf(j)-playerLane)<=HORSE_W+.01&&(laneOf(j)-playerLane)*(playerTarget-playerLane)>0);
@@ -2117,7 +2127,9 @@ function runRaceV2(){raceTime++;moments.tick();const phase=progress[0],turn=cour
   $('#draft').classList.toggle('show',inDraft);$('#autoGallop').classList.toggle('blocked',boxed);$('#autoGallop b').textContent=boxed?'Foulée coupée':sprinting?'Sprint final':playerFinal?'Épuisé':inDraft?'À l’abri du vent':playerEnergy<20?'Endurance faible':'Foulée libre';
   if(boxed)$('#raceComment').textContent=pinned?'Enfermé : attends l’ouverture ou change de côté':'Bloqué derrière un cheval : décale-toi pour le doubler';else if(pinned)$('#raceComment').textContent='Un cheval court à ta hauteur : pas de passage';else if(inDraft)$('#raceComment').textContent='Dans le sillage : tu économises ton endurance';else if(sprinting)$('#raceComment').textContent=HN()+' accélère !';else if(turn>.35&&playerLane>35)$('#raceComment').textContent='Rapproche-toi de la corde';else if(phase>70&&!playerFinal)$('#raceComment').textContent='Surveille le bouton SPRINT : il passe au vert au bon moment';
   if(phase>75&&!runRaceV2.said){runRaceV2.said=1;sound.say('Dernière ligne droite !')}}
- haies.step();for(let i=0;i<6;i++)markFinish(i);const ranked=progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p),rank=raceFinished[0]?finishOrder.indexOf(0)+1:ranked.findIndex(x=>x.i===0)+1;$('#racePosition').textContent=rank+(rank===1?'er':'e');$('#meters').textContent=fmt(Math.max(0,Math.round(RACE.dist*(1-Math.min(100,progress[0])/100))));$('#mapDot').style.left=Math.min(100,progress[0])+'%';hooks.emit('race:tick');if(finishOrder.length===6)completeRace()}
+ haies.step();for(let i=0;i<6;i++)markFinish(i);const ranked=progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p),rank=raceFinished[0]?finishOrder.indexOf(0)+1:ranked.findIndex(x=>x.i===0)+1;$('#racePosition').textContent=rank+(rank===1?'er':'e');
+ // mission « doubler » : chaque nouvelle meilleure place après la sortie des stalles (course en direct seulement)
+ if(!raceFinished[0]&&progress[0]>12){if(RS.best==null)RS.best=rank;else if(rank<RS.best){if(raceLoop>0)career.bump('double',RS.best-rank);RS.best=rank}}$('#meters').textContent=fmt(Math.max(0,Math.round(RACE.dist*(1-Math.min(100,progress[0])/100))));$('#mapDot').style.left=Math.min(100,progress[0])+'%';hooks.emit('race:tick');if(finishOrder.length===6)completeRace()}
 function sprint(){if(playerFinal||!raceLoop||raceFinished[0]||playerEnergy<3)return;playerFinal=true;hooks.emit('race:sprint',remainingM(progress[0]),RS.idealAtM);RS.hadSprint=true;RS.sprintAtM=remainingM(progress[0]);buzz(25);sound.say('Il lance son sprint !');$('#sprintBtn').classList.add('active');$('#sprintBtn').disabled=true;$('#sprintBtn').innerHTML='SPRINT<small>en cours</small>';$('#mapIdeal').style.opacity=0}
 /* analyse de course : 3 étoiles (départ, placement, sprint) + un conseil d'entraînement */
 function raceAnalysis(rank){const sr=RS.startRank||6,dep=sr<=3,draftPct=RS.draft/Math.max(1,RS.ticks),railPct=RS.rail/Math.max(1,RS.ticks),boxPct=RS.boxed/Math.max(1,RS.ticks),place=(draftPct+railPct*.6)>=.45&&boxPct<.12;
@@ -2289,13 +2301,15 @@ const MEETINGS=[
  {id:'h2',n:'Grand Steeple Royal',dist:2400,terrain:'bon',league:2,diff:4,purse:19000,fee:1000,haies:8}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];
 const MISSION_POOL=[{k:'train',n:'Entraîner un cheval',goal:3,r:{gold:1500}},{k:'race',n:'Disputer des courses',goal:2,r:{feed:1500}},{k:'top3',n:'Finir sur le podium',goal:1,r:{gold:2500}},
- {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Sortir des stalles dans les 2 premiers',goal:1,r:{gems:5}},{k:'moment',n:'Gagner 3 places sur des temps forts',goal:3,r:{gold:2500}}];
+ {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Sortir des stalles dans les 2 premiers',goal:1,r:{gems:5}},{k:'double',n:'Doubler 5 adversaires en course',goal:5,r:{gold:2500}}];
 let RACE={...MEETINGS[1]};
 const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{const d=new Date(),t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-n+3);const f=new Date(Date.UTC(t.getUTCFullYear(),0,4));return t.getUTCFullYear()+'-S'+(1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7))};
  let C={};try{C=JSON.parse(localStorage.getItem('trr.progress')||'{}')}catch(e){}
  C.best=Math.max(C.best||0,state.trophies);C.claimed=C.claimed||[];C.tips=C.tips||{};C.stats=C.stats||{races:0,wins:0};
  const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
  function roll(){if(C.day!==day()){C.day=day();let x=[...day()].reduce((a,c)=>a*31+c.charCodeAt(0),7)%2147483647;const r=()=>(x=(x*16807)%2147483647)/2147483647;const pool=[...MISSION_POOL];C.missions=[];while(C.missions.length<3){const m=pool.splice(Math.floor(r()*pool.length),1)[0];C.missions.push({k:m.k,p:0,done:false})}}
+  // mission d'une ancienne version (ex. temps forts, retirés en 2.4) : remplacée par une mission du jour encore absente
+  if(C.missions.some(m=>!MISSION_POOL.some(x=>x.k===m.k))){C.missions=C.missions.filter(m=>MISSION_POOL.some(x=>x.k===m.k));for(const d of MISSION_POOL){if(C.missions.length>=3)break;if(!C.missions.some(m=>m.k===d.k))C.missions.push({k:d.k,p:0,done:false})}}
   if(C.week!==week()){C.week=week();C.weekRaces=0;C.weekClaimed=false}save()}
  roll();
  const league=(t=state.trophies)=>{let i=0;LEAGUES.forEach((l,k)=>{if(t>=l.min)i=k});return i};
@@ -2359,8 +2373,8 @@ const coach=(()=>{const el=document.createElement('div');el.className='coach';el
   // en course : seuls les conseils qui visent l'écran de course s'affichent (les autres attendent la fin de la course)
   const qi=inRace?queue.findIndex(q=>q[2]&&$(q[2])&&$('#raceScreen').contains($(q[2]))):0;if(qi<0)return later(1500);const[k,txt,sel]=queue.splice(qi,1)[0];el.classList.toggle('in-race',inRace);clearTimeout(el._t);if(inRace)el._t=setTimeout(hide,7000);el.querySelector('p').innerHTML=txt;el.hidden=false;hooks.emit('tip',k);const t=sel&&$(sel);el.classList.remove('top');if(t&&t.offsetParent&&!inRace){const r=t.getBoundingClientRect(),g=$('#game').getBoundingClientRect();// cible dans le bas de l'écran : la bulle passe en haut pour ne pas la cacher
   if(r.top-g.top>g.height*.55&&!$('#raceScreen').classList.contains('open'))el.classList.add('top');ring=document.createElement('div');ring.className='coach-ring';Object.assign(ring.style,{left:r.left-g.left-6+'px',top:r.top-g.top-6+'px',width:r.width+12+'px',height:r.height+12+'px'});$('#game').appendChild(ring)}}
- function tip(k,txt,sel){if(!career.tip(k))return;queue.push([k,txt,sel]);next()}
- // en course (multijoueur, sans pause) : le conseil s'affiche en bandeau compact, ne bloque rien et se referme seul
+ function tip(k,txt,sel){if($('#raceScreen').classList.contains('open'))return;if(!career.tip(k))return;queue.push([k,txt,sel]);next()}
+ // en course : aucun conseil (la course ne s'interrompt jamais, rien ne s'affiche par-dessus)
  return{tip,hide,get open(){return !el.hidden}}})();
 // premiers pas : après la création du champion
 champion.on(()=>{setTimeout(()=>{coach.tip('welcome',`Bienvenue au domaine ! <b>${escapeHTML(HN())}</b> est prêt pour sa première course. Touche <b>COURIR</b> : le reste du domaine s’ouvrira au fil de tes courses.`,'#playBtn')},600)});
@@ -2712,7 +2726,9 @@ $('#race3d')?.addEventListener('webglcontextrestored',()=>{try{threeRace&&threeR
 // 6) jeu installable et jouable hors ligne (sur un vrai hébergement https)
 if('serviceWorker' in navigator&&/^https:|^http:\/\/localhost/.test(location.href)&&window.top===window){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
-<script type="text/x-module" data-f="27-moments.js">/* ===== Temps forts : jusqu’à 3 décisions tactiques par course, à prendre en 4 secondes ===== */
+<script type="text/x-module" data-f="27-moments.js">/* ===== Temps forts (jusqu’en 2.3) : décisions tactiques en 4 secondes pendant la course =====
+   Depuis la 2.4, la course ne s’interrompt plus : aucun temps fort n’est programmé (plan vide) et aucune annonce ne s’affiche.
+   Le moteur reste en place pour rejouer à l’identique les courses et duels enregistrés en 2.3 (plan et choix enregistrés). */
 /* Déterministe : tirage sur un flux dérivé de la graine (le flux des adversaires reste inchangé) + choix du joueur enregistrés au pas près (M.log) */
 const MOMENT_TYPES={
  tire:{a:'Le reprendre',b:'Le laisser aller',t:h=>`${h} tire sur les rênes !`,d:()=>`Il veut accélérer tout de suite. ${RACE.dist<=1200?'Sur une course courte, il peut se le permettre.':'Sur cette distance, chaque effort se paiera dans la ligne droite.'}`},
@@ -2731,9 +2747,9 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_F
  const lane=i=>i?rivalLanes[i-1]:playerLane,rankNow=()=>raceFinished[0]?finishOrder.indexOf(0)+1:progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i===0)+1;
  // le programme des temps forts est tiré au départ : chacun a sa chance et son point de déclenchement (en % de course)
  function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0),tem=stable.active().stats.tem;M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
-  plan:{tire:r()<.35+(70-tem)*.015?10+r()*24:null,breche:r()<.7?24+r()*36:null,attaque:r()<.8?42+r()*24:null}};
-  // toute première course : un seul temps fort, simple et expliqué (le cheval tire sur les rênes)
-  if(!(career.data.stats?.races>0))M.plan={tire:16,breche:null,attaque:null};card.hidden=true;news.classList.remove('show')}
+  plan:{tire:null,breche:null,attaque:null}};
+  // mêmes tirages qu'en 2.3 (résultats ignorés) : le flux M.rng reste aligné pour rejouer à l'identique une course 2.3 qui avait une brèche
+  if(r()<.35+(70-tem)*.015)r();if(r()<.7)r();if(r()<.8)r();card.hidden=true;news.classList.remove('show')}
  function fx(i){const f=M&&M.fx[i];return f&&raceTime<f.until?f:{speed:0,drain:1}}
  // quel temps fort peut surgir maintenant ?
  function pick(){const ph=progress[0],h=stable.active(),due=(k,max)=>M.plan[k]!=null&&ph>=M.plan[k]&&ph<max;
@@ -2746,7 +2762,7 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_F
   // l'attaque adverse a lieu quoi que fasse le joueur : il accélère, mais s'use deux fois plus vite
   if(m.k==='attaque')M.fx[m.r]=F('attack',raceTime);
   card.querySelector('.mo-title').textContent=T.t(HN(),name,m);card.querySelector('p').textContent=T.d(m);card.querySelector('[data-mo=a] span').textContent=T.a+(m.p?` · ${Math.round(m.p*100)} %`:'');card.querySelector('[data-mo=b] span').textContent=T.b;
-  card.dataset.k=m.k;card.hidden=false;hooks.emit('moment:open',m.k);card.querySelector('.mo-time i').style.transform='scaleX(1)';buzz(20);sound.say(T.t(HN(),name,m));setTimeout(()=>M&&M.cur&&coach.tip('moment',`<b>Temps fort !</b> Tu as 4 secondes pour choisir${matchMedia('(hover:none)').matches?'':' (touches <b>1</b> / <b>2</b> au clavier)'}. Sans réponse, c’est le choix de droite qui s’applique. Regarde ton endurance et la place devant toi.`,'.moment'),300)}
+  card.dataset.k=m.k;card.hidden=false;hooks.emit('moment:open',m.k);card.querySelector('.mo-time i').style.transform='scaleX(1)';buzz(20);sound.say(T.t(HN(),name,m))}
  function resolve(ch){const c=M.cur,t=raceTime;M.cur=null;card.hidden=true;let ok=true;
   if(c.k==='tire')M.fx[0]=F(ch==='a'?'tireA':'tireB',t);
   if(c.k==='breche'&&ch==='a'){ok=M.rng()<c.p;if(ok){playerTarget=c.lane;updateLane();M.fx[0]=F('gapOk',t)}else M.fx[0]=F('gapKo',t)}
@@ -2758,10 +2774,7 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_F
   if(M.watch&&raceTime>=M.watch.t+50){const d=M.watch.dPos=M.watch.rank0-rankNow();if(d>0)career.bump('moment',d);M.watch=null}
   if(M.cur){if(M.pending||raceTime>=M.cur.end||raceFinished[0]){resolve(M.pending||'b');M.pending=null}else card.querySelector('.mo-time i').style.transform=`scaleX(${(M.cur.end-raceTime)/DUR})`}
   else if(!raceFinished[0]&&!playerFinal&&raceTime>=M.next){const m=pick();if(m){open(m);M.next=raceTime+DUR+55}else M.next=raceTime+3}
-  // lecture de course : qui lance son sprint, qui craque devant toi
-  rivalAI.forEach((ai,i)=>{const j=i+1,g=progress[j]-progress[0];if(raceFinished[j]||raceFinished[0])return;
-   if(ai.final&&!M.said['f'+j]&&g>-4&&g<8){M.said['f'+j]=1;say(`${raceNames[j]} lance son sprint`)}
-   else if(ai.energy<=0&&!M.said['e'+j]&&g>-2&&g<8){M.said['e'+j]=1;say(`${raceNames[j]} est à bout de souffle !`)}})}
+}
  function choose(ch){if(M&&M.cur&&!M.pending){M.pending=ch;hooks.emit('moment:choose',ch)}}
  card.addEventListener('click',e=>{const b=e.target.closest('[data-mo]');if(b)choose(b.dataset.mo)});
  document.addEventListener('keydown',e=>{if(!M||!M.cur)return;if(e.code==='Digit1'||e.code==='Numpad1')choose('a');if(e.code==='Digit2'||e.code==='Numpad2')choose('b')});
@@ -2786,8 +2799,8 @@ const replay=(()=>{const b=document.createElement('button');b.className='action'
    ils se disputent la tête et s'usent. Lire le plateau et choisir sa tactique en conséquence devient un vrai choix. */
 const PACE_FX={
  leader:{base:{c:1.025,d:.944},lent:{d:.75},seul:{d:.75},rapide:{},duel:.2},
- stalker:{base:{},lent:{c:.99},seul:{d:.75,c:1.005},rapide:{}},
- finisher:{base:{s:-.005},lent:{c:.985},seul:{c:.98},rapide:{d:.9}}};
+ stalker:{base:{},lent:{c:.99},seul:{d:.65,c:1.01},rapide:{}},
+ finisher:{base:{s:-.005},lent:{c:.985},seul:{c:.97},rapide:{d:.9}}};
 const pace=(()=>{
  const TAC=Object.fromEntries(TACTICS.map(([id,n])=>[id,n])),ICO={leader:'⚡',stalker:'🎯',finisher:'🏁'};
  // la tactique d'un adversaire découle de son profil (départ + vitesse → devant ; accélération → derrière), avec une part de hasard
@@ -3100,7 +3113,7 @@ const playtest=(()=>{const q=new URLSearchParams(location.search);if(!q.has('tes
   return[['Durée de la session',mm(end)],['Avant la 1re course',first?mm(first.t):'jamais lancée'],['Courses lancées / terminées / abandonnées',`${f('course').length} / ${f('arrivee').length} / ${f('abandon').length}`],
    ['Classements',f('arrivee').map(e=>e.rang+(e.rang===1?'er':'e')).join(', ')||'—'],['Stalles tirées',dep.length?dep.map(e=>'n°'+e.stalle).join(', '):'—'],
    ['Écart moyen au sprint idéal',sp.length?Math.round(sp.reduce((a,e)=>a+Math.abs(e.reste-e.ideal),0)/sp.length)+' m':'—'],
-   ['Temps forts : répondus / sans réponse',tf.length?`${tf.filter(e=>!e.auto).length} / ${tf.filter(e=>e.auto).length}`+(tf.some(e=>!e.auto)?` · ${(tf.filter(e=>!e.auto).reduce((a,e)=>a+e.ms,0)/tf.filter(e=>!e.auto).length/1000).toFixed(1)} s pour décider`:''):'—'],
+
    ['Tactiques choisies',[...new Set(f('course').map(e=>e.tactique))].join(', ')||'—'],['Conseils affichés',f('conseil').length],['Panneaux ouverts',[...new Set(f('panneau').map(e=>e.titre))].join(', ')||'—'],
    ['Moments d’inactivité (> 30 s)',f('inactif').length],['Erreurs',f('erreur').length]]}
  // pastille + fenêtre pour l'animateur
@@ -3227,11 +3240,11 @@ const defi=(()=>{
   const G=today().ghost;if(G&&gap){const gp=G.p[Math.min(raceTime,G.p.length-1)]??100,m=Math.round((gp-progress[0])*RACE.dist/100);gap.innerHTML=Math.abs(m)<2?'👻 Au coude à coude avec ton fantôme':m>0?`👻 Fantôme <b>${m} m</b> devant`:`👻 Tu as <b>${-m} m</b> d’avance`;gap.classList.add('show');gap.classList.toggle('ahead',m<=0)}});
  hooks.on('race:header',()=>{if(!RACE.defi)return;const T=today();$('.race-head small').textContent+=T.best?` • Record ${T.best.toFixed(2)} s`:' • Premier essai'});
  // fantôme : un cheval translucide qui rejoue le meilleur essai, sans gêner la course (hors simulation)
- {const r0=raceFX.render;let last=0;raceFX.render=function(q){const G=RACE.defi&&today().ghost,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
+ {const r0=raceFX.render;let last=0,gl=null;raceFX.render=function(q){const G=RACE.defi&&today().ghost,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
   if(G&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView){if(!ghost){ghost=new THREE.Sprite(new THREE.SpriteMaterial({map:q.horseTextures[0],transparent:true,opacity:.36,depthWrite:false,color:0xcfe6ff}));ghost.frustumCulled=false;q.scene.add(ghost)}
-   ghost.material.map=q.horseTextures[0];const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??100,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);
-   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(ln-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
-  else if(ghost)ghost.visible=false;return r0.call(this,q)}}
+   ghost.material.map=q.horseTextures[0];const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??100,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);gl=gl==null?ln:gl+(ln-gl)*Math.min(1,dt*6);
+   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(gl-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
+  else{gl=null;if(ghost)ghost.visible=false}return r0.call(this,q)}}
  // bilan du défi
  hooks.on('defi:end',()=>{const T=today(),rank=finishOrder.indexOf(0)+1,time=raceFinishTimes[0],old=T.best,first=!T.first;T.tries++;let gain=[];
   const rec=old==null||time<old;if(rec){T.best=time;if(track){const n=track.p.length;for(let k=0;k<n;k++){if(track.p[k]==null){track.p[k]=track.p[k-1]??0;track.l[k]=track.l[k-1]??44}}track.p.push(101);T.ghost=track}}
@@ -3282,16 +3295,15 @@ const partage=(()=>{
 <script type="text/x-module" data-f="39-manette.js">/* ===== Manette (standard) =====
    Course multijoueur : il n'y a pas de pause. La course avance à l'horloge, même si le jeu passe en arrière-plan (appel,
    notification, autre onglet) : au retour, elle a continué sans toi, comme pour les autres partants.
-   A = sprint / valider, croix ou stick = se décaler, X / Y = choix des temps forts, ↑ / ↓ (haies) = élan, LB / RB = regarder sur les côtés. */
+   A = sprint / valider, croix ou stick = se décaler, ↑ / ↓ (haies) = élan, LB / RB = regarder sur les côtés. */
 const manette=(()=>{
  const open=()=>$('#raceScreen').classList.contains('open');
  let prev=[],nextSteer=0,announced=false;
- addEventListener('gamepadconnected',()=>{if(announced)return;announced=true;toast('Manette connectée : A = sprint · croix = se décaler · X / Y = temps forts')});
+ addEventListener('gamepadconnected',()=>{if(announced)return;announced=true;toast('Manette connectée : A = sprint · croix = se décaler · ↑ / ↓ = élan sur les haies')});
  function poll(now){requestAnimationFrame(poll);const gp=[...(navigator.getGamepads?.()||[])].find(Boolean);if(!gp)return;
   const P=gp.buttons.map(b=>b.pressed),E=P.map((p,i)=>p&&!prev[i]);prev=P;const vis=s=>{const x=$(s);return x&&x.offsetParent&&!x.hidden?x:null};
   if(!open()){if(E[0])(vis('.coach:not([hidden]) button')||vis('#panel.open #raceJoin')||vis('#playBtn'))?.click();return}
   if(E[0]){const c=vis('.coach:not([hidden]) button');if(c)c.click();else if(raceLoop)sprint();else(vis('#raceResult.show #raceAgain')||vis('#finishBoard.show #showPodium')||vis('#raceResult.show #returnDomain'))?.click()}
-  if(moments.active){if(E[2])moments.choose('a');if(E[3])moments.choose('b')}
   if(haies.active&&raceLoop){const S=haies.state;if(E[12])haies.choose(S.choice==='f'?'n':'f');if(E[13])haies.choose(S.choice==='p'?'n':'p')}
   const ax=gp.axes[0]||0,left=P[14]||ax<-.55,right=P[15]||ax>.55;if((left||right)&&now>nextSteer){steer(left?-1:1);nextSteer=now+220}if(!left&&!right)nextSteer=0;
   if(E[4])look(-1);if(E[5])look(1)}
@@ -3300,7 +3312,7 @@ const manette=(()=>{
 </script>
 <script type="text/x-module" data-f="40-musique.js">/* ===== Musique de course adaptative (synthétisée, aucun fichier) =====
    Couches ajoutées selon la tension : pulsation grave dès le départ, charleston à mi-course, nappe et tempo plus vif
-   dans la dernière ligne droite, doubles croches pendant le sprint. Accent sonore à chaque temps fort.
+   dans la dernière ligne droite, doubles croches pendant le sprint.
    Planification sur l'horloge audio (anticipation de 150 ms) : aucun décalage, même si l'affichage ralentit.
    Volume : curseur « Musique » des réglages. */
 const raceMusic=(()=>{let timer=0,next=0,step=0,nb=null;
@@ -3347,8 +3359,8 @@ const tele=(()=>{let on=false,loop=0,rec=null,i=0,keep=null,speed=1;
   q.horses.forEach((h,k)=>{h.visible=true;h.material.map=q.horseTextures[k];h.material.needsUpdate=true});
   $('#finishBoard').classList.remove('show');$('#raceResult').classList.remove('show');scr.classList.add('tv');bar.querySelector('.tv-title').textContent=r.race.n;bar.querySelector('[data-tv=speed]').textContent='×2';
   sound.crowdStart();loop=setInterval(tickTv,100)}
- function tickTv(){for(let s=0;s<speed;s++){if(finishOrder.length>=6)return end();raceLoop=-1;const I=rec.inputs;while(i<I.length&&I[i][0]<=raceTime){const[,type,val]=I[i++];if(type==='steer')steer(val);else if(type==='sprint')sprint();else if(type==='moment')moments.choose(val);else if(type==='jump')haies.choose(val)}
-   runRaceV2();raceLoop=null}sound.crowdLevel(Math.max(0,(Math.max(...progress)-60)/40))}// raceLoop factice pendant un pas : le sprint exige une course « en cours »
+ function tickTv(){const pre={p:progress.slice(),l:[playerLane,...rivalLanes]};for(let s=0;s<speed;s++){if(finishOrder.length>=6)return end();raceLoop=-1;const I=rec.inputs;while(i<I.length&&I[i][0]<=raceTime){const[,type,val]=I[i++];if(type==='steer')steer(val);else if(type==='sprint')sprint();else if(type==='moment')moments.choose(val);else if(type==='jump')haies.choose(val)}
+   runRaceV2();raceLoop=null}raceSnap={at:performance.now(),p:pre.p,l:pre.l,ms:100};sound.crowdLevel(Math.max(0,(Math.max(...progress)-60)/40))}// raceLoop factice pendant un pas : le sprint exige une course « en cours »
  function end(){stop();$('#raceResult').classList.add('show')}
  function stop(){if(!on)return;on=false;clearInterval(loop);loop=0;hooks.emit=keep.emit;career.bump=keep.bump;sound.say=keep.say;completeRace=keep.complete;scr.classList.remove('tv');$('.moment')&&($('.moment').hidden=true);
   const q=threeRace;if(q){q.tvView=false;q.finishView=true;q.camPos=null;q.camTarget=null}}
@@ -3739,11 +3751,11 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
  hooks.on('race:start',()=>{gv=0;gap.classList.remove('show');if(ghost)ghost.visible=false;if(RACE.duel&&cur&&threeRace&&!threeRace.headless)LIVERY.ready.then(()=>{const L={...stable.silks,...(cur.rec.liv||{})};tex?.dispose();tex=new THREE.CanvasTexture(LIVERY.gallop(L,.5));tex.colorSpace=THREE.SRGBColorSpace;tex.repeat.set(1/8,1);if(ghost)ghost.material.map=tex,ghost.material.needsUpdate=true})});
  hooks.on('race:tick',()=>{if(!RACE.duel||!G||raceFinished[0])return;const gp=G.p[Math.min(raceTime,G.p.length-1)]??101,m=Math.round((gp-progress[0])*RACE.dist/100);
   gap.innerHTML=Math.abs(m)<2?`⚔️ Au coude à coude avec ${escapeHTML(cur.rec.horse)}`:m>0?`⚔️ ${escapeHTML(cur.rec.horse)} <b>${m} m</b> devant`:`⚔️ Tu as <b>${-m} m</b> d’avance`;gap.classList.add('show');gap.classList.toggle('ahead',m<=0)});
- {const r0=raceFX.render;let last=0;raceFX.render=function(q){const on=RACE.duel&&G&&tex&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView&&!q.tvView,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
+ {const r0=raceFX.render;let last=0,gl=null;raceFX.render=function(q){const on=RACE.duel&&G&&tex&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView&&!q.tvView,now=performance.now(),dt=Math.min(.05,(now-(last||now))/1000);last=now;
   if(on){if(!ghost){ghost=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:.5,depthWrite:false,color:0xffe7b8}));ghost.frustumCulled=false;q.scene.add(ghost)}
-   const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??101,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);phase+=dt*(2.1+.5*1.6)*8;tex.offset.x=(Math.floor(phase)%8)/8;
-   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(ln-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
-  else if(ghost)ghost.visible=false;return r0.call(this,q)}}
+   const i=Math.min(raceTime,G.p.length-1),tp=G.p[i]??101,ln=G.l[i]??44;gv+=(tp-gv)*Math.min(1,dt*9);gl=gl==null?ln:gl+(ln-gl)*Math.min(1,dt*6);phase+=dt*(2.1+.5*1.6)*8;tex.offset.x=(Math.floor(phase)%8)/8;
+   if(gv<100.5){const p=trackPose(RACE_ORIGIN+gv/100,(gl-50)*.38),H=12.6;ghost.position.copy(p.p);ghost.position.y=H*.5-H*.105;ghost.scale.set(H*.375,H,1);ghost.visible=true}else ghost.visible=false}
+  else{gl=null;if(ghost)ghost.visible=false}return r0.call(this,q)}}
  // ---------- bilan ----------
  hooks.on('duel:end',()=>{const d=cur;if(!d)return;const mine=raceFinishTimes[0],his=d.rec.result.times[0],rank=finishOrder.indexOf(0)+1,won=mine<his,first=!d.won&&won;gap.classList.remove('show');
   d.tries++;d.best=d.best==null?mine:Math.min(d.best,mine);if(won){if(!d.won)D.wins++;d.won=true}else if(d.tries===1)D.losses++;save();
@@ -3784,7 +3796,7 @@ const COURONNE=[
   after:'« … Profitez-en. Cela ne se reproduira pas. »'},
  {id:'c5',n:'Le Sprint des Rois',race:{n:'Sprint des Rois',dist:1200,terrain:'bon',diff:2.5,purse:26000,fee:1000},goal:'win',req:{league:2},reward:{gems:30,pattern:'damier'},
   intro:'« Sur 1 200 m, pas de place pour la tactique. Seulement pour la vitesse. Black Majesty en a à revendre. »',
-  armand:'Tout se joue au départ : un sprinter, une sortie des stalles éclair, et aucune hésitation sur les temps forts.',
+  armand:'Tout se joue au départ : un sprinter, une sortie des stalles éclair, et un placement sans hésitation.',
   after:'« Vous commencez à m’agacer. La Couronne, en revanche, ne vous échappera pas… à moi. »'},
  {id:'c6',n:'La Couronne',race:{n:'Grand Prix de la Couronne',dist:2400,terrain:'souple',amb:'couchant',diff:2,purse:60000,fee:2500},goal:'win',bm:3,req:{league:2,haras:3},reward:{gems:100,pattern:'couronne',horse:true},
   intro:'« Le Grand Prix de la Couronne. Son vainqueur devient le premier éleveur du royaume. Black Majesty n’a jamais été aussi prêt. Et vous ? »',
@@ -4421,7 +4433,7 @@ const direct=(()=>{
   // étiquettes : projetées à chaque image, tant que la course est en cours (pas pendant l'intro, l'arrivée vue de côté ou le podium)
   function frame(){requestAnimationFrame(frame);const q=threeRace,on=scr.classList.contains('open')&&q&&!q.headless&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView&&visualProgress.length;
     tags.classList.toggle('on',!!on);if(!on)return;if(!v)v=new THREE.Vector3();const W=world.clientWidth,H=world.clientHeight,cam=q.camera.position;
-    const L=[];for(let i=0;i<6;i++){const d=T[i],lane=(laneOf(i)-50)*.38,p=trackPose(RACE_ORIGIN+(visualProgress[i]||0)/100,lane).p,dist=Math.hypot(p.x-cam.x,p.z-cam.z);
+    const L=[];for(let i=0;i<6;i++){const d=T[i],lane=((visualLane[i]??laneOf(i))-50)*.38,p=trackPose(RACE_ORIGIN+(visualProgress[i]||0)/100,lane).p,dist=Math.hypot(p.x-cam.x,p.z-cam.z);
       v.set(p.x,i?8.6:9.4,p.z).project(q.camera);const vis=v.z<1&&Math.abs(v.x)<1.05&&v.y<1&&v.y>-1&&dist<(i?170:60)&&dist>(i?9:14);
       if(!vis){if(d.style.opacity!=='0')d.style.opacity=0;continue}const k=Math.max(.55,Math.min(1.1,38/dist+.35));
       L.push({d,dist,k,x:(v.x+1)/2*W,y:(1-v.y)/2*H,w:(d.offsetWidth||90)*k,h:24*k})}

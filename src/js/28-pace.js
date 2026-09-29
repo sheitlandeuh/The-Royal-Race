@@ -3,8 +3,8 @@
    ils se disputent la tête et s'usent. Lire le plateau et choisir sa tactique en conséquence devient un vrai choix. */
 const PACE_FX={
  leader:{base:{c:1.025,d:.944},lent:{d:.75},seul:{d:.75},rapide:{},duel:.2},
- stalker:{base:{},lent:{c:.99},seul:{d:.75,c:1.005},rapide:{}},
- finisher:{base:{s:-.005},lent:{c:.985},seul:{c:.98},rapide:{d:.9}}};
+ stalker:{base:{},lent:{c:.99},seul:{d:.65,c:1.01},rapide:{}},
+ finisher:{base:{s:-.005},lent:{c:.985},seul:{c:.97},rapide:{d:.9}}};
 const pace=(()=>{
  const TAC=Object.fromEntries(TACTICS.map(([id,n])=>[id,n])),ICO={leader:'⚡',stalker:'🎯',finisher:'🏁'};
  // la tactique d'un adversaire découle de son profil (départ + vitesse → devant ; accélération → derrière), avec une part de hasard

@@ -6,8 +6,8 @@ const coach=(()=>{const el=document.createElement('div');el.className='coach';el
   // en course : seuls les conseils qui visent l'écran de course s'affichent (les autres attendent la fin de la course)
   const qi=inRace?queue.findIndex(q=>q[2]&&$(q[2])&&$('#raceScreen').contains($(q[2]))):0;if(qi<0)return later(1500);const[k,txt,sel]=queue.splice(qi,1)[0];el.classList.toggle('in-race',inRace);clearTimeout(el._t);if(inRace)el._t=setTimeout(hide,7000);el.querySelector('p').innerHTML=txt;el.hidden=false;hooks.emit('tip',k);const t=sel&&$(sel);el.classList.remove('top');if(t&&t.offsetParent&&!inRace){const r=t.getBoundingClientRect(),g=$('#game').getBoundingClientRect();// cible dans le bas de l'écran : la bulle passe en haut pour ne pas la cacher
   if(r.top-g.top>g.height*.55&&!$('#raceScreen').classList.contains('open'))el.classList.add('top');ring=document.createElement('div');ring.className='coach-ring';Object.assign(ring.style,{left:r.left-g.left-6+'px',top:r.top-g.top-6+'px',width:r.width+12+'px',height:r.height+12+'px'});$('#game').appendChild(ring)}}
- function tip(k,txt,sel){if(!career.tip(k))return;queue.push([k,txt,sel]);next()}
- // en course (multijoueur, sans pause) : le conseil s'affiche en bandeau compact, ne bloque rien et se referme seul
+ function tip(k,txt,sel){if($('#raceScreen').classList.contains('open'))return;if(!career.tip(k))return;queue.push([k,txt,sel]);next()}
+ // en course : aucun conseil (la course ne s'interrompt jamais, rien ne s'affiche par-dessus)
  return{tip,hide,get open(){return !el.hidden}}})();
 // premiers pas : après la création du champion
 champion.on(()=>{setTimeout(()=>{coach.tip('welcome',`Bienvenue au domaine ! <b>${escapeHTML(HN())}</b> est prêt pour sa première course. Touche <b>COURIR</b> : le reste du domaine s’ouvrira au fil de tes courses.`,'#playBtn')},600)});

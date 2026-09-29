@@ -15,13 +15,15 @@ const MEETINGS=[
  {id:'h2',n:'Grand Steeple Royal',dist:2400,terrain:'bon',league:2,diff:4,purse:19000,fee:1000,haies:8}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];
 const MISSION_POOL=[{k:'train',n:'Entraîner un cheval',goal:3,r:{gold:1500}},{k:'race',n:'Disputer des courses',goal:2,r:{feed:1500}},{k:'top3',n:'Finir sur le podium',goal:1,r:{gold:2500}},
- {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Sortir des stalles dans les 2 premiers',goal:1,r:{gems:5}},{k:'moment',n:'Gagner 3 places sur des temps forts',goal:3,r:{gold:2500}}];
+ {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Sortir des stalles dans les 2 premiers',goal:1,r:{gems:5}},{k:'double',n:'Doubler 5 adversaires en course',goal:5,r:{gold:2500}}];
 let RACE={...MEETINGS[1]};
 const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{const d=new Date(),t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-n+3);const f=new Date(Date.UTC(t.getUTCFullYear(),0,4));return t.getUTCFullYear()+'-S'+(1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7))};
  let C={};try{C=JSON.parse(localStorage.getItem('trr.progress')||'{}')}catch(e){}
  C.best=Math.max(C.best||0,state.trophies);C.claimed=C.claimed||[];C.tips=C.tips||{};C.stats=C.stats||{races:0,wins:0};
  const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
  function roll(){if(C.day!==day()){C.day=day();let x=[...day()].reduce((a,c)=>a*31+c.charCodeAt(0),7)%2147483647;const r=()=>(x=(x*16807)%2147483647)/2147483647;const pool=[...MISSION_POOL];C.missions=[];while(C.missions.length<3){const m=pool.splice(Math.floor(r()*pool.length),1)[0];C.missions.push({k:m.k,p:0,done:false})}}
+  // mission d'une ancienne version (ex. temps forts, retirés en 2.4) : remplacée par une mission du jour encore absente
+  if(C.missions.some(m=>!MISSION_POOL.some(x=>x.k===m.k))){C.missions=C.missions.filter(m=>MISSION_POOL.some(x=>x.k===m.k));for(const d of MISSION_POOL){if(C.missions.length>=3)break;if(!C.missions.some(m=>m.k===d.k))C.missions.push({k:d.k,p:0,done:false})}}
   if(C.week!==week()){C.week=week();C.weekRaces=0;C.weekClaimed=false}save()}
  roll();
  const league=(t=state.trophies)=>{let i=0;LEAGUES.forEach((l,k)=>{if(t>=l.min)i=k});return i};

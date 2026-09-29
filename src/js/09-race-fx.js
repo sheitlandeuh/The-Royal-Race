@@ -92,7 +92,7 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   {const m=fx.h3d&&fx.h3d[i],u=m&&m.userData,three=!!u&&!u.pending;h.visible=!three;fx.use3d=fx.use3d||[];fx.use3d[i]=three;if(m)m.visible=three;
    if(three){if(!u.hashed){u.hashed=true;u.mats.forEach(x=>{if(!x.alphaTest)x.alphaHash=true})}if(!i)HORSE3D.setLod(m,settings.level()==='haute'?0:1);
     const c=q.camera.position,dx=c.x-p.p.x,dz=c.z-p.p.z,drive=!running?0:i?(rivalAI[i-1]&&rivalAI[i-1].final?1:.15):(playerFinal&&playerEnergy>0?1:.15);
-    m.position.set(p.p.x,0,p.p.z);m.rotation.y=Math.atan2(-p.f.z,p.f.x);HORSE3D.pose(m,((fx.phase[i]/8)%1+1)%1,running?1:.12,drive,0,running?jmp:-1);if(running&&jmp>=0)m.position.y=Math.sin(jmp*Math.PI)*5.4;const near=Math.min(1,Math.max(0,(Math.hypot(dx,dz)-8.5)/3)),op=near*near*(3-2*near);if(Math.abs((u.op??1)-op)>.02){u.op=op;u.mats.forEach(x=>{x.opacity=op});m.visible=op>.02}}}
+    m.position.set(p.p.x,0,p.p.z);{const t=Math.max(-.35,Math.min(.35,p.lat||0)),hx=p.f.x+p.n.x*t,hz=p.f.z+p.n.z*t;m.rotation.order='YXZ';m.rotation.y=Math.atan2(-hz,hx);m.rotation.x=t*.55}HORSE3D.pose(m,((fx.phase[i]/8)%1+1)%1,running?1:.12,drive,0,running?jmp:-1);if(running&&jmp>=0)m.position.y=Math.sin(jmp*Math.PI)*5.4;const near=Math.min(1,Math.max(0,(Math.hypot(dx,dz)-8.5)/3)),op=near*near*(3-2*near);if(Math.abs((u.op??1)-op)>.02){u.op=op;u.mats.forEach(x=>{x.opacity=op});m.visible=op>.02}}}
   fx.phase[i]+=(running?dt*(2.1+speed*1.6)*8:dt*1.2);const fr=Math.floor(fx.phase[i]+i*3)%8;fx.gallop[i].offset.x=fr/8;
   const lift=running?Math.abs(Math.sin(fx.phase[i]/8*Math.PI*2))*.22:0,H=12.6;
   h.position.copy(p.p);h.position.y=H*.5-H*.105+lift;h.scale.set(H*.375,H,1);h.material.rotation=running?Math.sin(fx.phase[i]/8*Math.PI*2)*.012:0;

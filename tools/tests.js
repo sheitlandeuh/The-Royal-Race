@@ -57,13 +57,14 @@ export async function run({ quick = false } = {}) {
     pass('Lecture du plateau ≥ meilleure tactique fixe', rk(T.lecture) <= Math.min(rk(T.leader), rk(T.stalker), rk(T.finisher)) + .05, `lecture ${rk(T.lecture)} · fixes ${rk(T.leader)} / ${rk(T.stalker)} / ${rk(T.finisher)}`);
     const wr = wins(T.lecture) / NT; pass('Taux de victoire 35–75 % (1 600 m, cheval idéal)', wr >= .35 && wr <= .75, `${Math.round(wr * 100)} %`); await tick();
 
-    // 4. temps forts : la politique « malin » ne fait pas moins bien que toujours oui / toujours non
-    const A = { tire: 'a', breche: 'a', attaque: 'a' }; let okM = 0; const det2 = [];
-    // 30 courses au moins, même en mode rapide : sur 16, trois ou quatre temps forts suffisent à faire basculer la moyenne
-    const NM = Math.max(N, 30);
-    for (const m of ['m1', 'm3']) { const r = await bot.run([[m + ' non', {}, m, 'stalker', NM], [m + ' oui', A, m, 'stalker', NM], [m + ' malin', bot.smart, m, 'stalker', NM]]);
-      const s = rk(r[m + ' malin']), best = Math.min(rk(r[m + ' non']), rk(r[m + ' oui'])); if (s <= best + .15) okM++; det2.push(`${m} malin ${s} / meilleur fixe ${best}`) }
-    pass('Temps forts : lire la course ne pénalise pas', okM === 2, det2.join(' · ')); await tick();
+    // 4. course sans interruption : aucun temps fort, aucun conseil, aucune annonce pendant la course
+    { let opened = 0, tips = 0, live = true; hooks.on('moment:open', () => { if (live) opened++ }); hooks.on('tip', () => { if (live) tips++ });
+      for (let k = 1; k <= 3; k++) { RACE = { ...MEETINGS[k] }; currentField = null; buildField(k * 3301); stable.active().fatigue = 10; state.feed = 99999;
+        bot.headless(); startRace(); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0; coach.tip('test-course', 'test', '.steer');
+        while (finishOrder.length < 6 && n < 9000) { if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
+        raceLoop = null; leaveRace(); await tick() }
+      live = false;
+      pass('Course sans interruption', opened === 0 && tips === 0 && !moments.log.length, `${opened} temps fort · ${tips} conseil affiché pendant 3 courses`); await tick() }
 
     // 5. premières minutes : déblocages
     career.data.stats.races = 0; onboarding.apply(); const locked0 = UNLOCKS.every(U => document.body.classList.contains('lk-' + U.k));

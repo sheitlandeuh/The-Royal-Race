@@ -22,7 +22,7 @@ const direct=(()=>{
   // étiquettes : projetées à chaque image, tant que la course est en cours (pas pendant l'intro, l'arrivée vue de côté ou le podium)
   function frame(){requestAnimationFrame(frame);const q=threeRace,on=scr.classList.contains('open')&&q&&!q.headless&&q.startPhase==='running'&&!q.podiumActive&&!q.finishView&&visualProgress.length;
     tags.classList.toggle('on',!!on);if(!on)return;if(!v)v=new THREE.Vector3();const W=world.clientWidth,H=world.clientHeight,cam=q.camera.position;
-    const L=[];for(let i=0;i<6;i++){const d=T[i],lane=(laneOf(i)-50)*.38,p=trackPose(RACE_ORIGIN+(visualProgress[i]||0)/100,lane).p,dist=Math.hypot(p.x-cam.x,p.z-cam.z);
+    const L=[];for(let i=0;i<6;i++){const d=T[i],lane=((visualLane[i]??laneOf(i))-50)*.38,p=trackPose(RACE_ORIGIN+(visualProgress[i]||0)/100,lane).p,dist=Math.hypot(p.x-cam.x,p.z-cam.z);
       v.set(p.x,i?8.6:9.4,p.z).project(q.camera);const vis=v.z<1&&Math.abs(v.x)<1.05&&v.y<1&&v.y>-1&&dist<(i?170:60)&&dist>(i?9:14);
       if(!vis){if(d.style.opacity!=='0')d.style.opacity=0;continue}const k=Math.max(.55,Math.min(1.1,38/dist+.35));
       L.push({d,dist,k,x:(v.x+1)/2*W,y:(1-v.y)/2*H,w:(d.offsetWidth||90)*k,h:24*k})}

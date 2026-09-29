@@ -1,4 +1,6 @@
-/* ===== Temps forts : jusqu’à 3 décisions tactiques par course, à prendre en 4 secondes ===== */
+/* ===== Temps forts (jusqu’en 2.3) : décisions tactiques en 4 secondes pendant la course =====
+   Depuis la 2.4, la course ne s’interrompt plus : aucun temps fort n’est programmé (plan vide) et aucune annonce ne s’affiche.
+   Le moteur reste en place pour rejouer à l’identique les courses et duels enregistrés en 2.3 (plan et choix enregistrés). */
 /* Déterministe : tirage sur un flux dérivé de la graine (le flux des adversaires reste inchangé) + choix du joueur enregistrés au pas près (M.log) */
 const MOMENT_TYPES={
  tire:{a:'Le reprendre',b:'Le laisser aller',t:h=>`${h} tire sur les rênes !`,d:()=>`Il veut accélérer tout de suite. ${RACE.dist<=1200?'Sur une course courte, il peut se le permettre.':'Sur cette distance, chaque effort se paiera dans la ligne droite.'}`},
@@ -17,9 +19,9 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_F
  const lane=i=>i?rivalLanes[i-1]:playerLane,rankNow=()=>raceFinished[0]?finishOrder.indexOf(0)+1:progress.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i===0)+1;
  // le programme des temps forts est tiré au départ : chacun a sa chance et son point de déclenchement (en % de course)
  function reset(){const r=seeded((raceSeed^0x5bd1e995)>>>0),tem=stable.active().stats.tem;M={rng:r,cur:null,pending:null,next:20,fx:[],log:[],said:{},
-  plan:{tire:r()<.35+(70-tem)*.015?10+r()*24:null,breche:r()<.7?24+r()*36:null,attaque:r()<.8?42+r()*24:null}};
-  // toute première course : un seul temps fort, simple et expliqué (le cheval tire sur les rênes)
-  if(!(career.data.stats?.races>0))M.plan={tire:16,breche:null,attaque:null};card.hidden=true;news.classList.remove('show')}
+  plan:{tire:null,breche:null,attaque:null}};
+  // mêmes tirages qu'en 2.3 (résultats ignorés) : le flux M.rng reste aligné pour rejouer à l'identique une course 2.3 qui avait une brèche
+  if(r()<.35+(70-tem)*.015)r();if(r()<.7)r();if(r()<.8)r();card.hidden=true;news.classList.remove('show')}
  function fx(i){const f=M&&M.fx[i];return f&&raceTime<f.until?f:{speed:0,drain:1}}
  // quel temps fort peut surgir maintenant ?
  function pick(){const ph=progress[0],h=stable.active(),due=(k,max)=>M.plan[k]!=null&&ph>=M.plan[k]&&ph<max;
@@ -32,7 +34,7 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_F
   // l'attaque adverse a lieu quoi que fasse le joueur : il accélère, mais s'use deux fois plus vite
   if(m.k==='attaque')M.fx[m.r]=F('attack',raceTime);
   card.querySelector('.mo-title').textContent=T.t(HN(),name,m);card.querySelector('p').textContent=T.d(m);card.querySelector('[data-mo=a] span').textContent=T.a+(m.p?` · ${Math.round(m.p*100)} %`:'');card.querySelector('[data-mo=b] span').textContent=T.b;
-  card.dataset.k=m.k;card.hidden=false;hooks.emit('moment:open',m.k);card.querySelector('.mo-time i').style.transform='scaleX(1)';buzz(20);sound.say(T.t(HN(),name,m));setTimeout(()=>M&&M.cur&&coach.tip('moment',`<b>Temps fort !</b> Tu as 4 secondes pour choisir${matchMedia('(hover:none)').matches?'':' (touches <b>1</b> / <b>2</b> au clavier)'}. Sans réponse, c’est le choix de droite qui s’applique. Regarde ton endurance et la place devant toi.`,'.moment'),300)}
+  card.dataset.k=m.k;card.hidden=false;hooks.emit('moment:open',m.k);card.querySelector('.mo-time i').style.transform='scaleX(1)';buzz(20);sound.say(T.t(HN(),name,m))}
  function resolve(ch){const c=M.cur,t=raceTime;M.cur=null;card.hidden=true;let ok=true;
   if(c.k==='tire')M.fx[0]=F(ch==='a'?'tireA':'tireB',t);
   if(c.k==='breche'&&ch==='a'){ok=M.rng()<c.p;if(ok){playerTarget=c.lane;updateLane();M.fx[0]=F('gapOk',t)}else M.fx[0]=F('gapKo',t)}
@@ -44,10 +46,7 @@ const moments=(()=>{let M=null;const F=(k,t)=>({...momentFx(k),until:t+(MOMENT_F
   if(M.watch&&raceTime>=M.watch.t+50){const d=M.watch.dPos=M.watch.rank0-rankNow();if(d>0)career.bump('moment',d);M.watch=null}
   if(M.cur){if(M.pending||raceTime>=M.cur.end||raceFinished[0]){resolve(M.pending||'b');M.pending=null}else card.querySelector('.mo-time i').style.transform=`scaleX(${(M.cur.end-raceTime)/DUR})`}
   else if(!raceFinished[0]&&!playerFinal&&raceTime>=M.next){const m=pick();if(m){open(m);M.next=raceTime+DUR+55}else M.next=raceTime+3}
-  // lecture de course : qui lance son sprint, qui craque devant toi
-  rivalAI.forEach((ai,i)=>{const j=i+1,g=progress[j]-progress[0];if(raceFinished[j]||raceFinished[0])return;
-   if(ai.final&&!M.said['f'+j]&&g>-4&&g<8){M.said['f'+j]=1;say(`${raceNames[j]} lance son sprint`)}
-   else if(ai.energy<=0&&!M.said['e'+j]&&g>-2&&g<8){M.said['e'+j]=1;say(`${raceNames[j]} est à bout de souffle !`)}})}
+}
  function choose(ch){if(M&&M.cur&&!M.pending){M.pending=ch;hooks.emit('moment:choose',ch)}}
  card.addEventListener('click',e=>{const b=e.target.closest('[data-mo]');if(b)choose(b.dataset.mo)});
  document.addEventListener('keydown',e=>{if(!M||!M.cur)return;if(e.code==='Digit1'||e.code==='Numpad1')choose('a');if(e.code==='Digit2'||e.code==='Numpad2')choose('b')});

@@ -3,6 +3,8 @@
    LANE_V : vitesse latérale maximale (couloirs par pas). Deux chevaux ne peuvent jamais se superposer : on double par le côté. */
 const STALL_LANES=[12,26,40,54,68,82],HORSE_LEN=.62,HORSE_W=8,LANE_V=1.6;
 let playerTarget=44,stallOf=[0,1,2,3,4,5],raceBlocked=[0,0,0,0,0,0];
+// affichage : état juste avant le dernier pas (raceSnap), couloirs affichés lissés (visualLane) et leur vitesse (laneVel, couloirs / s)
+let raceSnap=null,visualLane=[],laneVel=[0,0,0,0,0,0];
 let playerFinal=false,raceLoop=null,progress=[],visualProgress=[],raceTime=0,playerLane=50,lookDir=0,autoSpeed=.42,playerEnergy=100,rivalAI=[],raceFinished=[],raceFinishTimes=[],finishOrder=[];state.strategy='stalker';
 const rivalLanes=[46,25,70,58,12],rivalBase=[.432,.405,.448,.415,.424];
 const raceNames=['Royal Thunder','Black Majesty','Éclair Rouge','Silver Crown','Royal Shadow','Golden Star'];

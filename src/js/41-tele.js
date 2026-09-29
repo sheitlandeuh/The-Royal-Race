@@ -16,8 +16,8 @@ const tele=(()=>{let on=false,loop=0,rec=null,i=0,keep=null,speed=1;
   q.horses.forEach((h,k)=>{h.visible=true;h.material.map=q.horseTextures[k];h.material.needsUpdate=true});
   $('#finishBoard').classList.remove('show');$('#raceResult').classList.remove('show');scr.classList.add('tv');bar.querySelector('.tv-title').textContent=r.race.n;bar.querySelector('[data-tv=speed]').textContent='×2';
   sound.crowdStart();loop=setInterval(tickTv,100)}
- function tickTv(){for(let s=0;s<speed;s++){if(finishOrder.length>=6)return end();raceLoop=-1;const I=rec.inputs;while(i<I.length&&I[i][0]<=raceTime){const[,type,val]=I[i++];if(type==='steer')steer(val);else if(type==='sprint')sprint();else if(type==='moment')moments.choose(val);else if(type==='jump')haies.choose(val)}
-   runRaceV2();raceLoop=null}sound.crowdLevel(Math.max(0,(Math.max(...progress)-60)/40))}// raceLoop factice pendant un pas : le sprint exige une course « en cours »
+ function tickTv(){const pre={p:progress.slice(),l:[playerLane,...rivalLanes]};for(let s=0;s<speed;s++){if(finishOrder.length>=6)return end();raceLoop=-1;const I=rec.inputs;while(i<I.length&&I[i][0]<=raceTime){const[,type,val]=I[i++];if(type==='steer')steer(val);else if(type==='sprint')sprint();else if(type==='moment')moments.choose(val);else if(type==='jump')haies.choose(val)}
+   runRaceV2();raceLoop=null}raceSnap={at:performance.now(),p:pre.p,l:pre.l,ms:100};sound.crowdLevel(Math.max(0,(Math.max(...progress)-60)/40))}// raceLoop factice pendant un pas : le sprint exige une course « en cours »
  function end(){stop();$('#raceResult').classList.add('show')}
  function stop(){if(!on)return;on=false;clearInterval(loop);loop=0;hooks.emit=keep.emit;career.bump=keep.bump;sound.say=keep.say;completeRace=keep.complete;scr.classList.remove('tv');$('.moment')&&($('.moment').hidden=true);
   const q=threeRace;if(q){q.tvView=false;q.finishView=true;q.camPos=null;q.camTarget=null}}

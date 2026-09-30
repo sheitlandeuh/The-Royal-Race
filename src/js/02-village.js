@@ -7,7 +7,7 @@ const VILLAGE={order:['hippodrome','carriere','haras','clinique','ecurie','chant
 /* bâtiments : nom, icône, rôle — niveaux, travaux et effets dans 45-domaine */
 const BUILDINGS={
  haras:{name:'Haras Royal',icon:'🏰',desc:'Le cœur du domaine : il limite le niveau des autres bâtiments.'},
- hippodrome:{name:'Hippodrome Royal',icon:'🏁',desc:'Toutes les courses du domaine s’y disputent.'},
+ hippodrome:{name:'Hippodrome Royal',icon:'🏁',desc:'Le grand ovale du domaine ; quatre autres hippodromes t’attendent au programme.'},
  clinique:{name:'Clinique vétérinaire',icon:'🩺',desc:'Soins, repos et guérison des blessures.'},
  ecurie:{name:'Écurie des champions',icon:'🐴',desc:'Les boxes de tes chevaux.'},
  moulin:{name:'Moulin du domaine',icon:'🌾',desc:'Produit du fourrage, même quand tu ne joues pas.'},

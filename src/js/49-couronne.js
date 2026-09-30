@@ -4,27 +4,27 @@
    motifs de casaque exclusifs (Écharpe, Éclair, Damier, Couronne) et, au bout du chemin, un cheval d'exception.
    On retente un chapitre autant qu'on veut (engagement en fourrage). Débloqué après 4 courses. */
 const COURONNE=[
- {id:'c1',n:'Le défi du Comte',race:{n:'Prix du Comte',dist:1600,terrain:'bon',diff:1,purse:9000,fee:400},goal:'rival',req:{},reward:{gold:6000,pattern:'echarpe'},
+ {id:'c1',n:'Le défi du Comte',race:{n:'Prix du Comte',hippo:'royal',dist:1600,terrain:'bon',diff:1,purse:9000,fee:400},goal:'rival',req:{},reward:{gold:6000,pattern:'echarpe'},
   intro:'« Vous avez de beaux chevaux… pour un débutant. Venez donc mesurer votre champion à Black Majesty, au Prix du Comte. Si vous osez. »',
   armand:'Pas besoin de gagner : finis simplement devant Black Majesty. Regarde sa tactique dans la liste des partants, et ne le laisse pas s’abriter dans ton sillage.',
   after:'« Une course ne fait pas une saison, mon cher. »'},
- {id:'c2',n:'La Poule d’Essai',race:{n:'Poule d’Essai Royale',dist:1600,terrain:'bon',diff:2,purse:12000,fee:500},goal:'top3',req:{},reward:{gold:8000,gems:10},
+ {id:'c2',n:'La Poule d’Essai',race:{n:'Poule d’Essai Royale',hippo:'cote',dist:1600,terrain:'bon',diff:2,purse:12000,fee:500},goal:'top3',req:{},reward:{gold:8000,gems:10},
   intro:'« La Poule d’Essai réunit les meilleurs milers du royaume. Votre place n’y est pas encore… prouvez-moi le contraire. »',
   armand:'Un podium suffit. Lis le rythme avant le départ : sur un mile, la tactique fait la différence.',
   after:'« Troisième, deuxième… le public ne se souvient que du vainqueur. »'},
- {id:'c3',n:'Sous l’orage',race:{n:'Prix de l’Orage',dist:2000,terrain:'lourd',diff:2.5,purse:15000,fee:700},goal:'rival',req:{league:1},reward:{gems:15,pattern:'eclair'},
+ {id:'c3',n:'Sous l’orage',race:{n:'Prix de l’Orage',hippo:'cimes',dist:2000,terrain:'lourd',diff:2.5,purse:15000,fee:700},goal:'rival',req:{league:1},reward:{gems:15,pattern:'eclair'},
   intro:'« Il pleut sur le domaine. Black Majesty adore la boue, et vos chevaux de salon la détestent. »',
   armand:'Terrain lourd : l’endurance compte double. Engage un cheval de tenue, des fers à crampons, et garde des forces pour la ligne droite.',
   after:'« La chance… sans doute la chance. »'},
- {id:'c4',n:'Le Jockey-Club',race:{n:'Prix du Jockey-Club Royal',dist:2400,terrain:'bon',amb:'couchant',diff:1,purse:22000,fee:900},goal:'win',req:{league:1,haras:2},reward:{gems:25,chest:'or'},
+ {id:'c4',n:'Le Jockey-Club',race:{n:'Prix du Jockey-Club Royal',hippo:'foret',dist:2400,terrain:'bon',amb:'couchant',diff:1,purse:22000,fee:900},goal:'win',req:{league:1,haras:2},reward:{gems:25,chest:'or'},
   intro:'« Le Jockey-Club ! Mon grand-père l’a gagné, mon père l’a gagné, et je le gagnerai. »',
   armand:'2 400 m, la plus longue course du royaume, et cette fois il faut gagner. Un cheval tenace, un jockey économe… et du sang-froid pour sprinter au bon moment.',
   after:'« … Profitez-en. Cela ne se reproduira pas. »'},
- {id:'c5',n:'Le Sprint des Rois',race:{n:'Sprint des Rois',dist:1200,terrain:'bon',diff:2.5,purse:26000,fee:1000},goal:'win',req:{league:2},reward:{gems:30,pattern:'damier'},
+ {id:'c5',n:'Le Sprint des Rois',race:{n:'Sprint des Rois',hippo:'capitale',dist:1200,terrain:'bon',diff:2.5,purse:26000,fee:1000},goal:'win',req:{league:2},reward:{gems:30,pattern:'damier'},
   intro:'« Sur 1 200 m, pas de place pour la tactique. Seulement pour la vitesse. Black Majesty en a à revendre. »',
   armand:'Tout se joue au départ : un sprinter, une sortie des stalles éclair, et un placement sans hésitation.',
   after:'« Vous commencez à m’agacer. La Couronne, en revanche, ne vous échappera pas… à moi. »'},
- {id:'c6',n:'La Couronne',race:{n:'Grand Prix de la Couronne',dist:2400,terrain:'souple',amb:'couchant',diff:2,purse:60000,fee:2500},goal:'win',bm:3,req:{league:2,haras:3},reward:{gems:100,pattern:'couronne',horse:true},
+ {id:'c6',n:'La Couronne',race:{n:'Grand Prix de la Couronne',hippo:'royal',dist:2400,terrain:'souple',amb:'couchant',diff:2,purse:60000,fee:2500},goal:'win',bm:3,req:{league:2,haras:3},reward:{gems:100,pattern:'couronne',horse:true},
   intro:'« Le Grand Prix de la Couronne. Son vainqueur devient le premier éleveur du royaume. Black Majesty n’a jamais été aussi prêt. Et vous ? »',
   armand:'C’est la course de ta vie : terrain souple, 2 400 m, le meilleur Black Majesty qu’on ait jamais vu. Repose ton cheval, choisis ton jockey… et fais-moi honneur.',
   after:'« Le royaume a un nouveau maître… Je vous salue. Mais retenez bien ceci : Black Majesty a un fils. »'}];
@@ -44,7 +44,7 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
  hooks.on('courses:render',()=>{const g=$('#panelBody .meets');if(!g)return;const ch=cur();
   if(RACE.couronne){const c=byId(RACE.couronne),info=g.nextElementSibling;if(info&&info.tagName==='P')info.insertAdjacentHTML('beforeend',` · <b class="cour-goal">👑 Objectif : ${GOALS[c.goal].charAt(0).toLowerCase()+GOALS[c.goal].slice(1)}</b>`);
    const t=$('#panelBody .taunt p');if(t)t.textContent=c.intro;$('#panelBody .taunt')?.insertAdjacentHTML('afterend',`<div class="taunt cour-armand"><div class="tface">🎩</div><div><b>Maître Armand</b><p>${c.armand}</p></div></div>`)}
-  if(ch&&!lock(ch))g.insertAdjacentHTML('afterbegin',`<button class="meet cour-meet${RACE.couronne===ch.id?' on':''}" data-cour="${ch.id}"><b>👑 ${ch.n}</b><em class="suit ideal">Chapitre ${idx()+1} / 6</em><small>${fmt(ch.race.dist)} m · ${TERRAINS[ch.race.terrain].n} · ${GOALS[ch.goal]}</small><span>🪙 ${fmt(purseOf(ch.race))}</span></button>`)});
+  if(ch&&!lock(ch))g.insertAdjacentHTML('afterbegin',`<button class="meet cour-meet${RACE.couronne===ch.id?' on':''}" data-cour="${ch.id}"><b>👑 ${ch.n}</b><em class="suit ideal">Chapitre ${idx()+1} / 6</em><i class="hip" data-hippo="${hippoOf(ch.race)}">${HIPPOS[hippoOf(ch.race)].i} ${HIPPOS[hippoOf(ch.race)].c}</i><small>${fmt(ch.race.dist)} m · ${TERRAINS[ch.race.terrain].n} · ${GOALS[ch.goal]}</small><span>🪙 ${fmt(purseOf(ch.race))}</span></button>`)});
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.cour){if(select(b.dataset.cour))renderCourses()}
   else if(b.dataset.courGo){if(select(b.dataset.courGo)){$('#panelTitle').textContent='Courses';$('#panel .card').classList.add('wide');renderCourses()}}});
@@ -69,7 +69,7 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
  function open(){$('#panelTitle').textContent='La Couronne';$('#panel .card').classList.add('wide');const i=idx();
   $('#panelBody').innerHTML=`<p class="hint">Six Grands Prix contre le <b>Comte de Valmont</b> et son Black Majesty, jusqu’au Grand Prix de la Couronne. Chaque chapitre a un objectif ; on le retente autant qu’on veut.</p>
   <div class="cour-path">${COURONNE.map((ch,k)=>{const done=K.done.includes(ch.id),L=!done&&lock(ch),now=k===i;
-   return `<article class="cour-ch${done?' done':''}${now?' now':''}${L?' locked':''}"><div class="cour-n">${done?'✓':k+1}</div><div class="cour-body"><b>${ch.n}</b><small>${escapeHTML(ch.race.n)} · ${fmt(ch.race.dist)} m · ${TERRAINS[ch.race.terrain].n} · ${GOALS[ch.goal]}</small>
+   return `<article class="cour-ch${done?' done':''}${now?' now':''}${L?' locked':''}"><div class="cour-n">${done?'✓':k+1}</div><div class="cour-body"><b>${ch.n}</b><small>${escapeHTML(ch.race.n)} · ${HIPPOS[hippoOf(ch.race)].i} ${HIPPOS[hippoOf(ch.race)].c} · ${fmt(ch.race.dist)} m · ${TERRAINS[ch.race.terrain].n} · ${GOALS[ch.goal]}</small>
     ${now?`<p class="cour-quote">${ch.intro}</p><p class="cour-tip">🎩 ${ch.armand}</p>`:''}<span class="cour-rw">${rtxt(ch.reward)}</span>
     ${now?(L?`<span class="dom-lock">🔒 ${L}</span>`:`<button class="action green" data-cour-go="${ch.id}">👑 DISPUTER LE CHAPITRE${K.tries[ch.id]?` · essai ${K.tries[ch.id]+1}`:''}</button>`):done?'<span class="chip">Réussi</span>':''}</div></article>`}).join('')}</div>`;
   $('#panel').classList.add('open')}

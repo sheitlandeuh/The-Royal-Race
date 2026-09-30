@@ -5,7 +5,7 @@ const AMBIANCES={
  couvert:{n:'Ciel couvert',i:'🌥️',zen:[.24,.29,.35],mid:[.4,.45,.51],hor:[.6,.64,.68],sunC:[1,1,1],sunK:.04,sun:[0xe4ebf2,1.25,-160,420,120],hemi:[0xcdd6df,0x323a31,1.45],fog:[0x8a949c,260,1500],cloud:.86,tint:0xd2d8de,board:0xaab1b7,horizon:0xa4adb5,exp:.9},
  nocturne:{n:'Nocturne sous les projecteurs',i:'🌙',zen:[.004,.008,.03],mid:[.012,.024,.06],hor:[.05,.07,.13],sunC:[.75,.82,1],sunK:.25,sun:[0xf4f6ff,2.5,-160,420,120],hemi:[0xeef2ff,0x2a3040,2.6],fog:[0x0b1222,340,1700],cloud:.18,tint:0xd8e0ff,board:0x7f8aa0,horizon:0x3a4660,exp:1.1,night:1},
  pluie:{n:'Sous la pluie',i:'🌧️',zen:[.13,.16,.2],mid:[.25,.29,.33],hor:[.42,.46,.5],sunC:[1,1,1],sunK:0,sun:[0xcfd8e2,.75,-160,420,120],hemi:[0xa8b4c0,0x26302a,1.25],fog:[0x5a636b,170,1000],cloud:.97,tint:0xb2bac2,board:0x8a939a,horizon:0x6f7a84,exp:.84,rain:true}};
-MEETINGS.forEach(m=>{if(m.id==='m5'||m.id==='m6')m.amb='couchant';if(m.id==='n1')m.amb='nocturne'});
+MEETINGS.forEach(m=>{if(m.id==='m5'||m.id==='m6'||m.id==='p3')m.amb='couchant';if(m.id==='n1')m.amb='nocturne'});
 const ambiance=(()=>{let rain=null,cur=null;
  // terrain bon : plein soleil, ou coucher de soleil quand c'est le soir chez le joueur (heure du domaine)
  const key=(m=RACE)=>m.amb||(m.terrain==='lourd'?'pluie':m.terrain==='souple'?'couvert':document.body.dataset.tod==='soir'?'couchant':document.body.dataset.tod==='nuit'?'nocturne':'jour');
@@ -20,7 +20,8 @@ const ambiance=(()=>{let rain=null,cur=null;
   q.sun.color.set(A.sun[0]);q.sun.intensity=A.sun[1];q.sun.position.set(A.sun[2],A.sun[3],A.sun[4]);q.hemi.color.set(A.hemi[0]);q.hemi.groundColor.set(A.hemi[1]);q.hemi.intensity=A.hemi[2];
   // reflets du ciel du moment (2.4) : l'environnement prend le relais d'une partie de la lumière d'ambiance
   if(!q.headless&&settings.level()!=='basse'){const g=new THREE.Color(A.hemi[1]),sc=new THREE.Color(A.sun[0]);try{q.scene.environment=raceFX.skyEnv(q.renderer,{zen:A.zen,hor:A.hor,gnd:[g.r,g.g,g.b],sun:A.sun.slice(2),sunC:[sc.r,sc.g,sc.b],sunK:Math.min(1,A.sunK)*(A.night?.05:1),k:A.night?.25:.85});q.hemi.intensity=A.hemi[2]*.62}catch(e){}}else q.scene.environment=null;
-  q.scene.fog.color.set(A.fog[0]);q.scene.fog.near=A.fog[1];q.scene.fog.far=A.fog[2];
+  // brume propre à l'hippodrome (2.7) : sous-bois plus voilé, air de montagne plus limpide
+  const HF=HIPPOS[hippoOf()].fog;q.scene.fog.color.set(A.fog[0]);q.scene.fog.near=A.fog[1]*HF[0];q.scene.fog.far=A.fog[2]*HF[1];
   if(fx){const U=fx.skyMat&&fx.skyMat.uniforms;if(U){U.uZen.value=v(A.zen);U.uMid.value=v(A.mid);U.uHor.value=v(A.hor);U.uSunC.value=v(A.sunC);U.uSunK.value=A.sunK;U.uSun.value=v(A.sun.slice(2)).normalize();if(U.uCloud)U.uCloud.value=A.cloud??.4;if(U.uNight)U.uNight.value=A.night||0}
    try{raceWorld.night(A.night||0)}catch(e){}
    fx.horizonMat&&fx.horizonMat.color.set(A.horizon);fx.boards.forEach(b=>b.material.color.set(A.board));raceFX.exposure=A.exp}

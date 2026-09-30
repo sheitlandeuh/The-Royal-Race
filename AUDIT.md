@@ -60,6 +60,18 @@ Tous les quatre sont corrigés en 2.6, avec des tests qui empêchent leur retour
 
 ---
 
+## Suivi 2.7 (30/09/2026)
+
+Parti d'une capture d'iPhone : la fiche d'un bâtiment se faisait recouvrir par l'objectif, les coffres et COURIR. Mesuré ensuite sur 14 tailles d'écran, pas seulement celle de la capture.
+
+| Constat (mesuré) | Correction | Preuve |
+|---|---|---|
+| Domaine : fiche du bâtiment × objectif × coffres × COURIR **sur toutes les tailles** (320 px à 1280 px), titre coupé en deux lignes, coût d'AMÉLIORER caché ; ressources sur le profil à 320 px ; étiquette 3D du bâtiment sous le rail | Fiche placée par mesure au-dessus de la barre du bas, objectif effacé pendant qu'elle est ouverte, deux rangées sur téléphone, bouton ×, caméra qui cadre le bâtiment au-dessus de la fiche, étiquette gardée dans la zone libre, montants abrégés | `tools/hud.cjs` : 0 chevauchement de 320×568 à 1920×1080 (en CI) ; profil de fumée 320×568 |
+| Écran de course : carte du cheval sur ◀ en tablette paysage (1000–1024 px), allure sur ▶ ou sur SPRINT en téléphone paysage (640–932 px), « 860 / m » coupé | Commandes décalées après la carte, allure à côté du sprint, espaces insécables | idem |
+| Contenu (P1 n° 6) : un seul hippodrome | Cinq hippodromes au tracé et au décor différents, quatre courses de plus (13 au programme) | Tests « Hippodromes » (6), équilibrage au bot par hippodrome (README) |
+
+Scores revus : Mobile 7 → 8, Contenu 5 → 6. Le reste du tableau et des priorités ci-dessous est inchangé.
+
 ## Ce qui reste — P0 : bloquant pour vendre (décisions et comptes à ta main)
 
 Inchangé depuis l'audit précédent, parce que rien de cela ne peut se faire sans toi :
@@ -77,7 +89,7 @@ Inchangé depuis l'audit précédent, parce que rien de cela ne peut se faire sa
 3. **Tutoriel de course.** Le premier départ explique peu : couloir, sillage, sprint et allure se découvrent seuls. Un départ guidé, sans rien afficher par-dessus la course (par exemple une course d'essai commentée à la voix), réduirait les abandons.
 4. **Allure « presser ».** Le bot montre la valeur de « retenir en lisant sa jauge », pas encore celle de « presser ». À valider en playtest, ou à réserver aux ouvertures dans le peloton.
 5. **Audio.** Tout est synthétisé : il faut des bruitages et une musique enregistrés.
-6. **Contenu.** Un seul hippodrome et 9 courses, c'est peu pour garder les joueurs des semaines.
+6. **Contenu.** Cinq hippodromes et 13 courses depuis la 2.7 ; il manque encore un calendrier et des événements pour garder les joueurs des semaines.
 7. **Accessibilité, suite** : taille du texte réglable, mode daltonien (casaques, pastilles de forme), annonces pour lecteur d'écran en dehors de la course.
 8. **Anglais.** Le jeu est en français seulement : environ 550 textes à extraire.
 

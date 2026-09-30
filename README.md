@@ -2,6 +2,8 @@
 
 Jeu de courses hippiques pour navigateur (PC et mobile) : domaine équestre, écurie, entraînement, courses en 3D.
 
+**Version 2.7** — cinq hippodromes au tracé et au décor différents (Royal, Forêt, Côte, Cimes, Capitale), où la forme de la piste compte en course, et une interface du domaine qui ne se chevauche plus sur aucun écran.
+
 **Version 2.4** — des courses sans interruption (plus de conseils ni de temps forts à choisir en pleine course), des déplacements gauche / droite fluides (le cheval s'oriente et s'incline en changeant de couloir), des chevaux et jockeys plus réalistes (robe lustrée qui reflète le ciel, relief musculaire, soie satinée), un hippodrome plus lumineux et un domaine plus détaillé. Détails dans « Nouveautés de la 2.4 ».
 
 **Version 2.3** — des courses pensées pour le multijoueur : départ commun sans bouton (les stalles s'ouvrent pour tous au GO), plus de pause, des chevaux solides qui ne se traversent plus (on double par le côté), le nom et la place de chaque partant au-dessus de lui avec un classement en direct, et une interface repensée façon jeu vidéo (nouvelles polices, néons, HUD). Détails dans « Nouveautés de la 2.3 ».
@@ -36,7 +38,7 @@ python3 tools/build.py   # idem, sans Node
 
 Tests automatiques, dans la console du jeu servi en local : `await import('./tools/tests.js').then(m => m.run())` (rejeu identique, falsification détectée, équilibrage des tactiques, course sans interruption, déblocages, défi identique pour tous, effets du domaine, duel vérifié et triche refusée, chapitre de la Couronne, catalogue des ventes, modules chargés, journal des erreurs, écuries rivales, aucun texte factice). En ligne de commande (Playwright) : `node tools/run-tests.cjs --quick`.
 
-**Intégration continue** (`.github/workflows/verifications.yml`) : à chaque envoi sur `main` ou une branche `claude/…`, GitHub Actions vérifie que `index.html` est bien régénéré depuis `src/`, la syntaxe, lance les tests rapides puis le test de fumée en 1280×800 et 390×844 (`MOBILE=1`).
+**Intégration continue** (`.github/workflows/verifications.yml`) : à chaque envoi sur `main` ou une branche `claude/…`, GitHub Actions vérifie que `index.html` est bien régénéré depuis `src/`, la syntaxe, lance les tests rapides, le test de fumée en 1280×800, 390×844 et 320×568 (`MOBILE=1`), puis le contrôle des chevauchements de l'interface (`tools/hud.cjs`).
 
 Test de fumée (Playwright) : `python3 -m http.server 8765` puis `node tools/smoke.cjs` — charge le jeu avec sept sauvegardes types (neuve, débutant, une course, confirmé, fin de partie, noms piégés, sauvegarde abîmée) et ouvre tous les écrans ; échoue à la moindre erreur JavaScript, à un module en échec, à un texte cassé ou trop petit (moins de 10 px), ou si un nom piégé exécute du code. `--shots dossier` produit les captures en 1280×800 et 390×844.
 
@@ -93,6 +95,22 @@ Un nouveau joueur ne voit que le domaine et la course. Les systèmes s’ouvrent
 ## Simulation
 La course est **déterministe** : avec la même graine (tirée à la création du plateau) et les mêmes actions du joueur, le résultat est identique. C’est ce qui permettra au serveur de revérifier les courses (étape 3).
 Voir `claude/the-royal-race-systeme-ecurie.md` (projet) pour les formules.
+
+## Nouveautés de la 2.7
+
+**Cinq hippodromes.** Chaque course a son hippodrome (`src/js/04-hippodromes.js`) : un tracé (longueur des lignes droites, rayon des virages, sens) et un décor 3D (`09-race-world`, thèmes).
+| Hippodrome | Tracé | Décor | Coût des virages pour qui court au large |
+|---|---|---|---|
+| 🏰 Royal | ovale 520 m / rayon 165, main gauche | château, étang, champs (inchangé) | référence (0,318) |
+| 🌲 Forêt | 400 / 146, **main droite** | tribunes en bois, sapins et chênes serrés, pavillon de chasse, brume | +21 % |
+| 🌊 Côte | 720 / 180, main gauche | plage, mer, phare, cabines, voiliers, pins parasols, dunes | −19 % |
+| 🏔️ Cimes | 470 / 156, **main droite** | montagnes enneigées, chalets, lac, sapins | +8 % |
+| 🌃 Capitale | 480 / 132, main gauche | tours éclairées la nuit, boulevard, grande tribune de verre | +16 % |
+
+Le tracé compte : `courseTurn` tire la place et la force des virages de la géométrie (l'Hippodrome Royal garde exactement ses valeurs : ses courses et leurs rejeux ne changent pas, moteur 5 compatible avec le moteur 4). Mesuré au bot (1 600 m, joueur confirmé) : un bon joueur gagne 35–50 % sur chaque hippodrome, courir au large coûte davantage en Forêt et à la Capitale, et « lire le plateau » reste la meilleure tactique partout. Sur un hippodrome à main droite, la corde est à droite de l'écran : ◀ ▶ suivent l'écran.
+Quatre nouvelles courses (Prix de la Plage dès la ligue Bronze, Prix des Sapins, Grand Prix de la Capitale, Prix du Glacier), les courses existantes réparties sur les hippodromes, le Défi du jour et le Tournoi qui changent d'hippodrome, chaque chapitre de La Couronne sur le sien, un succès « Tour des hippodromes ».
+
+**Interface.** La fiche d'un bâtiment se place au-dessus des coffres et de COURIR (mesurée à chaque changement de taille), l'objectif s'efface le temps qu'elle est ouverte, deux rangées sur téléphone, bouton de fermeture ; la caméra cadre le bâtiment au-dessus de sa fiche ; montants abrégés (2,3 M) ; écran de course corrigé sur tablette en paysage et téléphone en paysage. Nouveau contrôle `tools/hud.cjs` (14 tailles de 320 à 1920 px, intégration continue).
 
 ## Nouveautés de la 2.6
 

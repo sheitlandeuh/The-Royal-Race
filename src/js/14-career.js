@@ -3,16 +3,21 @@ const LEAGUES=[{id:'bronze',n:'Bronze',min:0,col:'#c9834a',reward:{gold:0}},{id:
  {id:'or',n:'Or',min:900,col:'#f3c64a',reward:{gold:25000,gems:60}},{id:'royale',n:'Royale',min:1800,col:'#b98cff',reward:{gold:60000,gems:150}}];
 const TERRAINS={bon:{n:'Bon',speed:1,drain:1,d:'Terrain rapide'},souple:{n:'Souple',speed:.985,drain:1.1,d:'L’endurance compte davantage'},lourd:{n:'Lourd',speed:.965,drain:1.22,d:'Épuisant : réservé aux chevaux de tenue'}};
 const MEETINGS=[
- {id:'m1',n:'Prix des Écuries',dist:1200,terrain:'bon',league:0,diff:-4,purse:3500,fee:300},
- {id:'m2',n:'Grand Prix du Domaine Royal',dist:1600,terrain:'bon',league:0,diff:0,purse:7000,fee:500},
- {id:'m3',n:'Prix de la Forêt',dist:2000,terrain:'souple',league:1,diff:1,purse:8500,fee:600},
- {id:'m4',n:'Coupe d’Automne',dist:2400,terrain:'lourd',league:2,diff:3,purse:14000,fee:900},
- {id:'m5',n:'Critérium des Sprinters',dist:1200,terrain:'bon',league:2,diff:4,purse:15000,fee:900},
- {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000},
+ {id:'m1',n:'Prix des Écuries',dist:1200,terrain:'bon',league:0,diff:-4,purse:3500,fee:300,hippo:'royal'},
+ {id:'m2',n:'Grand Prix du Domaine Royal',dist:1600,terrain:'bon',league:0,diff:0,purse:7000,fee:500,hippo:'royal'},
+ {id:'m3',n:'Prix de la Forêt',dist:2000,terrain:'souple',league:1,diff:1,purse:8500,fee:600,hippo:'foret'},
+ {id:'m4',n:'Coupe d’Automne',dist:2400,terrain:'lourd',league:2,diff:3,purse:14000,fee:900,hippo:'cimes'},
+ {id:'m5',n:'Critérium des Sprinters',dist:1200,terrain:'bon',league:2,diff:4,purse:15000,fee:900,hippo:'cote'},
+ {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000,hippo:'royal'},
+ {id:'n1',n:'Nocturne de la Capitale',dist:1600,terrain:'bon',league:1,diff:2,purse:11500,fee:700,hippo:'capitale'},
  // courses de haies (10-haies) : un choix d'élan avant chaque obstacle
- {id:'n1',n:'Nocturne Royale',dist:1600,terrain:'bon',league:1,diff:2,purse:11500,fee:700},
- {id:'h1',n:'Prix des Haies',dist:2000,terrain:'souple',league:1,diff:0,purse:9500,fee:600,haies:6},
- {id:'h2',n:'Grand Steeple Royal',dist:2400,terrain:'bon',league:2,diff:4,purse:19000,fee:1000,haies:8}];
+ {id:'h1',n:'Prix des Haies',dist:2000,terrain:'souple',league:1,diff:0,purse:9500,fee:600,haies:6,hippo:'cimes'},
+ {id:'h2',n:'Grand Steeple Royal',dist:2400,terrain:'bon',league:2,diff:4,purse:19000,fee:1000,haies:8,hippo:'royal'},
+ // 2.7 : une course sur chaque nouvel hippodrome (ajoutées en fin de liste : l'ordre des premières sert au Défi du jour)
+ {id:'p1',n:'Prix de la Plage',dist:1600,terrain:'bon',league:0,diff:-2,purse:4500,fee:350,hippo:'cote'},
+ {id:'p2',n:'Prix des Sapins',dist:1200,terrain:'bon',league:1,diff:1,purse:9000,fee:600,hippo:'foret'},
+ {id:'p3',n:'Grand Prix de la Capitale',dist:2000,terrain:'bon',league:2,diff:5,purse:21000,fee:1100,hippo:'capitale'},
+ {id:'p4',n:'Prix du Glacier',dist:1600,terrain:'souple',league:3,diff:6,purse:30000,fee:1500,hippo:'cimes'}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];
 const MISSION_POOL=[{k:'train',n:'Entraîner un cheval',goal:3,r:{gold:1500}},{k:'race',n:'Disputer des courses',goal:2,r:{feed:1500}},{k:'top3',n:'Finir sur le podium',goal:1,r:{gold:2500}},
  {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Sortir des stalles dans les 2 premiers',goal:1,r:{gems:5}},{k:'double',n:'Doubler 5 adversaires en course',goal:5,r:{gold:2500}}];
@@ -49,5 +54,5 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.claimM!=null){claimMission(+b.dataset.claimM);openMissions()}else if(b.dataset.claimL!=null)claimLeague(+b.dataset.claimL);else if(b.hasAttribute('data-claim-w'))claimWeek()});
  return{bump,afterRace,league,badges,openMissions,openTrophies,openEvents,tip:k=>{if(C.tips[k])return false;C.tips[k]=1;save();return true},get data(){return C},roll,save}})();
 /* ---------- programme des courses ---------- */
-function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m);return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<small>${m.haies?`🏇 ${m.haies} haies · `:''}${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(purseOf(m))}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
+function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m),H=HIPPOS[hippoOf(m)];return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" data-hippo="${hippoOf(m)}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<i class="hip" data-hippo="${hippoOf(m)}">${H.i} ${H.c}</i><small>${m.haies?`🏇 ${m.haies} haies · `:''}${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(purseOf(m))}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
 $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-meet]');if(!b)return;if(b.dataset.meet==='tour'){RACE=tour.meeting();stable.setActive(tour.horse);champion.emit()}else RACE={...MEETINGS.find(m=>m.id===b.dataset.meet)};buildField();renderCourses()});

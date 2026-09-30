@@ -73,14 +73,14 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   const scene=new THREE.Scene(),quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),mat);quad.frustumCulled=false;scene.add(quad);return{mat,scene,cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1),rt:null}}
  function build(q){const{scene,renderer}=q;fx={boards:[],horseShadows:[],phase:[0,0,0,0,0,0],last:performance.now(),blur:0,fov:62,size:new THREE.Vector2()};fx.shadowTex=radialTex();
   const sunDir=new THREE.Vector3(-260,360,180).normalize();sky(scene,sunDir);
-  // monde en vraie 3D ; si sa construction échoue, on revient au décor photo d'origine
-  try{fx.world=raceWorld.build(scene,QUALITY[settings.level()])}catch(e){console.warn('monde 3D',e);horizon(scene);billboards(scene,renderer)}
   {const s=q.sun.shadow.camera;s.left=s.bottom=-115;s.right=s.top=115;s.near=10;s.far=900;s.updateProjectionMatrix();q.sun.shadow.bias=-.0004;q.sun.shadow.normalBias=.04}
   fx.dust=dust(scene);fx.post=post();
   for(let i=0;i<6;i++)fx.horseShadows.push(blob(scene,3.4,8.2,.5));
   // chevaux : planche de galop 8 images peinte aux couleurs de chaque écurie (joueur = son champion)
   fx.gallop=[];q.horses.forEach((h,i)=>{const t=new THREE.CanvasTexture(document.createElement('canvas'));t.colorSpace=THREE.SRGBColorSpace;t.repeat.set(1/8,1);t.anisotropy=8;fx.gallop.push(t);q.horseTextures[i]=t;const m=h.material;m.map=t;m.alphaTest=.35;m.needsUpdate=true});liveries(q);
  }
+ // décor de l'hippodrome (2.7, dans le groupe de 10-race raceVenue) : monde en vraie 3D ; si sa construction échoue, décor photo d'origine
+ function world(q,g){if(!fx)return;fx.boards=[];fx.horizonMat=null;fx.world=null;try{fx.world=raceWorld.build(g,QUALITY[settings.level()],TRACK.id,TRACK.dir)}catch(e){console.warn('monde 3D',e);horizon(g);billboards(g,q.renderer)}}
  function liveries(q){if(!fx)return;LIVERY.ready.then(()=>{const me=champion.get(),F=currentField||buildField(),list=[me,...F.rivals.map(r=>r.livery)];fx.liv=list;
   (fx.h3d||[]).forEach(m=>{q.scene.remove(m);HORSE3D.dispose(m)});fx.h3d=list.map((l,i)=>{const m=HORSE3D.build(l,{number:i+1,blinkers:!i&&gear.sel.id==='oeilleres',lod:!i&&settings.level()==='haute'?0:1});m.scale.setScalar(4.4);m.visible=false;q.scene.add(m);return m});
   hurdles(q);
@@ -148,5 +148,5 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
  function burst(p,n=24,power=1){if(!fx||!fx.dust)return;const D=fx.dust;for(let k=0;k<n;k++){const j=D.next=(D.next+1)%D.N,side=(Math.random()-.5)*4.5,fw=(Math.random()-.2)*3;
    D.pos[j*3]=p.p.x+p.f.x*fw+p.n.x*side;D.pos[j*3+1]=.3+Math.random()*.6;D.pos[j*3+2]=p.p.z+p.f.z*fw+p.n.z*side;const sp=(4+Math.random()*9)*power;
    D.vel[j*3]=p.f.x*sp+p.n.x*(Math.random()-.5)*5;D.vel[j*3+1]=2.5+Math.random()*5.5*power;D.vel[j*3+2]=p.f.z*sp+p.n.z*(Math.random()-.5)*5;D.life[j]=.7+Math.random()*.7}}
- return{build,horse,podium,parade,render,ground,liveries,burst,skyEnv,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
+ return{build,world,horse,podium,parade,render,ground,liveries,burst,skyEnv,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
 })();

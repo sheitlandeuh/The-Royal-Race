@@ -1,6 +1,8 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🗺️','Cinq hippodromes','Forêt (main droite, virages serrés), Côte face à la mer (longues lignes droites), Cimes au pied des glaciers, Capitale sous les projecteurs, et l’Hippodrome Royal. Le tracé compte : dans les virages serrés, courir au large coûte plus cher. Quatre nouvelles courses, et un succès pour qui gagne partout.',0,'2.7'],
+ ['📐','Domaine plus lisible','La fiche d’un bâtiment ne recouvre plus l’objectif, les coffres ni COURIR, sur aucun téléphone ; la caméra cadre le bâtiment au-dessus de sa fiche. Gros montants abrégés (2,3 M) dans la barre du haut.',0,'2.7'],
  ['📱','Course lisible sur petits téléphones','Sur les écrans étroits, la carte du cheval, l’allure, le sprint et les couloirs ne se chevauchent plus. Le commentaire ne s’affiche plus par-dessus la course : tu entends le speaker, le classement en direct donne les écarts.',0,'2.6'],
  ['🔋','Plus économe, sans ralentir','Le domaine affiche moitié moins d’images quand tu ne le touches pas, et la mémoire graphique ne s’accumule plus de course en course : de longues sessions restent fluides.',0,'2.6'],
  ['✨','Finitions','Bouton COURIR toujours visible, temps à la française (89,55 s), atelier du champion dès l’ouverture du jeu, réglage « réduire les animations » de ton appareil respecté.',0,'2.6'],

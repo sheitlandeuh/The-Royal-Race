@@ -238,3 +238,76 @@
     @media (max-width:360px) and (orientation:portrait){.pace-ctl button small{letter-spacing:0!important}}
     .slot.empty small{font-size:10.5px}
     .runners .nem{font-size:10px}.jk-face{font-size:10px!important}
+    /* ===== 2.7 : HUD du domaine sans chevauchement =====
+       La carte du bâtiment se pose au-dessus de la barre du bas (--sel-b, mesurée par 45-domaine) ; l'objectif s'efface tant qu'elle est ouverte.
+       Téléphone : deux rangées (icône + nom + effet, puis les deux actions côte à côte). PC : une rangée, nom jamais coupé en deux. */
+    #selection.selection{bottom:var(--sel-b,196px);width:min(680px,calc(100% - 24px));box-sizing:border-box;flex-wrap:wrap;gap:8px 10px;padding:12px 14px;transition:opacity .25s,transform .25s}
+    #selection .icon{flex:none}
+    #selection .copy{flex:1 1 200px;min-width:0}
+    #selection h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;line-height:1.25}
+    #selection p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;line-height:1.35}
+    #selection .action{flex:0 0 auto;min-width:124px;padding:9px 12px;font-size:13px;line-height:1.25;white-space:nowrap}
+    #selection .action small{white-space:normal;font-size:11px}
+    #selection .sel-x{position:absolute;top:-12px;right:-8px;width:34px;height:34px;padding:0;border-radius:50%;border:1px solid var(--line);background:linear-gradient(180deg,#1b2459,#0a0e27);color:#fff;font:700 21px/1 var(--fu);display:grid;place-items:center;box-shadow:0 4px 12px #000a;cursor:pointer}
+    body.sel-open .homebar .goal{opacity:0;visibility:hidden;pointer-events:none;animation:none}
+    .rail{transition:opacity .2s,visibility .2s}body.hud-serre .rail{opacity:0;visibility:hidden;pointer-events:none}
+    @media (max-width:600px){
+      #selection.selection{width:calc(100% - 20px);padding:10px 12px 12px;gap:8px}
+      #selection .icon{width:42px;height:42px;font-size:23px}
+      #selection .copy{flex:1 1 calc(100% - 60px)}
+      #selection h2{font-size:16px;padding-right:18px}
+      #selection p{font-size:12px}
+      #selection .action{flex:1 1 0;min-width:0;padding:8px 6px;font-size:12.5px;letter-spacing:.04em}
+      /* le nom est déjà sur la carte : au-dessus du bâtiment, seulement l'icône et le niveau */
+      .bld-tag.show em{display:none}
+    }
+    @media (max-height:500px) and (orientation:landscape){
+      .rail{top:calc(98px + env(safe-area-inset-top,0px))}
+      #selection.selection{width:min(560px,calc(100% - 140px));padding:8px 12px;gap:6px 10px}
+      #selection .icon{width:40px;height:40px;font-size:22px}
+      #selection p{-webkit-line-clamp:1}
+      #selection .copy{flex:1 1 120px}#selection .action{min-width:104px;padding:7px 10px}
+      /* pastille « ! » de la barre du bas : dans le coin, plus sur le libellé */
+      .nav.hot::after{top:-6px;right:-4px;z-index:2}
+    }
+    /* téléphones courts : les rails (jusqu'à 4 boutons) remontent pour laisser la place à l'objectif au-dessus des coffres */
+    @media (max-width:600px) and (orientation:portrait){.rail{top:max(96px,min(30%,calc(100% - 454px)))}}
+    /* barre du haut sur petits téléphones : les ressources ne recouvrent plus le profil */
+    @media (max-width:380px){
+      .resources{gap:3px;right:6px}.resource{font-size:15px;height:34px;padding:3px 7px 3px 4px;gap:4px}.resource i{font-size:17px}.resource .ico{width:20px;height:20px}
+      .profile{left:6px}
+    }
+    /* ===== 2.7 : hippodromes — étiquette sur chaque carte de course, fiche de l'hippodrome choisi ===== */
+    [data-hippo]{--hc:#f0c457}[data-hippo=foret]{--hc:#6fd08c}[data-hippo=cote]{--hc:#5cc8ff}[data-hippo=cimes]{--hc:#cfe6ff}[data-hippo=capitale]{--hc:#b98cff}
+    .meet .hip{font-style:normal;align-self:flex-start;margin:1px 0 2px;padding:1px 8px;border-radius:999px;font:700 11px/1.5 var(--fu);letter-spacing:.04em;color:var(--hc);background:#ffffff0d;border:1px solid color-mix(in srgb,var(--hc) 45%,transparent)}
+    .hip-info{display:flex;align-items:center;gap:12px;margin:12px 0 0;padding:10px 14px;border-radius:var(--rs,12px);border:1px solid color-mix(in srgb,var(--hc) 40%,transparent);background:linear-gradient(100deg,color-mix(in srgb,var(--hc) 16%,transparent),#ffffff05 70%)}
+    .hip-info>i{font-style:normal;font-size:28px;line-height:1;flex:none}
+    .hip-info b{font:400 15px var(--fd);color:#fff;letter-spacing:.02em}
+    .hip-info span{color:var(--hc);font:700 12.5px var(--fu);letter-spacing:.03em}
+    .hip-info small{display:block;margin-top:2px;color:#c9d7e2;font:400 12.5px/1.4 var(--fb);letter-spacing:0}
+    @media (max-width:420px){.hip-info{padding:9px 11px;gap:10px}.hip-info>i{font-size:24px}.hip-info b{font-size:14px}}
+    /* ===== 2.7 : écran de course aux tailles intermédiaires (mesuré : tablette en paysage, téléphone en paysage 667 et 932 px) ===== */
+    /* tablette et petit PC en paysage : la carte du cheval ne passe plus sous ◀, les commandes commencent après elle */
+    @media (min-width:851px) and (max-width:1180px) and (min-height:501px) and (orientation:landscape){
+      #raceScreen .auto-gallop{max-width:270px;box-sizing:border-box}
+      #raceScreen .steer{left:calc(300px + env(safe-area-inset-left,0px));transform:none;width:min(430px,calc(100% - 510px))}
+    }
+    /* téléphone en paysage : carte compacte, allure au-dessus du sprint (plus sous ▶ ni sous SPRINT), regards plus haut */
+    @media (max-height:500px) and (orientation:landscape){
+      #raceScreen .auto-gallop{max-width:250px;padding:7px 10px;gap:2px}
+      #raceScreen .auto-gallop>span{display:none}
+      #raceScreen .auto-gallop b{font-size:13.5px}
+      #raceScreen .auto-gallop .sprint-info{white-space:nowrap;font-size:11px}
+      #raceScreen .steer{left:calc(268px + env(safe-area-inset-left,0px))}
+      #raceScreen .lane-meter{width:clamp(70px,calc(100vw - 588px),130px)}
+      /* coin bas droit : [allure][SPRINT] sur une rangée */
+      #raceScreen .sprint-btn{right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:76px;height:76px}
+      #raceScreen .pace-ctl{right:calc(100px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));width:62px}
+      #raceScreen .look{top:30%}
+    }
+    @media (max-height:500px) and (max-width:700px) and (orientation:landscape){
+      #raceScreen .auto-gallop{max-width:232px}
+      #raceScreen .steer{left:calc(246px + env(safe-area-inset-left,0px))}
+      #raceScreen .steer button{width:58px}
+      #raceScreen .lane-meter span{display:none}
+    }

@@ -10,7 +10,7 @@ const tele=(()=>{let on=false,loop=0,rec=null,i=0,keep=null,speed=1;
   keep={emit:hooks.emit,bump:career.bump,say:sound.say,complete:completeRace};const E=keep.emit;
   hooks.emit=(e,...a)=>{if(e==='race:launch')return E(e,...a);if(e==='race:leave'){stop();return E(e,true)}};career.bump=()=>{};sound.say=()=>{};completeRace=()=>{};
   RACE=JSON.parse(JSON.stringify(r.race));currentField=JSON.parse(JSON.stringify(r.field));racePlayer=JSON.parse(JSON.stringify(r.player));state.strategy=r.strategy;raceSeed=r.seed;raceRng=seeded(raceSeed);
-  resetRacers();runRaceV2.said=1;runRaceV2.tipd=1;
+  raceVenue(threeRace);resetRacers();runRaceV2.said=1;runRaceV2.tipd=1;
   initRivalAI();if(r.plan)moments.plan=r.plan;
   const q=threeRace;q.podiumActive=false;q.finishView=false;q.tvView=true;q.startPhase='running';q.camPos=null;q.camTarget=null;q.podium.visible=false;q.stalls.visible=true;q.stalls.userData.doors.forEach(d=>{d.rotation.x=-Math.PI/2;d.position.y=.15});
   q.horses.forEach((h,k)=>{h.visible=true;h.material.map=q.horseTextures[k];h.material.needsUpdate=true});

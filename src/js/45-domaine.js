@@ -92,4 +92,23 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  check();refresh();
  // pour les tests : tout au niveau maximal
  const debug={max(){ORDER.forEach(id=>{D.lv[id]=BATIMENTS[id].max});D.work=[];save();refresh()}};
- return{open,start,finishNow,collect,stock,cap,rate:id=>PROD[id].rate(dlv(id)),builders,free,block,cost,minutes,name,refresh,debug,get work(){return D.work}}})();
+ // ---------- 2.7 : la carte se pose au-dessus de la barre du bas (coffres, COURIR), mesurée à chaque changement de taille : aucun
+ // chevauchement, quel que soit l'écran. L'objectif s'efface tant qu'elle est ouverte. zone = partie du domaine 3D laissée libre
+ // par le HUD (51-domaine3d y garde l'étiquette du bâtiment choisi et y cadre la caméra).
+ const zone={l:0,r:innerWidth,t:96,b:innerHeight};
+ function place(){const g=$('#game'),bar=$('.homebar'),card=$('#selection');if(!g||!bar)return;const G=g.getBoundingClientRect(),B=bar.getBoundingClientRect();
+  const top=B.height?B.top:G.bottom-90,sb=Math.round(G.bottom-top+8);g.style.setProperty('--sel-b',sb+'px');
+  const r=s=>{const e=$(s);if(!e||!e.offsetParent)return null;const x=e.getBoundingClientRect();return x.width?x:null},L=r('.rail.left'),Rr=r('.rail.right'),top2=r('.resources');
+  // petit écran : si la carte ouverte touche les rails de boutons, ils s'effacent le temps qu'elle reste ouverte
+  const open=card.classList.contains('open'),cw=card.offsetWidth,ct=G.bottom-sb-card.offsetHeight,cl=G.left+(G.width-cw)/2,
+   serre=open&&[L,Rr].some(x=>x&&x.bottom>ct-6&&x.right>cl&&x.left<cl+cw);document.body.classList.toggle('hud-serre',serre);
+  zone.l=(L&&!serre?L.right:0)+6;zone.r=(Rr&&!serre?Rr.left:G.width)-6;zone.t=Math.max(80,(top2?top2.bottom:60)+12);
+  zone.b=open?ct-10:G.bottom-sb-40}
+ // mise en place synchrone (microtâche, mise en page forcée) : jamais une image avec l'ancienne position
+ const ob=new MutationObserver(()=>{document.body.classList.toggle('sel-open',$('#selection').classList.contains('open'));place()});ob.observe($('#selection'),{attributes:true,attributeFilter:['class']});
+ // le texte de COURIR (course, cheval) change la hauteur de la barre : la carte suit tout de suite
+ new MutationObserver(()=>place()).observe($('.homebar'),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden']});
+ $('#selClose').onclick=e=>{e.stopPropagation();village.deselect()};
+ addEventListener('resize',()=>requestAnimationFrame(place));try{new ResizeObserver(()=>place()).observe($('.homebar'))}catch(e){}
+ hooks.on('ready',()=>setTimeout(place,50));
+ return{open,start,finishNow,collect,stock,cap,rate:id=>PROD[id].rate(dlv(id)),builders,free,block,cost,minutes,name,refresh,debug,place,zone,get work(){return D.work}}})();

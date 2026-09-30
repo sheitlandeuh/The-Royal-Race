@@ -750,6 +750,79 @@
     @media (max-width:360px) and (orientation:portrait){.pace-ctl button small{letter-spacing:0!important}}
     .slot.empty small{font-size:10.5px}
     .runners .nem{font-size:10px}.jk-face{font-size:10px!important}
+    /* ===== 2.7 : HUD du domaine sans chevauchement =====
+       La carte du bâtiment se pose au-dessus de la barre du bas (--sel-b, mesurée par 45-domaine) ; l'objectif s'efface tant qu'elle est ouverte.
+       Téléphone : deux rangées (icône + nom + effet, puis les deux actions côte à côte). PC : une rangée, nom jamais coupé en deux. */
+    #selection.selection{bottom:var(--sel-b,196px);width:min(680px,calc(100% - 24px));box-sizing:border-box;flex-wrap:wrap;gap:8px 10px;padding:12px 14px;transition:opacity .25s,transform .25s}
+    #selection .icon{flex:none}
+    #selection .copy{flex:1 1 200px;min-width:0}
+    #selection h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;line-height:1.25}
+    #selection p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;line-height:1.35}
+    #selection .action{flex:0 0 auto;min-width:124px;padding:9px 12px;font-size:13px;line-height:1.25;white-space:nowrap}
+    #selection .action small{white-space:normal;font-size:11px}
+    #selection .sel-x{position:absolute;top:-12px;right:-8px;width:34px;height:34px;padding:0;border-radius:50%;border:1px solid var(--line);background:linear-gradient(180deg,#1b2459,#0a0e27);color:#fff;font:700 21px/1 var(--fu);display:grid;place-items:center;box-shadow:0 4px 12px #000a;cursor:pointer}
+    body.sel-open .homebar .goal{opacity:0;visibility:hidden;pointer-events:none;animation:none}
+    .rail{transition:opacity .2s,visibility .2s}body.hud-serre .rail{opacity:0;visibility:hidden;pointer-events:none}
+    @media (max-width:600px){
+      #selection.selection{width:calc(100% - 20px);padding:10px 12px 12px;gap:8px}
+      #selection .icon{width:42px;height:42px;font-size:23px}
+      #selection .copy{flex:1 1 calc(100% - 60px)}
+      #selection h2{font-size:16px;padding-right:18px}
+      #selection p{font-size:12px}
+      #selection .action{flex:1 1 0;min-width:0;padding:8px 6px;font-size:12.5px;letter-spacing:.04em}
+      /* le nom est déjà sur la carte : au-dessus du bâtiment, seulement l'icône et le niveau */
+      .bld-tag.show em{display:none}
+    }
+    @media (max-height:500px) and (orientation:landscape){
+      .rail{top:calc(98px + env(safe-area-inset-top,0px))}
+      #selection.selection{width:min(560px,calc(100% - 140px));padding:8px 12px;gap:6px 10px}
+      #selection .icon{width:40px;height:40px;font-size:22px}
+      #selection p{-webkit-line-clamp:1}
+      #selection .copy{flex:1 1 120px}#selection .action{min-width:104px;padding:7px 10px}
+      /* pastille « ! » de la barre du bas : dans le coin, plus sur le libellé */
+      .nav.hot::after{top:-6px;right:-4px;z-index:2}
+    }
+    /* téléphones courts : les rails (jusqu'à 4 boutons) remontent pour laisser la place à l'objectif au-dessus des coffres */
+    @media (max-width:600px) and (orientation:portrait){.rail{top:max(96px,min(30%,calc(100% - 454px)))}}
+    /* barre du haut sur petits téléphones : les ressources ne recouvrent plus le profil */
+    @media (max-width:380px){
+      .resources{gap:3px;right:6px}.resource{font-size:15px;height:34px;padding:3px 7px 3px 4px;gap:4px}.resource i{font-size:17px}.resource .ico{width:20px;height:20px}
+      .profile{left:6px}
+    }
+    /* ===== 2.7 : hippodromes — étiquette sur chaque carte de course, fiche de l'hippodrome choisi ===== */
+    [data-hippo]{--hc:#f0c457}[data-hippo=foret]{--hc:#6fd08c}[data-hippo=cote]{--hc:#5cc8ff}[data-hippo=cimes]{--hc:#cfe6ff}[data-hippo=capitale]{--hc:#b98cff}
+    .meet .hip{font-style:normal;align-self:flex-start;margin:1px 0 2px;padding:1px 8px;border-radius:999px;font:700 11px/1.5 var(--fu);letter-spacing:.04em;color:var(--hc);background:#ffffff0d;border:1px solid color-mix(in srgb,var(--hc) 45%,transparent)}
+    .hip-info{display:flex;align-items:center;gap:12px;margin:12px 0 0;padding:10px 14px;border-radius:var(--rs,12px);border:1px solid color-mix(in srgb,var(--hc) 40%,transparent);background:linear-gradient(100deg,color-mix(in srgb,var(--hc) 16%,transparent),#ffffff05 70%)}
+    .hip-info>i{font-style:normal;font-size:28px;line-height:1;flex:none}
+    .hip-info b{font:400 15px var(--fd);color:#fff;letter-spacing:.02em}
+    .hip-info span{color:var(--hc);font:700 12.5px var(--fu);letter-spacing:.03em}
+    .hip-info small{display:block;margin-top:2px;color:#c9d7e2;font:400 12.5px/1.4 var(--fb);letter-spacing:0}
+    @media (max-width:420px){.hip-info{padding:9px 11px;gap:10px}.hip-info>i{font-size:24px}.hip-info b{font-size:14px}}
+    /* ===== 2.7 : écran de course aux tailles intermédiaires (mesuré : tablette en paysage, téléphone en paysage 667 et 932 px) ===== */
+    /* tablette et petit PC en paysage : la carte du cheval ne passe plus sous ◀, les commandes commencent après elle */
+    @media (min-width:851px) and (max-width:1180px) and (min-height:501px) and (orientation:landscape){
+      #raceScreen .auto-gallop{max-width:270px;box-sizing:border-box}
+      #raceScreen .steer{left:calc(300px + env(safe-area-inset-left,0px));transform:none;width:min(430px,calc(100% - 510px))}
+    }
+    /* téléphone en paysage : carte compacte, allure au-dessus du sprint (plus sous ▶ ni sous SPRINT), regards plus haut */
+    @media (max-height:500px) and (orientation:landscape){
+      #raceScreen .auto-gallop{max-width:250px;padding:7px 10px;gap:2px}
+      #raceScreen .auto-gallop>span{display:none}
+      #raceScreen .auto-gallop b{font-size:13.5px}
+      #raceScreen .auto-gallop .sprint-info{white-space:nowrap;font-size:11px}
+      #raceScreen .steer{left:calc(268px + env(safe-area-inset-left,0px))}
+      #raceScreen .lane-meter{width:clamp(70px,calc(100vw - 588px),130px)}
+      /* coin bas droit : [allure][SPRINT] sur une rangée */
+      #raceScreen .sprint-btn{right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:76px;height:76px}
+      #raceScreen .pace-ctl{right:calc(100px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));width:62px}
+      #raceScreen .look{top:30%}
+    }
+    @media (max-height:500px) and (max-width:700px) and (orientation:landscape){
+      #raceScreen .auto-gallop{max-width:232px}
+      #raceScreen .steer{left:calc(246px + env(safe-area-inset-left,0px))}
+      #raceScreen .steer button{width:58px}
+      #raceScreen .lane-meter span{display:none}
+    }
   </style>
 </head>
 <body>
@@ -766,7 +839,7 @@
   </section>
   <aside class="rail left"><button class="square" data-panel="missions" aria-label="Missions"><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="missions-p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6dc"/><stop offset="1" stop-color="#dcc38c"/></linearGradient><linearGradient id="missions-e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c99a55"/><stop offset="1" stop-color="#8a5b22"/></linearGradient></defs><rect x="16" y="14" width="32" height="38" rx="3" fill="url(#missions-p)" stroke="#8a5b22" stroke-width="1.4"/><rect x="12" y="10" width="40" height="7" rx="3.5" fill="url(#missions-e)"/><rect x="12" y="49" width="40" height="7" rx="3.5" fill="url(#missions-e)"/><path d="M22 25 H42 M22 31 H42 M22 37 H36" stroke="#8a6a3a" stroke-width="2" stroke-linecap="round"/><circle cx="41" cy="42" r="5" fill="#b92c32"/></svg><i class="badge">3</i></button><button class="square" data-panel="trophees" aria-label="Trophées"><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="trophees-t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset="0.35" stop-color="#f3c64a"/><stop offset="0.7" stop-color="#c98b17"/><stop offset="1" stop-color="#8a5a0c"/></linearGradient></defs><path d="M18 12 H46 V24 A14 14 0 0 1 18 24 Z" fill="url(#trophees-t)" stroke="#7a4d08" stroke-width="1.4"/><path d="M18 16 H10 Q10 30 22 32 M46 16 H54 Q54 30 42 32" fill="none" stroke="#c98b17" stroke-width="3.5"/><rect x="28" y="37" width="8" height="8" fill="url(#trophees-t)"/><rect x="20" y="45" width="24" height="8" rx="2" fill="#5a3a1a" stroke="#3a2410"/><path d="M23 16 V26" stroke="#fff" stroke-width="3" opacity=".5" stroke-linecap="round"/></svg></button><button class="square" data-panel="palmares" aria-label="Palmarès"><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="club-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3f6fb3"/><stop offset="1" stop-color="#10294c"/></linearGradient><linearGradient id="club-t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset="0.35" stop-color="#f3c64a"/><stop offset="0.7" stop-color="#c98b17"/><stop offset="1" stop-color="#8a5a0c"/></linearGradient></defs><path d="M32 8 L52 15 V30 C52 44 42 52 32 57 C22 52 12 44 12 30 V15 Z" fill="url(#club-s)" stroke="url(#club-t)" stroke-width="3.5"/><path d="M22 28 L26 22 L29 26 L32 19 L35 26 L38 22 L42 28 V32 H22 Z" fill="url(#club-t)"/><path d="M20 38 H44" stroke="#f3c64a" stroke-width="2.5"/></svg><i class="badge" hidden>0</i></button><button class="square" data-panel="couronne" aria-label="La Couronne"><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="cour-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".45" stop-color="#f3c64a"/><stop offset="1" stop-color="#9d6417"/></linearGradient></defs><path d="M10 46 L8 18 L22 30 L32 12 L42 30 L56 18 L54 46 Z" fill="url(#cour-g)" stroke="#6b4508" stroke-width="2" stroke-linejoin="round"/><rect x="10" y="46" width="44" height="8" rx="2" fill="url(#cour-g)" stroke="#6b4508" stroke-width="2"/><circle cx="32" cy="36" r="4" fill="#b92c32" stroke="#6b1418"/><circle cx="20" cy="39" r="3" fill="#1f5fbf"/><circle cx="44" cy="39" r="3" fill="#1f5fbf"/><circle cx="8" cy="17" r="3" fill="url(#cour-g)"/><circle cx="32" cy="11" r="3.4" fill="url(#cour-g)"/><circle cx="56" cy="17" r="3" fill="url(#cour-g)"/><path d="M16 22 L20 40" stroke="#fff" stroke-width="2.5" opacity=".45" stroke-linecap="round"/></svg><i class="badge" hidden>!</i></button></aside>
   <aside class="rail right"><button class="square" data-panel="saison" aria-label="Route des étoiles"><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="saison-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#f3c64a"/><stop offset="1" stop-color="#b07a12"/></linearGradient></defs><path d="M32 6 L39.6 23.4 L58 24.6 L43.8 36.6 L48.4 55 L32 45 L15.6 55 L20.2 36.6 L6 24.6 L24.4 23.4 Z" fill="url(#saison-g)" stroke="#7a4d08" stroke-width="2"/><path d="M26 22 L32 12" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/></svg><i class="badge" hidden>0</i></button><button class="square" data-panel="boutique" aria-label="Boutique"><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="boutique-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8474e"/><stop offset="1" stop-color="#9b1d24"/></linearGradient><linearGradient id="boutique-w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdf6e6"/><stop offset="1" stop-color="#e3d3b0"/></linearGradient><linearGradient id="boutique-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98a4a"/><stop offset="1" stop-color="#7a4a1e"/></linearGradient></defs><rect x="14" y="28" width="36" height="26" fill="url(#boutique-b)"/><rect x="20" y="34" width="24" height="20" fill="#2a1a0c"/><rect x="24" y="38" width="16" height="6" fill="#f3c64a"/><path d="M10.0 18 H18.8 V29 Q14.4 34 10.0 29 Z" fill="url(#boutique-a)"/><path d="M18.8 18 H27.6 V29 Q23.200000000000003 34 18.8 29 Z" fill="url(#boutique-w)"/><path d="M27.6 18 H36.400000000000006 V29 Q32.0 34 27.6 29 Z" fill="url(#boutique-a)"/><path d="M36.400000000000006 18 H45.2 V29 Q40.800000000000004 34 36.400000000000006 29 Z" fill="url(#boutique-w)"/><path d="M45.2 18 H54.0 V29 Q49.6 34 45.2 29 Z" fill="url(#boutique-a)"/><rect x="9" y="14" width="46" height="5" rx="2" fill="#7a4a1e"/></svg><i class="badge" hidden>1</i></button><button class="square" data-panel="events" aria-label="Événements"><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="events-c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e3e8ee"/></linearGradient><linearGradient id="events-r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e04b4b"/><stop offset="1" stop-color="#9b1d24"/></linearGradient></defs><rect x="12" y="14" width="40" height="40" rx="6" fill="url(#events-c)" stroke="#6b7785" stroke-width="1.4"/><path d="M12 20 A6 6 0 0 1 18 14 H46 A6 6 0 0 1 52 20 V26 H12 Z" fill="url(#events-r)"/><rect x="21" y="9" width="4" height="10" rx="2" fill="#6b7785"/><rect x="39" y="9" width="4" height="10" rx="2" fill="#6b7785"/><path d="M32 31 L34.6 37.6 L41.6 37.9 L36.2 42.3 L38 49 L32 45.2 L26 49 L27.8 42.3 L22.4 37.9 L29.4 37.6 Z" fill="#f3c64a" stroke="#b07a12"/></svg><i class="badge">1</i></button></aside>
-  <section class="selection" id="selection"><div class="icon" id="selIcon">🏰</div><div class="copy"><h2 id="selTitle">Haras Royal</h2><p id="selDesc">Le cœur du domaine.</p></div><button class="action" id="infoBtn">INFOS</button><button class="action green" id="upgradeBtn">AMÉLIORER<br>🪙 25 000</button></section>
+  <section class="selection" id="selection"><div class="icon" id="selIcon">🏰</div><div class="copy"><h2 id="selTitle">Haras Royal</h2><p id="selDesc">Le cœur du domaine.</p></div><button class="action" id="infoBtn">INFOS</button><button class="action green" id="upgradeBtn">AMÉLIORER<br>🪙 25 000</button><button class="sel-x" id="selClose" aria-label="Fermer la fiche du bâtiment">×</button></section>
   <nav class="dock" aria-label="Navigation principale"><button class="nav active" data-view="domaine"><span><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="domaine-w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3dc"/><stop offset="1" stop-color="#d9bf8f"/></linearGradient><linearGradient id="domaine-r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d6f9a"/><stop offset="1" stop-color="#173a5a"/></linearGradient></defs><rect x="14" y="26" width="36" height="28" fill="url(#domaine-w)" stroke="#8a6a3a"/><path d="M11 27 L32 12 L53 27 Z" fill="url(#domaine-r)"/><rect x="28" y="40" width="8" height="14" rx="4" fill="#5a3a1a"/><rect x="19" y="32" width="6" height="7" fill="#f7cf6a"/><rect x="39" y="32" width="6" height="7" fill="#f7cf6a"/><path d="M32 12 V4 L40 7 L32 9" fill="#b92c32" stroke="#6b4a1a"/></svg></span>DOMAINE</button><button class="nav" data-view="chevaux"><span><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="chevaux-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98a52"/><stop offset="0.6" stop-color="#8a4a22"/><stop offset="1" stop-color="#4e2610"/></linearGradient></defs><path d="M20 56 C18 44 20 34 24 28 L20 16 L27 20 L30 12 L33 20 C44 22 52 32 50 44 L44 46 L40 40 C36 42 34 48 36 56 Z" fill="url(#chevaux-h)" stroke="#3a1c0a" stroke-width="1.4"/><path d="M24 28 C22 36 22 46 24 56" stroke="#2a1408" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="37" cy="28" r="2.2" fill="#1a0c04"/><path d="M26 22 L33 20" stroke="#e8c8a0" stroke-width="1.2" opacity=".6"/></svg></span>CHEVAUX</button><button class="nav" data-view="courses"><span><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs></defs><path d="M16 58 V8" stroke="#6b4a1a" stroke-width="4" stroke-linecap="round"/><path d="M18 10 Q32 4 50 10 V34 Q32 28 18 34 Z" fill="#fff" stroke="#222" stroke-width="1.2"/><rect x="18" y="10" width="8" height="8" fill="#111" transform="skewY(-3)"/><rect x="34" y="10" width="8" height="8" fill="#111" transform="skewY(-3)"/><rect x="26" y="18" width="8" height="8" fill="#111" transform="skewY(-3)"/><rect x="42" y="18" width="8" height="8" fill="#111" transform="skewY(-3)"/><rect x="18" y="26" width="8" height="8" fill="#111" transform="skewY(-3)"/><rect x="34" y="26" width="8" height="8" fill="#111" transform="skewY(-3)"/></svg></span>COURSES</button><button class="nav" data-view="ventes"><span><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="ventes-w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9965a"/><stop offset="1" stop-color="#6e3a14"/></linearGradient><linearGradient id="ventes-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#f3c64a"/><stop offset="1" stop-color="#a86f0e"/></linearGradient></defs><rect x="29" y="22" width="7" height="34" rx="3.5" fill="url(#ventes-w)" stroke="#3a1c0a" stroke-width="1.2" transform="rotate(-42 32.5 39)"/><g transform="rotate(-42 27 20)"><rect x="12" y="11" width="30" height="16" rx="4" fill="url(#ventes-w)" stroke="#3a1c0a" stroke-width="1.4"/><rect x="10" y="12" width="5" height="14" rx="2" fill="url(#ventes-g)"/><rect x="39" y="12" width="5" height="14" rx="2" fill="url(#ventes-g)"/></g><rect x="30" y="50" width="26" height="7" rx="3" fill="url(#ventes-g)" stroke="#6b4508" stroke-width="1.2"/><path d="M34 51 H52" stroke="#fff" stroke-width="1.5" opacity=".5"/></svg></span>VENTES</button><button class="nav" data-view="events"><span><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="cup-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#f3c64a"/><stop offset="1" stop-color="#a86f0e"/></linearGradient></defs><path d="M18 12 H46 V26 C46 36 40 42 32 42 C24 42 18 36 18 26 Z" fill="url(#cup-g)" stroke="#6b4508" stroke-width="2"/><path d="M18 16 H10 C10 26 14 30 19 31 M46 16 H54 C54 26 50 30 45 31" fill="none" stroke="#d49b2a" stroke-width="3.5" stroke-linecap="round"/><path d="M29 42 H35 V49 H29 Z" fill="#c8982c"/><path d="M21 49 H43 L45 56 H19 Z" fill="url(#cup-g)" stroke="#6b4508" stroke-width="2"/><path d="M25 17 V28" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".6"/></svg></span>TOURNOI</button></nav>
   <div class="panel" id="panel"><section class="card"><header><h2 id="panelTitle">Mes chevaux</h2><button class="close" id="closePanel" aria-label="Fermer">×</button></header><div id="panelBody"></div></section></div>
   <section class="race-screen immersive" id="raceScreen" aria-label="Course immersive en direct">
@@ -897,7 +970,7 @@ const journal = (() => {
   };
 })();
 </script>
-<script type="text/x-module" data-f="01-core.js">const VERSION='2.6';
+<script type="text/x-module" data-f="01-core.js">const VERSION='2.7';
 const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
@@ -921,7 +994,9 @@ function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.ad
 // sauvegarde impossible (stockage du navigateur plein ou bloqué, 2.6) : prévenir une fois par session au lieu de perdre la progression en silence
 const saveKo=(()=>{let said=false;return e=>{try{journal.erreur('sauvegarde',String(e&&e.name||e),'')}catch(x){}if(said||window.__noSave)return;said=true;
  setTimeout(()=>toast('Sauvegarde impossible : le stockage du navigateur est plein ou bloqué. Exporte ta partie : Réglages → Transférer ma partie.',8000),0)}})();
-function sync(){ $('#gold').textContent=fmt(state.gold);$('#feed').textContent=fmt(state.feed);$('#gems').textContent=fmt(state.gems);$('#trophies').textContent=fmt(state.trophies)}
+// barre du haut : nombres compacts au-delà de 100 000 (« 150 k », « 2,5 M », arrondis vers le bas), valeur exacte au survol
+const fmtC=n=>n<1e5?fmt(n):n<1e6?fmt(Math.floor(n/1e3))+'\u00a0k':(Math.floor(n/1e4)/100).toLocaleString('fr-FR')+'\u00a0M';
+function sync(){ for(const k of['gold','feed','gems']){const e=$('#'+k);e.textContent=fmtC(state[k]);e.parentElement.title=fmt(state[k])}$('#trophies').textContent=fmt(state.trophies)}
 </script>
 <script type="text/x-module" data-f="02-village.js">/* ===== Domaine : bâtiments, étiquettes, sélection =====
    Depuis la 2.5, le domaine est entièrement en 3D (51-domaine3d) : plus de peinture. Ce module crée, pour chaque bâtiment,
@@ -932,7 +1007,7 @@ const VILLAGE={order:['hippodrome','carriere','haras','clinique','ecurie','chant
 /* bâtiments : nom, icône, rôle — niveaux, travaux et effets dans 45-domaine */
 const BUILDINGS={
  haras:{name:'Haras Royal',icon:'🏰',desc:'Le cœur du domaine : il limite le niveau des autres bâtiments.'},
- hippodrome:{name:'Hippodrome Royal',icon:'🏁',desc:'Toutes les courses du domaine s’y disputent.'},
+ hippodrome:{name:'Hippodrome Royal',icon:'🏁',desc:'Le grand ovale du domaine ; quatre autres hippodromes t’attendent au programme.'},
  clinique:{name:'Clinique vétérinaire',icon:'🩺',desc:'Soins, repos et guérison des blessures.'},
  ecurie:{name:'Écurie des champions',icon:'🐴',desc:'Les boxes de tes chevaux.'},
  moulin:{name:'Moulin du domaine',icon:'🌾',desc:'Produit du fourrage, même quand tu ne joues pas.'},
@@ -976,6 +1051,25 @@ $$('[data-panel]').forEach(b=>b.onclick=()=>openPanel(b.dataset.panel));
 $$('.nav').forEach(n=>n.onclick=()=>{$$('.nav').forEach(x=>x.classList.remove('active'));n.classList.add('active');if(n.dataset.view==='domaine'){$('#panel').classList.remove('open');village.deselect()}else openPanel(n.dataset.view)});
 $('#closePanel').onclick=()=>$('#panel').classList.remove('open');$('#panel').onclick=e=>{if(e.target===$('#panel'))$('#panel').classList.remove('open')};document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#panel').classList.remove('open');village.deselect()}});sync();
 </script>
+<script type="text/x-module" data-f="04-hippodromes.js">/* ===== Hippodromes (2.7) : chaque course se court sur un hippodrome (RACE.hippo ; Hippodrome Royal par défaut) =====
+   Un hippodrome, c'est un tracé — longueur des lignes droites S, rayon des virages r, sens (main gauche 1, main droite -1) — et un décor
+   (thème de 09-race-world). Le tracé compte en course : courseTurn (10-race) tire la place et la force des deux virages de la géométrie
+   (TRACKS) ; plus un virage est serré, plus courir au large y coûte. L'Hippodrome Royal garde exactement ses valeurs d'avant la 2.7,
+   donc ses courses et leurs rejeux ne changent pas. RACE.hippo voyage avec la course (rejeu, duel) : rien ne dépend de l'appareil. */
+const HIPPOS={
+ royal:{n:'Hippodrome Royal',c:'Royal',i:'🏰',S:520,r:165,dir:1,fog:[1,1],trait:'Tracé équilibré',d:'Le grand ovale du domaine, face au château : lignes droites et virages équilibrés.'},
+ foret:{n:'Hippodrome de la Forêt',c:'Forêt',i:'🌲',S:400,r:146,dir:-1,fog:[.62,.8],trait:'Main droite, virages serrés',d:'À main droite, sous les chênes et les sapins : des virages serrés où courir au large coûte cher, une ligne d’arrivée courte.'},
+ cote:{n:'Hippodrome de la Côte',c:'Côte',i:'🌊',S:720,r:180,dir:1,fog:[1.1,1.15],trait:'Longues lignes droites, virages larges',d:'Face à la mer : de longues lignes droites et des virages larges, où courir au large coûte moins cher qu’ailleurs.'},
+ cimes:{n:'Hippodrome des Cimes',c:'Cimes',i:'🏔️',S:470,r:156,dir:-1,fog:[1.3,1.3],trait:'Main droite, au pied des glaciers',d:'Au pied des glaciers, à main droite : un tracé technique, des virages plus serrés qu’au domaine.'},
+ capitale:{n:'Hippodrome de la Capitale',c:'Capitale',i:'🌃',S:480,r:132,dir:1,fog:[1,1.05],trait:'Virages très serrés',d:'Au cœur de la ville, sous les projecteurs : des virages très serrés, la corde vaut de l’or.'}};
+const hippoOf=(R=RACE)=>R&&HIPPOS[R.hippo]?R.hippo:'royal';
+// géométrie dérivée : longueur du tour L, départ o (l'arrivée est à 32 m de la fin de la ligne d'arrivée, comme au domaine),
+// fenêtres des deux virages en fraction de course et force k (inverse du rayon, 1 à l'Hippodrome Royal)
+const TRACKS={};for(const[id,h]of Object.entries(HIPPOS)){const L=2*h.S+2*Math.PI*h.r,o=(h.S-32)/L;TRACKS[id]={L,o,t1:[h.S/L-o,(h.S+Math.PI*h.r)/L-o],t2:[(2*h.S+Math.PI*h.r)/L-o,1-o],k:165/h.r}}
+// tracé affiché (trackPose) : m = sens appliqué ; le décor est construit dans le sens de référence (m = 1) puis retourné en bloc
+let TRACK={id:'royal',S:520,r:165,dir:1,m:1};
+function setTrack(id){const h=HIPPOS[id]||HIPPOS.royal;TRACK={id:HIPPOS[id]?id:'royal',S:h.S,r:h.r,dir:h.dir,m:h.dir};RACE_ORIGIN=TRACK.id==='royal'?.235:TRACKS[TRACK.id].o}
+</script>
 <script type="text/x-module" data-f="04-race-state.js">/* moteur 3 (course pensée pour le multijoueur) : départ commun, pas de pause, chevaux solides.
    STALL_LANES : couloirs des 6 stalles (n°1 à la corde) ; HORSE_LEN : longueur d'un cheval (en % de course) ; HORSE_W : largeur (en couloirs) ;
    LANE_V : vitesse latérale maximale (couloirs par pas). Deux chevaux ne peuvent jamais se superposer : on double par le côté. */
@@ -987,11 +1081,13 @@ let playerFinal=false,playerPace=0,raceLoop=null,progress=[],visualProgress=[],r
 const rivalLanes=[46,25,70,58,12],rivalBase=[.432,.405,.448,.415,.424];
 // noms affichés pendant la course (0 = cheval du joueur, 1-5 = adversaires) : réécrits à chaque départ depuis le plateau engagé (11-ecuries)
 const raceNames=['Royal Thunder','Black Majesty','Éclair Rouge','Silver Crown','Royal Shadow','Golden Star'];
-const race3d=$('#race3d'),RACE_ORIGIN=.235;let threeRace=null;
+// RACE_ORIGIN : place du départ sur le tour affiché (l'arrivée y est aussi : une course = un tour) ; propre à chaque hippodrome (setTrack)
+const race3d=$('#race3d');let RACE_ORIGIN=.235,threeRace=null;
 let sceneFrame=0,lastScene=0,raceSeed=1,raceRng=Math.random;
 const seeded=seed=>{let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}};
 </script>
-<script type="text/x-module" data-f="05-race-scene.js">function trackPose(t,lane=0){const straight=520,radius=165,total=straight*2+Math.PI*2*radius,d=(((t%1)+1)%1)*total;let x,z,fx,fz;if(d<straight){x=-straight/2+d;z=radius;fx=1;fz=0}else if(d<straight+Math.PI*radius){const u=(d-straight)/radius,a=Math.PI/2-u;x=straight/2+radius*Math.cos(a);z=radius*Math.sin(a);fx=Math.sin(a);fz=-Math.cos(a)}else if(d<straight*2+Math.PI*radius){const u=d-straight-Math.PI*radius;x=straight/2-u;z=-radius;fx=-1;fz=0}else{const u=(d-straight*2-Math.PI*radius)/radius,a=-Math.PI/2-u;x=-straight/2+radius*Math.cos(a);z=radius*Math.sin(a);fx=Math.sin(a);fz=-Math.cos(a)}const nx=-fz,nz=fx;return{p:new THREE.Vector3(x+nx*lane,0,z+nz*lane),f:new THREE.Vector3(fx,0,fz),n:new THREE.Vector3(nx,0,nz)}}
+<script type="text/x-module" data-f="05-race-scene.js">// tour de piste de l'hippodrome affiché (TRACK, 04-hippodromes) ; lane > 0 vers l'extérieur ; m = -1 : main droite (tracé retourné)
+function trackPose(t,lane=0){const straight=TRACK.S,radius=TRACK.r,m=TRACK.m,total=straight*2+Math.PI*2*radius,d=(((t%1)+1)%1)*total;let x,z,fx,fz;if(d<straight){x=-straight/2+d;z=radius;fx=1;fz=0}else if(d<straight+Math.PI*radius){const u=(d-straight)/radius,a=Math.PI/2-u;x=straight/2+radius*Math.cos(a);z=radius*Math.sin(a);fx=Math.sin(a);fz=-Math.cos(a)}else if(d<straight*2+Math.PI*radius){const u=d-straight-Math.PI*radius;x=straight/2-u;z=-radius;fx=-1;fz=0}else{const u=(d-straight*2-Math.PI*radius)/radius,a=-Math.PI/2-u;x=-straight/2+radius*Math.cos(a);z=radius*Math.sin(a);fx=Math.sin(a);fz=-Math.cos(a)}const nx=-fz,nz=fx;return{p:new THREE.Vector3(m*(x+nx*lane),0,z+nz*lane),f:new THREE.Vector3(m*fx,0,fz),n:new THREE.Vector3(m*nx,0,nz)}}
 function ribbonGeometry(inner,outer,y=.02,segments=320){const pos=[],uv=[],idx=[];for(let i=0;i<=segments;i++){const t=i/segments,a=trackPose(t,inner).p,b=trackPose(t,outer).p;pos.push(a.x,y,a.z,b.x,y,b.z);uv.push(0,t*34,1,t*34)}for(let i=0;i<segments;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
 function makeLabel(text,w=256,h=110){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#071a2d';x.fillRect(5,5,w-10,h-10);x.strokeStyle='#e0b249';x.lineWidth=9;x.strokeRect(5,5,w-10,h-10);x.fillStyle='#fff7dc';x.font='700 50px Rajdhani,system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,w/2,h/2);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
 function createRoyalFinishArch(scene){const finish=trackPose(RACE_ORIGIN,0),group=new THREE.Group(),navy=new THREE.MeshStandardMaterial({color:0x071a2d,metalness:.35,roughness:.38}),gold=new THREE.MeshStandardMaterial({color:0xf0bf4d,metalness:.78,roughness:.2,emissive:0x6b3e00,emissiveIntensity:.2});for(const side of[-22,22]){const tower=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.65,12,12),navy);tower.position.set(side,6,0);tower.castShadow=true;group.add(tower);for(let y=2;y<11;y+=2.2){const ring=new THREE.Mesh(new THREE.TorusGeometry(1.35,.12,8,24),gold);ring.position.set(side,y,0);ring.rotation.x=Math.PI/2;group.add(ring)}}const curve=new THREE.QuadraticBezierCurve3(new THREE.Vector3(-22,11,0),new THREE.Vector3(0,20,0),new THREE.Vector3(22,11,0)),arch=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.72,10,false),gold);group.add(arch);const crown=new THREE.Mesh(new THREE.ConeGeometry(2.2,3.8,5),gold);crown.position.set(0,18.6,0);group.add(crown);const sign=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel('THE ROYAL RACE • ARRIVÉE',720,120),transparent:true,depthWrite:false}));sign.position.set(0,13.5,-.3);sign.scale.set(25,4.2,1);group.add(sign);for(const x of[-16,-8,0,8,16]){const lamp=new THREE.PointLight(0xffd477,.5,35);lamp.position.set(x,12.5,1);group.add(lamp);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.28,10,8),new THREE.MeshBasicMaterial({color:0xffe3a0}));bulb.position.copy(lamp.position);group.add(bulb)}const line=new THREE.Mesh(new THREE.BoxGeometry(43,.06,1.1),new THREE.MeshStandardMaterial({color:0xf6f4e8,roughness:.7}));line.position.y=.05;group.add(line);group.position.copy(finish.p);group.rotation.y=Math.atan2(finish.f.x,finish.f.z);scene.add(group);return group}
@@ -1739,14 +1835,14 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
   const scene=new THREE.Scene(),quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),mat);quad.frustumCulled=false;scene.add(quad);return{mat,scene,cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1),rt:null}}
  function build(q){const{scene,renderer}=q;fx={boards:[],horseShadows:[],phase:[0,0,0,0,0,0],last:performance.now(),blur:0,fov:62,size:new THREE.Vector2()};fx.shadowTex=radialTex();
   const sunDir=new THREE.Vector3(-260,360,180).normalize();sky(scene,sunDir);
-  // monde en vraie 3D ; si sa construction échoue, on revient au décor photo d'origine
-  try{fx.world=raceWorld.build(scene,QUALITY[settings.level()])}catch(e){console.warn('monde 3D',e);horizon(scene);billboards(scene,renderer)}
   {const s=q.sun.shadow.camera;s.left=s.bottom=-115;s.right=s.top=115;s.near=10;s.far=900;s.updateProjectionMatrix();q.sun.shadow.bias=-.0004;q.sun.shadow.normalBias=.04}
   fx.dust=dust(scene);fx.post=post();
   for(let i=0;i<6;i++)fx.horseShadows.push(blob(scene,3.4,8.2,.5));
   // chevaux : planche de galop 8 images peinte aux couleurs de chaque écurie (joueur = son champion)
   fx.gallop=[];q.horses.forEach((h,i)=>{const t=new THREE.CanvasTexture(document.createElement('canvas'));t.colorSpace=THREE.SRGBColorSpace;t.repeat.set(1/8,1);t.anisotropy=8;fx.gallop.push(t);q.horseTextures[i]=t;const m=h.material;m.map=t;m.alphaTest=.35;m.needsUpdate=true});liveries(q);
  }
+ // décor de l'hippodrome (2.7, dans le groupe de 10-race raceVenue) : monde en vraie 3D ; si sa construction échoue, décor photo d'origine
+ function world(q,g){if(!fx)return;fx.boards=[];fx.horizonMat=null;fx.world=null;try{fx.world=raceWorld.build(g,QUALITY[settings.level()],TRACK.id,TRACK.dir)}catch(e){console.warn('monde 3D',e);horizon(g);billboards(g,q.renderer)}}
  function liveries(q){if(!fx)return;LIVERY.ready.then(()=>{const me=champion.get(),F=currentField||buildField(),list=[me,...F.rivals.map(r=>r.livery)];fx.liv=list;
   (fx.h3d||[]).forEach(m=>{q.scene.remove(m);HORSE3D.dispose(m)});fx.h3d=list.map((l,i)=>{const m=HORSE3D.build(l,{number:i+1,blinkers:!i&&gear.sel.id==='oeilleres',lod:!i&&settings.level()==='haute'?0:1});m.scale.setScalar(4.4);m.visible=false;q.scene.add(m);return m});
   hurdles(q);
@@ -1814,7 +1910,7 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
  function burst(p,n=24,power=1){if(!fx||!fx.dust)return;const D=fx.dust;for(let k=0;k<n;k++){const j=D.next=(D.next+1)%D.N,side=(Math.random()-.5)*4.5,fw=(Math.random()-.2)*3;
    D.pos[j*3]=p.p.x+p.f.x*fw+p.n.x*side;D.pos[j*3+1]=.3+Math.random()*.6;D.pos[j*3+2]=p.p.z+p.f.z*fw+p.n.z*side;const sp=(4+Math.random()*9)*power;
    D.vel[j*3]=p.f.x*sp+p.n.x*(Math.random()-.5)*5;D.vel[j*3+1]=2.5+Math.random()*5.5*power;D.vel[j*3+2]=p.f.z*sp+p.n.z*(Math.random()-.5)*5;D.life[j]=.7+Math.random()*.7}}
- return{build,horse,podium,parade,render,ground,liveries,burst,skyEnv,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
+ return{build,world,horse,podium,parade,render,ground,liveries,burst,skyEnv,get _fx(){return fx},set exposure(v){if(fx)fx.post.mat.uniforms.uExp.value=v}};
 })();
 </script>
 <script type="text/x-module" data-f="09-race-world.js">/* ===== Course — le monde autour de la piste en vraie 3D =====
@@ -1823,7 +1919,7 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
    colline, étang, écran géant qui affiche le classement, drapeaux au vent. Tout est généré au chargement (aucune image),
    regroupé en quelques maillages (InstancedMesh, géométries fusionnées) ; la densité suit le réglage de qualité. */
 const raceWorld = (() => {
-  const U = { uTime: { value: 0 }, uExcite: { value: 0 }, uLead: { value: 0 } };
+  const U = { uTime: { value: 0 }, uExcite: { value: 0 }, uLead: { value: 0 }, uNight: { value: 0 } };
   let W = null;
   const rng = seed => { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647 };
   const M4 = (x, y, z, ry = 0, sx = 1, sy = sx, sz = sx) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(sx, sy, sz));
@@ -1842,24 +1938,24 @@ const raceWorld = (() => {
   const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
   // ---------- tribunes ----------
   // x0..x1 le long de la ligne droite (x), z0 = bord avant, gradins vers +z ; seats = couleur des sièges
-  function stand(parts, crowd, x0, x1, z0, rows, seats, royal, r) {
+  function stand(parts, crowd, x0, x1, z0, rows, seats, royal, r, C = PAL.royal) {
     const len = x1 - x0, cx = (x0 + x1) / 2, rise = 1.9, step = 3.1, b = 5, top = b + rows * rise, H = top + 15;
     for (let k = 0; k < rows; k++) {
       const y = b + (k + 1) * rise, z = z0 + k * step;
-      parts.push({ g: box(len, y, step), m: M4(cx, y / 2, z + step / 2), c: k % 2 ? 0xd6d0c4 : 0xcfc9bc }, { g: box(len, .8, .9), m: M4(cx, y + .4, z + step * .32), c: seats });
+      parts.push({ g: box(len, y, step), m: M4(cx, y / 2, z + step / 2), c: k % 2 ? C.s1 : C.s2 }, { g: box(len, .8, .9), m: M4(cx, y + .4, z + step * .32), c: seats });
       for (let x = x0 + 1.2; x < x1 - 1; x += 1.95) if (r() < crowd.occ) crowd.list.push([x + (r() - .5) * .5, y, z + step * .52, 0])
     }
     const zb = z0 + rows * step;
-    parts.push({ g: box(len, H, 2.5), m: M4(cx, H / 2, zb + 1.25), c: 0xe9e0cc });
+    parts.push({ g: box(len, H, 2.5), m: M4(cx, H / 2, zb + 1.25), c: C.wall });
     // façade du rez-de-chaussée : arcades
-    parts.push({ g: box(len, b, .6), m: M4(cx, b / 2, z0 - .3), c: 0xf1e8d4 }, { g: box(len, .5, .9), m: M4(cx, b + .1, z0 - .4), c: 0xc9a13c });
-    for (let x = x0 + 5; x < x1 - 3; x += 9) parts.push({ g: box(4.2, 3.4, .3), m: M4(x, 1.7, z0 - .65), c: 0x2c3440 });
-    // toit en porte-à-faux, bandeau bleu roi et or, colonnes
+    parts.push({ g: box(len, b, .6), m: M4(cx, b / 2, z0 - .3), c: C.fac }, { g: box(len, .5, .9), m: M4(cx, b + .1, z0 - .4), c: C.band });
+    for (let x = x0 + 5; x < x1 - 3; x += 9) parts.push({ g: box(4.2, 3.4, .3), m: M4(x, 1.7, z0 - .65), c: C.open });
+    // toit en porte-à-faux, bandeau (bleu roi et or au domaine), colonnes
     const rz0 = z0 - 9, rz1 = zb + 2.5, rc = (rz0 + rz1) / 2;
-    parts.push({ g: box(len + 6, 1.4, rz1 - rz0), m: M4(cx, H, rc), c: 0x55606c }, { g: box(len + 6.4, 2.4, .8), m: M4(cx, H - .3, rz0), c: 0x10284a }, { g: box(len + 6.6, .5, 1), m: M4(cx, H - 1.4, rz0 - .1), c: 0xd4a73a });
-    for (let x = x0 + 2; x <= x1 - 1; x += 22) parts.push({ g: new THREE.CylinderGeometry(.55, .7, H - .6, 8), m: M4(x, (H - .6) / 2, z0 + 1.2), c: 0xf4efe4 });
+    parts.push({ g: box(len + 6, 1.4, rz1 - rz0), m: M4(cx, H, rc), c: C.roof }, { g: box(len + 6.4, 2.4, .8), m: M4(cx, H - .3, rz0), c: C.rb }, { g: box(len + 6.6, .5, 1), m: M4(cx, H - 1.4, rz0 - .1), c: C.trim });
+    for (let x = x0 + 2; x <= x1 - 1; x += 22) parts.push({ g: new THREE.CylinderGeometry(.55, .7, H - .6, 8), m: M4(x, (H - .6) / 2, z0 + 1.2), c: C.col });
     // pignons aux extrémités
-    for (const x of [x0 - .3, x1 + .3]) parts.push({ g: box(.8, H, zb - z0 + 2.5), m: M4(x, H / 2, (z0 + zb + 2.5) / 2), c: 0xe4dac4 });
+    for (const x of [x0 - .3, x1 + .3]) parts.push({ g: box(.8, H, zb - z0 + 2.5), m: M4(x, H / 2, (z0 + zb + 2.5) / 2), c: C.gab });
     if (royal) {
       // loge royale : balcon en avancée, draperie rouge, couronne dorée
       const lx = cx, ly = b + 6 * rise;
@@ -1903,7 +1999,10 @@ const raceWorld = (() => {
     const poplar = merge([[3.1, 9.5], [3.3, 14.5], [2.6, 19.5], [1.6, 23]].map(([r, y]) => ({ g: fluffy(ico(r, 0, y, 0, 1.55), 0, 16, 0, .6) })));
     const pine = merge([[5.2, 8, 7], [4.2, 7.5, 11.5], [3, 6.5, 15.5], [1.8, 5, 19]].map(([r, h, y]) => ({ g: new THREE.ConeGeometry(r, h, 8, 1).translate(0, y, 0) })));
     const trunk = h => merge([{ g: new THREE.CylinderGeometry(.45, .85, h, 6).translate(0, h / 2, 0) }, { g: new THREE.CylinderGeometry(.2, .35, 5, 5).rotateZ(.8).translate(1.6, h * .7, 0) }]);
-    return [{ crown: oak, trunk: trunk(12) }, { crown: poplar, trunk: trunk(7) }, { crown: pine, trunk: trunk(6) }]
+    // 2.7 : pin parasol (bord de mer) et sapin (montagne, forêt)
+    const parasol = merge([[5.6, 0, 17.4, 0], [4.2, 4.6, 16.8, 1.4], [4.4, -4.2, 17, -1.8], [3.8, 1.2, 16.6, 4.4], [3.6, -1.4, 17.2, -4.6]].map(([r, x, y, z]) => ({ g: fluffy(ico(r, x, y, z, .42), 0, 17, 0, .7) })));
+    const fir = merge([[5.4, 9, 6.5], [4.5, 8, 10.5], [3.5, 7, 14.5], [2.5, 6, 18.2], [1.4, 4.5, 21.5]].map(([r, h, y]) => ({ g: new THREE.ConeGeometry(r, h, 8, 1).translate(0, y, 0) })));
+    return [{ crown: oak, trunk: trunk(12) }, { crown: poplar, trunk: trunk(7) }, { crown: pine, trunk: trunk(6) }, { crown: parasol, trunk: trunk(16) }, { crown: fir, trunk: trunk(5) }]
   }
   function leafMat() {
     const m = new THREE.MeshStandardMaterial({ roughness: .92 });
@@ -1919,8 +2018,8 @@ const raceWorld = (() => {
   }
   function forest(scene, list, q) {
     const G = treeGeos(), bark = new THREE.MeshStandardMaterial({ color: 0x5b4633, roughness: 1 }), leaf = leafMat(), c = new THREE.Color(), r = rng(77);
-    const GREENS = [[0x4f7a2e, 0x3f6a28, 0x6a8f3a, 0x587f30], [0x5d8a35, 0x4c7a2c, 0x6f9440], [0x2f5230, 0x3a5e36, 0x28482a]];
-    for (let k = 0; k < 3; k++) {
+    const GREENS = [[0x4f7a2e, 0x3f6a28, 0x6a8f3a, 0x587f30], [0x5d8a35, 0x4c7a2c, 0x6f9440], [0x2f5230, 0x3a5e36, 0x28482a], [0x4f6b34, 0x5a7a3a, 0x46642f], [0x1f3d2a, 0x264a30, 0x1a3524]];
+    for (let k = 0; k < G.length; k++) {
       const L = list.filter(t => t[3] === k); if (!L.length) continue;
       const cr = new THREE.InstancedMesh(G[k].crown, leaf, L.length), tr = new THREE.InstancedMesh(G[k].trunk, bark, L.length);
       L.forEach(([x, z, s], i) => { const m = M4(x, 0, z, r() * 6.28, s, s * (.9 + r() * .25), s); cr.setMatrixAt(i, m); tr.setMatrixAt(i, m); cr.setColorAt(i, c.set(GREENS[k][(r() * GREENS[k].length) | 0]).multiplyScalar(.85 + r() * .3)) });
@@ -1931,19 +2030,29 @@ const raceWorld = (() => {
   function noise2(seed) { const r = rng(seed), T = Array.from({ length: 256 }, r); const h = (i, j) => T[(i * 31 + j * 17 + ((i * j) & 255)) & 255]; return (x, y) => { const i = Math.floor(x), j = Math.floor(y), u = x - i, v = y - j, s = u * u * (3 - 2 * u), t = v * v * (3 - 2 * v); return (h(i, j) * (1 - s) + h(i + 1, j) * s) * (1 - t) + (h(i, j + 1) * (1 - s) + h(i + 1, j + 1) * s) * t } }
   const N1 = noise2(11), N2 = noise2(23), N3 = noise2(37);
   const hillH = (x, z) => { const r = Math.hypot(x, z), k = Math.max(0, Math.min(1, (r - 620) / 380)), s = k * k * (3 - 2 * k); return s * (26 + 70 * N1(x * .0035 + 3, z * .0035) + 45 * N2(x * .009, z * .009) + 90 * Math.max(0, (r - 1000) / 400)) };
-  function hills(scene) {
-    const RS = 176, RR = 12, pos = [], col = [], idx = [], c = new THREE.Color(), FIELDS = [0x7da048, 0x9bb45a, 0x6b9140, 0xb9b56c, 0x88a650, 0xa7a45a], FOREST = new THREE.Color(0x35522a);
+  // relief des autres hippodromes (2.7) : dunes (la mer d'un côté), montagnes enneigées ; au domaine, champs et bois (hillH)
+  const sm = k => { k = Math.max(0, Math.min(1, k)); return k * k * (3 - 2 * k) };
+  const RELIEF = {
+    champs: hillH, foret: hillH,
+    dunes: (x, z) => z < -(TRACK.r + 60) ? -3 : sm((Math.hypot(x, z) - 600) / 300) * (5 + 20 * N1(x * .006 + 1, z * .006) + 9 * N2(x * .02, z * .02)),
+    montagnes: (x, z) => { const r = Math.hypot(x, z), k = sm((r - 640) / 340), rd = 1 - Math.abs(N2(x * .004 + 2, z * .004) * 2 - 1); return k * (30 + 140 * N1(x * .0028 + 3, z * .0028) + 230 * rd * rd + 170 * Math.max(0, (r - 950) / 450)) } };
+  function hills(scene, kind = 'champs') {
+    const H = RELIEF[kind] || hillH, RS = 176, RR = kind === 'montagnes' ? 20 : 12, pos = [], col = [], idx = [], c = new THREE.Color(), FIELDS = [0x7da048, 0x9bb45a, 0x6b9140, 0xb9b56c, 0x88a650, 0xa7a45a], FOREST = new THREE.Color(0x35522a);
+    const SAND = new THREE.Color(0xe2cf9c), DUNE = new THREE.Color(0x9aa65a), ROCK = new THREE.Color(0x857f76), SNOW = new THREE.Color(0xf2f5f8), ALP = new THREE.Color(0x6f8f48), wood = kind === 'foret' ? .3 : .58;
     for (let j = 0; j <= RR; j++) for (let i = 0; i <= RS; i++) {
-      const r = 600 + 820 * Math.pow(j / RR, 1.3), a = i / RS * Math.PI * 2, x = Math.cos(a) * r, z = Math.sin(a) * r, y = hillH(x, z) - .5;
-      pos.push(x, y, z); const f = N3(x * .012, z * .012), cell = Math.floor(N1(x * .006 + 9, z * .006) * 6) % 6; c.set(FIELDS[cell]).multiplyScalar(.85 + f * .25);
-      if (N2(x * .008 + 4, z * .008) > .58) c.lerp(FOREST, .85); col.push(c.r, c.g, c.b)
+      const r = 600 + 820 * Math.pow(j / RR, 1.3), a = i / RS * Math.PI * 2, x = Math.cos(a) * r, z = Math.sin(a) * r, y = H(x, z) - .5;
+      pos.push(x, y, z); const f = N3(x * .012, z * .012), cell = Math.floor(N1(x * .006 + 9, z * .006) * 6) % 6;
+      if (kind === 'dunes') c.copy(SAND).lerp(DUNE, sm((N2(x * .01, z * .01) - .45) * 4) * .7).multiplyScalar(.9 + f * .15);
+      else if (kind === 'montagnes') { c.copy(ALP).multiplyScalar(.85 + f * .25); if (N2(x * .008 + 4, z * .008) > .5 && y < 150) c.lerp(FOREST, .8); c.lerp(ROCK, sm((y - 110) / 60)); c.lerp(SNOW, sm((y - 215 + f * 50) / 35)) }
+      else { c.set(FIELDS[cell]).multiplyScalar(.85 + f * .25); if (N2(x * .008 + 4, z * .008) > wood) c.lerp(FOREST, .85) }
+      col.push(c.r, c.g, c.b)
     }
     for (let j = 0; j < RR; j++) for (let i = 0; i < RS; i++) { const a = j * (RS + 1) + i, b = a + RS + 1; idx.push(a, a + 1, b, a + 1, b + 1, b) }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx); g.computeVertexNormals();
     const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 })); m.receiveShadow = false; scene.add(m);
-    // bosquets sur les collines (cônes simples, très nombreux mais légers)
-    const r = rng(91), trees = []; for (let k = 0; k < 900; k++) { const a = r() * 6.283, rr = 640 + r() * 700, x = Math.cos(a) * rr, z = Math.sin(a) * rr; if (N2(x * .008 + 4, z * .008) > .55 || r() < .08) trees.push([x, hillH(x, z), z, 5 + r() * 5]) }
-    const cg = new THREE.ConeGeometry(1, 2.4, 6).translate(0, 1.2, 0), cm = new THREE.InstancedMesh(cg, new THREE.MeshStandardMaterial({ color: 0x2c4a26, roughness: 1 }), trees.length);
+    // bosquets sur les collines (cônes simples, très nombreux mais légers) ; pas sur le sable, ni au-dessus des forêts d'altitude
+    const r = rng(91), trees = [], n = kind === 'foret' ? 1800 : kind === 'dunes' ? 250 : 900; for (let k = 0; k < n; k++) { const a = r() * 6.283, rr = 640 + r() * 700, x = Math.cos(a) * rr, z = Math.sin(a) * rr; if (N2(x * .008 + 4, z * .008) > (kind === 'foret' ? .28 : .55) || r() < .08) { const y = H(x, z); if (kind === 'dunes' && (z < -(TRACK.r + 60) || N2(x * .01, z * .01) < .5) || kind === 'montagnes' && y > 140) continue; trees.push([x, y, z, 5 + r() * 5]) } }
+    const cg = new THREE.ConeGeometry(1, 2.4, 6).translate(0, 1.2, 0), cm = new THREE.InstancedMesh(cg, new THREE.MeshStandardMaterial({ color: kind === 'montagnes' ? 0x22402a : 0x2c4a26, roughness: 1 }), trees.length);
     trees.forEach(([x, y, z, s], i) => cm.setMatrixAt(i, M4(x, y - 1, z, 0, s, s * (1.4 + r()), s))); cm.instanceMatrix.needsUpdate = true; scene.add(cm)
   }
   // ---------- château sur la colline ----------
@@ -1970,10 +2079,10 @@ const raceWorld = (() => {
     const f = new THREE.Mesh(g, mat), pole = new THREE.Mesh(new THREE.CylinderGeometry(.18, .22, h * 2.6, 6).translate(0, -h * .9, 0), new THREE.MeshStandardMaterial({ color: 0xf2efe6, roughness: .5 })); f.add(pole); return f
   }
   // ---------- écran géant : classement en direct ----------
-  function screen(scene) {
+  function screen(scene, mirror) {
     const cv = document.createElement('canvas'); cv.width = 512; cv.height = 256; const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
     const g = new THREE.Group(), frame = new THREE.Mesh(box(46, 26, 2), new THREE.MeshStandardMaterial({ color: 0x10284a, roughness: .5 })), panel = new THREE.Mesh(new THREE.PlaneGeometry(42, 21), new THREE.MeshBasicMaterial({ map: t, toneMapped: false }));
-    frame.position.y = 30; panel.position.set(0, 30, 1.05); g.add(frame, panel);
+    frame.position.y = 30; panel.position.set(0, 30, 1.05); if (mirror) panel.scale.x = -1; g.add(frame, panel);
     for (const x of [-14, 14]) { const leg = new THREE.Mesh(box(2, 18, 2), frame.material); leg.position.set(x, 9, 0); g.add(leg) }
     const trim = new THREE.Mesh(box(47, .8, 2.4), new THREE.MeshStandardMaterial({ color: 0xd4a73a, metalness: .6, roughness: .3 })); trim.position.y = 43.2; g.add(trim);
     const p = trackPose(RACE_ORIGIN - .045, -58); g.position.copy(p.p); g.rotation.y = Math.atan2(p.n.x, p.n.z) - .55; scene.add(g);
@@ -1990,51 +2099,137 @@ const raceWorld = (() => {
     }); S.t.needsUpdate = true
   }
   // ---------- étang ----------
-  function pond(scene, x, z, rx, rz) {
-    const shore = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9c8f64, roughness: 1 })); shore.scale.set(rx + 5, 1, rz + 5); shore.position.set(x, .05, z); shore.receiveShadow = true; scene.add(shore);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x4f7488, roughness: .08, metalness: .35 });
+  function pond(scene, x, z, rx, rz, color = 0x4f7488, shoreC = 0x9c8f64) {
+    const shore = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: shoreC, roughness: 1 })); shore.scale.set(rx + 5, 1, rz + 5); shore.position.set(x, .05, z); shore.receiveShadow = true; scene.add(shore);
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: .08, metalness: .35 });
     mat.onBeforeCompile = s => { Object.assign(s.uniforms, U); s.fragmentShader = 'uniform float uTime;\n' + s.fragmentShader.replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n{vec2 p=vViewPosition.xy;normal=normalize(normal+vec3(sin(p.x*.9+uTime*1.3)*.04+sin(p.y*1.7-uTime)*.03,cos(p.y*1.1+uTime*1.1)*.04,0.));}') };
     const w = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), mat); w.scale.set(rx, 1, rz); w.position.set(x, .12, z); w.receiveShadow = true; scene.add(w);
     const r = rng(19), reeds = []; for (let k = 0; k < 90; k++) { const a = r() * 6.283; reeds.push([x + Math.cos(a) * (rx + 1 + r() * 3), z + Math.sin(a) * (rz + 1 + r() * 3)]) }
     const rm = new THREE.InstancedMesh(new THREE.ConeGeometry(.9, 5, 4).translate(0, 2.5, 0), new THREE.MeshStandardMaterial({ color: 0x5e7a34, roughness: 1 }), reeds.length);
     reeds.forEach(([a, b], i) => rm.setMatrixAt(i, M4(a, 0, b, r() * 3, .7 + r() * .6, .6 + r() * .8))); rm.instanceMatrix.needsUpdate = true; scene.add(rm)
   }
+  // ---------- hippodromes (2.7) : palette des tribunes, tribunes (début, fin par rapport au poteau, rangs, sièges, loge, recul),
+  // drapeaux, public sur la pelouse, essences d'arbres (0 chêne, 1 peuplier, 2 pin, 3 pin parasol, 4 sapin), relief ----------
+  const PAL = {
+    royal: { s1: 0xd6d0c4, s2: 0xcfc9bc, wall: 0xe9e0cc, fac: 0xf1e8d4, band: 0xc9a13c, open: 0x2c3440, roof: 0x55606c, rb: 0x10284a, trim: 0xd4a73a, col: 0xf4efe4, gab: 0xe4dac4 },
+    foret: { s1: 0x8a6a4a, s2: 0x7d5f41, wall: 0x6b4a2e, fac: 0x7a5634, band: 0xc9a13c, open: 0x2a1d12, roof: 0x2f4a2c, rb: 0x3b2a1a, trim: 0xc9a13c, col: 0x5a3a22, gab: 0x6b4a2e },
+    cote: { s1: 0xf2f2ee, s2: 0xe6e8ea, wall: 0xf7f7f4, fac: 0xffffff, band: 0x2b6ca3, open: 0x1d3040, roof: 0x2b5c8a, rb: 0xf2efe6, trim: 0x2b6ca3, col: 0xffffff, gab: 0xeef1f3 },
+    cimes: { s1: 0xb9b3a8, s2: 0xaaa399, wall: 0x8f877b, fac: 0x9a8f80, band: 0x8e1b24, open: 0x2a2622, roof: 0x3a2a20, rb: 0x8e1b24, trim: 0xf2efe6, col: 0x6b4a2e, gab: 0x7a5a3c },
+    capitale: { s1: 0x3a4452, s2: 0x333c48, wall: 0x8fb3c9, fac: 0x1c2530, band: 0x46b4ff, open: 0x0b1118, roof: 0xdfe5ea, rb: 0x0d1b2a, trim: 0x46b4ff, col: 0xc9d3dc, gab: 0x8fb3c9 } };
+  const THEMES = {
+    royal: { stands: [[-133, 27, 16, 0x1f3b66, 1, 0], [-288, -140, 13, 0x8e1b24, 0, 4], [-428, -296, 10, 0x1d5b3a, 0, 8]], lawn: 1, n: 1, near: 40, ring: 60, back: 1, relief: 'champs',
+      flags: [[-118, 0, 0x10284a, 0xd4a73a], [-78, 0, 0x8e1b24, 0xf2efe6], [-38, 0, 0x10284a, 0xd4a73a], [2, 0, 0x1d5b3a, 0xf2efe6], [-208, 1, 0x8e1b24, 0xf2efe6], [-358, 2, 0x10284a, 0xd4a73a]],
+      behind: r => r() < .3 ? 1 : 0, around: r => r() < .2 ? 1 : r() < .35 ? 2 : 0, inside: r => r() < .25 ? 1 : 0 },
+    foret: { stands: [[-120, 22, 10, 0x2f5d3a, 0, 0], [-250, -132, 8, 0x6b3a1e, 0, 4]], lawn: .6, n: 2.4, near: 34, ring: 38, back: 4, relief: 'foret', col: [0x2f5d3a, 0xc9a13c],
+      behind: r => r() < .45 ? 4 : r() < .5 ? 2 : 0, around: r => r() < .4 ? 0 : r() < .6 ? 4 : 2, inside: r => r() < .5 ? 0 : 4 },
+    cote: { stands: [[-150, 27, 14, 0x2b6ca3, 1, 0], [-320, -162, 12, 0xf2efe6, 0, 4], [-470, -332, 9, 0xe0782d, 0, 8]], lawn: 1, n: .45, near: 40, ring: 60, back: -1, relief: 'dunes', col: [0x2b6ca3, 0xf2efe6],
+      behind: () => 3, around: r => r() < .8 ? 3 : 0, inside: () => 3 },
+    cimes: { stands: [[-133, 27, 12, 0x8e1b24, 0, 0], [-270, -145, 10, 0x2f5d3a, 0, 4]], lawn: .7, n: 1.3, near: 40, ring: 60, back: 4, relief: 'montagnes', col: [0x8e1b24, 0xf2efe6],
+      behind: r => r() < .8 ? 4 : 2, around: r => r() < .75 ? 4 : 2, inside: () => 4 },
+    capitale: { stands: [[-160, 27, 18, 0x0d1b2a, 1, 0], [-330, -172, 15, 0xc81e3a, 0, 4], [-480, -342, 12, 0x0d1b2a, 0, 8]], lawn: 1.2, n: .25, near: 40, ring: 60, back: 0, relief: 'ville', col: [0x0d1b2a, 0x46b4ff],
+      behind: () => 0, around: () => 0, inside: r => r() < .5 ? 0 : 1 } };
+  // maisons à toit à deux pans (chalets, pavillon de chasse) : corps en bois sur soubassement de pierre, balcon, fenêtres
+  function chalet(P, x, z, ry, s = 1, roof = 0x3a2a20, wood = 0x8a5a34) {
+    const w = 18 * s, d = 13 * s, h = 9 * s, m = new THREE.Matrix4().compose(new THREE.Vector3(x, 0, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(1, 1, 1)), at = (g, px, py, pz, c) => P.push({ g, m: m.clone().multiply(M4(px, py, pz)), c });
+    at(box(w + 1, 3 * s, d + 1), 0, 1.5 * s, 0, 0xb9b3a8); at(box(w, h, d), 0, 3 * s + h / 2, 0, wood);
+    at(box(w + 4 * s, 1, 1).rotateX(Math.PI / 4).scale(1, 5.2 * s, (d + 5 * s) * .72), 0, 3 * s + h, 0, roof);
+    at(box(w * .8, .5, 2.4 * s), 0, 3 * s + h * .5, d / 2 + 1.2 * s, wood); at(box(w * .8, 1.2, .3), 0, 3 * s + h * .5 + .8, d / 2 + 2.3 * s, 0x5a3a22);
+    for (const px of [-w * .3, 0, w * .3]) at(box(2.2 * s, 2.6 * s, .3), px, 3 * s + h * .72, d / 2 + .1, 0x2a2622);
+    at(box(1.8 * s, 5 * s, 1.8 * s), w * .3, 3 * s + h + 3 * s, -d * .2, 0x9a8f80)
+  }
+  // bord de mer : plage, écume, mer (reflets et vaguelettes), phare, cabines de plage, voiliers ; tout est derrière la ligne d'en face
+  function seaSide(scene, dens) {
+    const R = TRACK.r, S2 = TRACK.S / 2, zb = -(R + 42);
+    const sand = new THREE.Mesh(new THREE.PlaneGeometry(2600, 76).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xe3d2a2, roughness: 1 })); sand.position.set(0, .04, zb - 38); sand.receiveShadow = true; scene.add(sand);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x2a6d8a, roughness: .12, metalness: .35 });
+    mat.onBeforeCompile = s => { Object.assign(s.uniforms, U); s.fragmentShader = 'uniform float uTime;\n' + s.fragmentShader.replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n{vec2 p=vViewPosition.xy*.35;normal=normalize(normal+vec3(sin(p.x*.9+uTime*1.1)*.05+sin(p.y*1.7-uTime*.8)*.035,cos(p.y*1.1+uTime*.9)*.05,0.));}') };
+    const sea = new THREE.Mesh(new THREE.PlaneGeometry(3600, 1900).rotateX(-Math.PI / 2), mat); sea.position.set(0, .1, zb - 76 - 950); sea.receiveShadow = true; scene.add(sea);
+    const foam = new THREE.Mesh(new THREE.PlaneGeometry(3600, 4).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xf2f5f2, roughness: .8, transparent: true, opacity: .75 })); foam.position.set(0, .14, zb - 77); scene.add(foam);
+    const P = [], r = rng(707), HUT = [0xe84a5f, 0x2a9d8f, 0xf4a261, 0x457b9d, 0xf2efe6];
+    for (let x = -S2 - 120, k = 0; x < S2 + 140; x += 13 * (dens < 1 ? 1.6 : 1), k++) { const c = HUT[k % HUT.length];
+      P.push({ g: box(6, 5, 5), m: M4(x, 2.5, zb - 20), c }, { g: box(7, 1, 1).rotateX(Math.PI / 4).scale(1, 3.4, 4.4), m: M4(x, 5, zb - 20), c: 0xf2efe6 }, { g: box(2.2, 3.6, .2), m: M4(x, 1.8, zb - 17.4), c: 0x3a2a1a }) }
+    // phare rayé rouge et blanc, lanterne allumée la nuit
+    const lx = S2 + 150, lz = zb - 46;
+    for (let k = 0; k < 6; k++) P.push({ g: new THREE.CylinderGeometry(5.2 - k * .3 - .3, 5.2 - k * .3, 8, 16), m: M4(lx, 4 + k * 8, lz), c: k % 2 ? 0xf4f2ec : 0xc0262d });
+    P.push({ g: new THREE.CylinderGeometry(5.4, 5.4, 1, 16), m: M4(lx, 48.5, lz), c: 0x2a2f36 }, { g: new THREE.ConeGeometry(3.6, 5, 16), m: M4(lx, 56.5, lz), c: 0xc0262d }, { g: box(12, 6, 12), m: M4(lx + 9, 3, lz + 4), c: 0xf4f2ec });
+    const lantern = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 2.8, 5, 12), LAMP); lantern.position.set(lx, 51.5, lz); scene.add(lantern);
+    // voiliers au large
+    for (let k = 0; k < 7; k++) { const x = (r() - .5) * 1300, z = zb - 180 - r() * 520, s = 1 + r() * .8;
+      P.push({ g: box(9 * s, 1.6 * s, 3 * s), m: M4(x, .9, z), c: 0xf4f2ec }, { g: new THREE.CylinderGeometry(.2, .2, 12 * s, 5), m: M4(x, 7 * s, z), c: 0x6b5a48 }, { g: new THREE.ConeGeometry(3.4 * s, 10 * s, 3).scale(1, 1, .12), m: M4(x + 1.4 * s, 7.5 * s, z), c: r() < .3 ? 0xc0262d : 0xfaf8f2 }) }
+    const m = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .75 })); m.castShadow = true; m.receiveShadow = true; scene.add(m);
+    return [[lx, lz, 16]]
+  }
+  // ville : boulevard, immeubles tout autour (fenêtres éclairées la nuit, uNight), une tour qui domine la ville
+  function city(scene, dens) {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(480, 1180, 80, 1).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x4a4f56, roughness: .95 })); ring.position.y = .03; ring.receiveShadow = true; scene.add(ring);
+    const r = rng(303), list = [], n = dens < .6 ? 110 : 170;
+    for (let k = 0; k < n; k++) { const a = r() * 6.283, d = 560 + Math.pow(r(), .7) * 520, x = Math.cos(a) * d, z = Math.sin(a) * d, w = 26 + r() * 40, dd = 26 + r() * 40, h = 28 + Math.pow(r(), 2.2) * 200 * (1 + .7 * Math.max(0, Math.cos(a - 4.2))); list.push([x, z, w, h, dd, a + (r() - .5) * .3, r()]) }
+    const g = new THREE.BoxGeometry(1, 1, 1).translate(0, .5, 0), mat = new THREE.MeshStandardMaterial({ roughness: .62, metalness: .15 });
+    mat.onBeforeCompile = s => {
+      Object.assign(s.uniforms, U);
+      s.vertexShader = 'varying vec3 vWp;varying vec3 vWn;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvWp=(modelMatrix*instanceMatrix*vec4(transformed,1.)).xyz;vWn=normalize(mat3(modelMatrix*instanceMatrix)*objectNormal);');
+      s.fragmentShader = 'uniform float uNight;varying vec3 vWp;varying vec3 vWn;\n' + s.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+       float side=step(abs(vWn.y),.5);vec2 cw=vec2(abs(vWn.x)>.5?vWp.z:vWp.x,vWp.y)/vec2(5.,4.2),gw=fract(cw),iw=floor(cw);
+       float win=side*step(.22,gw.x)*step(gw.x,.78)*step(.28,gw.y)*step(gw.y,.8)*step(6.,vWp.y),hw=fract(sin(dot(iw+floor(vWp.xz*.013)*7.,vec2(12.9898,78.233)))*43758.5453);
+       diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.13,.18,.25),win*.8);`).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=vec3(1.,.8,.5)*win*step(.42,hw)*uNight*1.8;')
+    };
+    const im = new THREE.InstancedMesh(g, mat, list.length), c = new THREE.Color(), BC = [0xc9c3b6, 0xa9b4bf, 0x8f9aa6, 0xd8cfbf, 0x6f7f8f, 0xb8a58c];
+    list.forEach(([x, z, w, h, d, a, k], i) => { im.setMatrixAt(i, M4(x, 0, z, -a, w, h, d)); im.setColorAt(i, c.set(BC[(k * BC.length) | 0])) }); im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; im.receiveShadow = true; scene.add(im);
+    // la tour de la Capitale (silhouette d'antenne, feu rouge allumé la nuit)
+    const P = [], tx = -260, tz = -860;
+    [[34, 60], [24, 60], [16, 60], [9, 50]].reduce((y, [w, h]) => { P.push({ g: new THREE.CylinderGeometry(w * .62, w * .72, h, 4), m: M4(tx, y + h / 2, tz, Math.PI / 4), c: 0x9aa6b2 }, { g: new THREE.CylinderGeometry(w * .8, w * .8, 3, 4), m: M4(tx, y + h, tz, Math.PI / 4), c: 0x5b6672 }); return y + h }, 0);
+    P.push({ g: new THREE.CylinderGeometry(.8, 1.4, 60, 6), m: M4(tx, 260, tz), c: 0xc9d3dc });
+    const tw = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .5, metalness: .4 })); scene.add(tw);
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(2.2, 10, 8), LAMP); beacon.position.set(tx, 292, tz); scene.add(beacon)
+  }
   // ---------- montage ----------
-  function build(scene, q) {
-    const Q = q || { shadow: 1 }, dens = !Q.shadow ? .45 : Q.shadow < 2048 ? .75 : 1, r = rng(1234);
-    W = { dens }; const parts = [], crowd = { list: [], occ: dens >= 1 ? .86 : dens >= .75 ? .7 : .38 };
-    // tribunes le long de la ligne d'arrivée (côté extérieur, z > 185)
-    const zf = 165 + 38; stand(parts, crowd, 95, 255, zf, 16, 0x1f3b66, true, r); stand(parts, crowd, -60, 88, zf + 4, 13, 0x8e1b24, false, r); stand(parts, crowd, -200, -68, zf + 8, 10, 0x1d5b3a, false, r);
-    const stands = new THREE.Mesh(merge(parts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .82 })); stands.castShadow = !!Q.shadow; stands.receiveShadow = true; scene.add(stands);
+  function build(scene, q, id = 'royal', dir = 1) {
+    const T = THEMES[id] || THEMES.royal, C = PAL[id] || PAL.royal, Q = q || { shadow: 1 }, dens = !Q.shadow ? .45 : Q.shadow < 2048 ? .75 : 1, r = rng(1234);
+    const R = TRACK.r, S2 = TRACK.S / 2, XF = S2 - 32, sx0 = XF + Math.min(...T.stands.map(a => a[0])), sx1 = XF + Math.max(...T.stands.map(a => a[1]));
+    W = { dens, id }; const parts = [], crowd = { list: [], occ: dens >= 1 ? .86 : dens >= .75 ? .7 : .38 };
+    // tribunes le long de la ligne d'arrivée (côté extérieur)
+    const zf = R + 38; T.stands.forEach(([a, b, rows, seats, royal, back]) => stand(parts, crowd, XF + a, XF + b, zf + back, rows, seats, !!royal, r, C));
+    const stands = new THREE.Mesh(merge(parts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: id === 'capitale' ? .45 : .82, metalness: id === 'capitale' ? .25 : 0 })); stands.castShadow = !!Q.shadow; stands.receiveShadow = true; scene.add(stands);
     scene.add(crowdMesh(crowd.list, false));
     // spectateurs debout sur la pelouse, entre la lice et les tribunes
-    const lawn = []; for (let x = -40; x < 262; x += 2.2) for (let k = 0; k < 3; k++) if (r() < (.35 + .4 * (x > 120)) * dens + .1) lawn.push([x + (r() - .5) * 1.6, 0, 165 + 26 + k * 3.2 + r() * 1.5, Math.PI + (r() - .5) * .6]);
+    const lawn = []; for (let x = XF - 268; x < XF + 34; x += 2.2) for (let k = 0; k < 3; k++) if (r() < (.35 + .4 * (x > XF - 108)) * dens * T.lawn + .1) lawn.push([x + (r() - .5) * 1.6, 0, R + 26 + k * 3.2 + r() * 1.5, Math.PI + (r() - .5) * .6]);
     scene.add(crowdMesh(lawn, true));
     // drapeaux sur les toits
-    [[110, 0x10284a, 0xd4a73a], [150, 0x8e1b24, 0xf2efe6], [190, 0x10284a, 0xd4a73a], [230, 0x1d5b3a, 0xf2efe6], [20, 0x8e1b24, 0xf2efe6], [-130, 0x10284a, 0xd4a73a]].forEach(([x, c1, c2], k) => { const f = flagMesh(c1, c2); f.position.set(x, (k < 4 ? 5 + 16 * 1.9 + 15 : k < 5 ? 5 + 13 * 1.9 + 15 : 5 + 10 * 1.9 + 15) + 10, zf + 2); scene.add(f) });
+    const FL = T.flags || T.stands.flatMap(([a, b], k) => [[a + (b - a) * .25, k, T.col[0], T.col[1]], [a + (b - a) * .75, k, T.col[1] === 0xf2efe6 ? T.col[0] : T.col[1], 0xf2efe6]]);
+    FL.forEach(([x, k, c1, c2]) => { const f = flagMesh(c1, c2); f.position.set(XF + x, 5 + T.stands[k][2] * 1.9 + 15 + 10, zf + 2); scene.add(f) });
     // haies basses le long de la lice extérieure (hors tribunes) et massifs de fleurs près de l'arrivée
-    const hedge = [], flowers = []; for (let t = 0; t < 1; t += .0028) { const p = trackPose(t, 27); if (p.p.z > 150 && p.p.x > -210 && p.p.x < 262) continue; hedge.push([p.p.x, p.p.z, Math.atan2(p.f.x, p.f.z)]) }
-    for (let x = -30; x < 250; x += 9) flowers.push([x, 165 + 24]);
+    const hedge = [], flowers = []; for (let t = 0; t < 1; t += .0028) { const p = trackPose(t, 27); if (p.p.z > R - 15 && p.p.x > sx0 - 10 && p.p.x < sx1 + 7) continue; hedge.push([p.p.x, p.p.z, Math.atan2(p.f.x, p.f.z)]) }
+    for (let x = XF - 258; x < XF + 22; x += 9) flowers.push([x, R + 24]);
     const hm = new THREE.InstancedMesh(fluffy(new THREE.IcosahedronGeometry(2.2, 1).scale(1.5, .8, 1), 0, 0, 0, .6).translate(0, 1.4, 0), leafMat(), hedge.length);
     hedge.forEach(([x, z, a], i) => { hm.setMatrixAt(i, M4(x, 0, z, a, .9 + r() * .3)); hm.setColorAt(i, new THREE.Color(0x3f6a2a).multiplyScalar(.85 + r() * .3)) }); hm.instanceMatrix.needsUpdate = true; hm.instanceColor.needsUpdate = true; hm.receiveShadow = true; scene.add(hm);
     // jardinières : bac de pierre et massif fleuri (taches de couleur semées par le shader)
     const pg = merge([{ g: box(5, 1.1, 1.8).translate(0, .55, 0), c: 0xe9e2d2 }, { g: fluffy(new THREE.IcosahedronGeometry(1, 1).scale(2.4, .6, .85), 0, 0, 0, .6).translate(0, 1.25, 0), c: 0x3d6a2c, fl: 1 }], ['fl']);
-    const pm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 }), FL = [[.75, .08, .12], [.95, .78, .2], [.95, .93, .9], [.55, .2, .7]];
+    const pm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 }), FLC = [[.75, .08, .12], [.95, .78, .2], [.95, .93, .9], [.55, .2, .7]];
     pm.onBeforeCompile = s => { s.vertexShader = 'attribute float fl;varying float vFl;varying vec3 vP;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvFl=fl;vP=(instanceMatrix*vec4(position,1.)).xyz;');
       s.fragmentShader = 'varying float vFl;varying vec3 vP;\n' + s.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
-       if(vFl>.5){vec3 q=floor(vP*2.2);float h=fract(sin(dot(q,vec3(12.9898,78.233,37.719)))*43758.5453);if(h>.45){float k=fract(h*7.3);diffuseColor.rgb=k<.25?vec3(${FL[0]}):k<.5?vec3(${FL[1]}):k<.75?vec3(${FL[2]}):vec3(${FL[3]});}}`) };
+       if(vFl>.5){vec3 q=floor(vP*2.2);float h=fract(sin(dot(q,vec3(12.9898,78.233,37.719)))*43758.5453);if(h>.45){float k=fract(h*7.3);diffuseColor.rgb=k<.25?vec3(${FLC[0]}):k<.5?vec3(${FLC[1]}):k<.75?vec3(${FLC[2]}):vec3(${FLC[3]});}}`) };
     const fm = new THREE.InstancedMesh(pg, pm, flowers.length); flowers.forEach(([x, z], i) => fm.setMatrixAt(i, M4(x, 0, z, 0, 1))); fm.instanceMatrix.needsUpdate = true; fm.receiveShadow = true; scene.add(fm);
-    // arbres : derrière les tribunes, autour de la piste, dans l'enceinte, rideaux de peupliers
-    // pas d'arbre sur la piste (40 unités de part et d'autre de la corde), dans les tribunes ni dans l'étang
-    const trees = [], add = (x, z, s, k) => { if (Math.abs(Math.hypot(Math.max(0, Math.abs(x) - 260), z) - 165) < 40 || (z > 185 && z < 275 && x > -210 && x < 262) || Math.hypot((x + 150) / 95, (z + 45) / 50) < 1.15 || Math.hypot(x, z) < 48) return; trees.push([x, z, s, k]) };
-    for (let x = -300; x < 320; x += 11 / dens) add(x + r() * 6, 165 + 105 + r() * 30, 1 + r() * .4, r() < .3 ? 1 : 0);
-    for (let k = 0; k < 260 * dens; k++) { const t = r(), p = trackPose(t, 60 + r() * 180); if (p.p.z > 180 && p.p.x > -220 && p.p.x < 270) continue; add(p.p.x, p.p.z, .8 + r() * .6, r() < .2 ? 1 : r() < .35 ? 2 : 0) }
-    for (let k = 0; k < 26 * dens; k++) { const x = -230 + r() * 400, z = -100 + r() * 110; if (x > 100 && z > -40) continue; add(x, z, .8 + r() * .5, r() < .25 ? 1 : 0) }
-    for (let x = -240; x < 240; x += 15) add(x, -236, 1.1, 1);
+    // décor propre à chaque hippodrome (obstacles à garder libres d'arbres : [x, z, rayon] ; plans d'eau : [x, z, rx, rz])
+    const avoid = [], lakes = [];
+    if (id === 'royal') lakes.push([-150, -45, 85, 42]);
+    if (id === 'cimes') lakes.push([-S2 * .32, -R * .3, S2 * .3, R * .26]);
+    if (id === 'foret') { const P = []; chalet(P, S2 * .3, -R * .34, .2, 1.7, 0x2f4a2c, 0x6b4a2e); for (let k = 0; k < 5; k++) P.push({ g: new THREE.CylinderGeometry(.9, .9, 7, 8).rotateZ(Math.PI / 2), m: M4(S2 * .3 + 22, .9 + (k > 2) * 1.6, -R * .34 + (k % 3) * 1.9 - 1.9), c: 0x7a5234 });
+      const m = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .85 })); m.castShadow = !!Q.shadow; m.receiveShadow = true; scene.add(m); avoid.push([S2 * .3, -R * .34, 34]) }
+    if (id === 'cimes') { const P = [], cr = rng(515); for (let k = 0; k < 11; k++) { const p = trackPose(.04 + k * .088 + cr() * .02, 95 + cr() * 90); if (p.p.z > R + 10 && p.p.x > sx0 - 30 && p.p.x < sx1 + 30) continue; chalet(P, p.p.x, p.p.z, Math.atan2(p.n.x, p.n.z) + (cr() - .5) * .5, .9 + cr() * .4); avoid.push([p.p.x, p.p.z, 20]) }
+      const m = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .85 })); m.castShadow = !!Q.shadow; m.receiveShadow = true; scene.add(m) }
+    if (id === 'cote') avoid.push(...seaSide(scene, dens));
+    // arbres : derrière les tribunes, autour de la piste, dans l'enceinte, rideaux au fond
+    // pas d'arbre sur la piste (T.near unités de part et d'autre de la corde), dans les tribunes, dans l'eau, sur la plage ni sur le décor
+    const trees = [], add = (x, z, s, k) => { if (Math.abs(Math.hypot(Math.max(0, Math.abs(x) - S2), z) - R) < T.near || (z > R + 20 && z < R + 110 && x > sx0 - 10 && x < sx1 + 7) || lakes.some(([a, b, rx, rz]) => Math.hypot((x - a) / (rx + 10), (z - b) / (rz + 8)) < 1.15) || Math.hypot(x, z) < 48 || id === 'cote' && z < -(R + 45) || avoid.some(([a, b, d]) => Math.hypot(x - a, z - b) < d)) return; trees.push([x, z, s, k]) };
+    for (let x = -S2 - 40; x < S2 + 60; x += 11 / dens) add(x + r() * 6, R + 105 + r() * 30, 1 + r() * .4, T.behind(r));
+    for (let k = 0; k < 260 * dens * T.n; k++) { const t = r(), p = trackPose(t, T.ring + r() * 180); if (p.p.z > R + 15 && p.p.x > sx0 - 20 && p.p.x < sx1 + 15) continue; add(p.p.x, p.p.z, .8 + r() * .6, T.around(r)) }
+    for (let k = 0; k < 26 * dens * T.n; k++) { const x = -S2 + 30 + r() * (S2 * 2 - 120), z = -(R - 65) + r() * 110; if (x > S2 - 160 && z > -40) continue; add(x, z, .8 + r() * .5, T.inside(r)) }
+    if (T.back >= 0) for (let x = -S2 + 20; x < S2 - 20; x += 15) add(x, -(R + 71), 1.1, T.back);
     forest(scene, trees, Q);
-    pond(scene, -150, -45, 85, 42);
-    hills(scene); castle(scene, -160, -900);
-    W.screen = screen(scene); floodlights(scene);
+    lakes.forEach(([x, z, rx, rz]) => id === 'cimes' ? pond(scene, x, z, rx, rz, 0x2f7f93, 0x8a8a7e) : pond(scene, x, z, rx, rz));
+    if (id === 'capitale') city(scene, dens); else hills(scene, T.relief);
+    if (id === 'royal') castle(scene, -160, -900);
+    W.screen = screen(scene, dir < 0); floodlights(scene);
     return W
   }
   // ---------- projecteurs (courses de nuit) : pylônes toujours là, lampes et halos allumés la nuit ----------
@@ -2051,13 +2246,14 @@ const raceWorld = (() => {
     const g = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6, metalness: .3 })); g.castShadow = true; scene.add(g)
   }
   function haloTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.2, 'rgba(255,240,210,.5)'); g.addColorStop(1, 'rgba(255,230,190,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c) }
-  function night(v) { LAMP.emissiveIntensity = v * 2.4; if (halo) halo.opacity = v * .9 }
+  function night(v) { LAMP.emissiveIntensity = v * 2.4; if (halo) halo.opacity = v * .9; U.uNight.value = v }
   function update(q, now) {
     U.uTime.value = now * .001; if (!W) return;
     const src = (typeof progress !== 'undefined' && progress.length) ? progress : [0], lead = Math.max(...src), running = q.startPhase === 'running';
     // la foule s'enflamme dans la dernière ligne droite, et surtout là où passent les chevaux
     const ex = running ? Math.max(0, Math.min(1, (lead - 72) / 20)) : q.podiumActive ? .8 : 0; U.uExcite.value += (ex - U.uExcite.value) * .05;
-    const lp = trackPose(RACE_ORIGIN + Math.min(100, lead) / 100, 0).p; U.uLead.value = lp.z > 150 ? lp.x : -9999;
+    // position du meneur dans le repère du décor (construit dans le sens de référence, retourné en bloc à main droite)
+    const lp = trackPose(RACE_ORIGIN + Math.min(100, lead) / 100, 0).p; U.uLead.value = lp.z > TRACK.r - 15 ? lp.x * TRACK.m : -9999;
     if (W.screen) drawScreen(W.screen, now)
   }
   // boîte à outils partagée avec le domaine en 3D (50-domaine3d)
@@ -2130,14 +2326,25 @@ const haies = (() => {
   return { step, speed, choose, upcoming, reset, summary, posOf, get active() { return !!S }, get state() { return S } }
 })();
 </script>
-<script type="text/x-module" data-f="10-race.js">function initThreeRace(){if(threeRace||!window.THREE)return false;const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xc4d6de,380,2100);const camera=new THREE.PerspectiveCamera(64,1,.08,1800),renderer=new THREE.WebGLRenderer({canvas:race3d,antialias:true,powerPreference:'high-performance',precision:'highp'});renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;const hemi=new THREE.HemisphereLight(0xdcebff,0x3a4a26,1.3);scene.add(hemi);const sun=new THREE.DirectionalLight(0xfff0d2,3.3);sun.position.set(-260,360,180);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-500;sun.shadow.camera.right=500;sun.shadow.camera.top=500;sun.shadow.camera.bottom=-500;sun.shadow.camera.far=1100;scene.add(sun);
- raceFX.ground(scene,renderer);
- const railMat=new THREE.MeshStandardMaterial({color:0xf7f5e8,roughness:.55}),goldMat=new THREE.MeshStandardMaterial({color:0xd2a23b,roughness:.55}),navyMat=new THREE.MeshStandardMaterial({color:0x102d4b,roughness:.65});const RP=[],put=(g,x,y,z,qt)=>RP.push({g,m:new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),qt||new THREE.Quaternion(),new THREE.Vector3(1,1,1))});// lices, poteaux et bornes fusionnés en un seul maillage (un seul appel de dessin)
- function rail(offset){for(let i=0;i<160;i++){const a=trackPose(i/160,offset),b=trackPose((i+1)/160,offset),mid=a.p.clone().add(b.p).multiplyScalar(.5),len=a.p.distanceTo(b.p);put(new THREE.BoxGeometry(.38,.34,len+.25),mid.x,1.15,mid.z,new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),b.p.clone().sub(a.p).normalize()));if(i%4===0)put(new THREE.BoxGeometry(.48,1.5,.48),a.p.x,.7,a.p.z)}}rail(-20);rail(20);
- const markers=[];for(let m=100;m<1600;m+=100){const t=RACE_ORIGIN+m/1600,p=trackPose(t,-22),s=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(String(1600-m)),transparent:true}));markers.push([m/1600,s]);s.position.copy(p.p);s.position.y=4.15;s.scale.set(8.8,3.8,1);scene.add(s);put(new THREE.BoxGeometry(.3,4.2,.3),p.p.x,2,p.p.z)}
- createRoyalFinishArch(scene);
- for(let i=0;i<48;i++){const p=trackPose(i/48,33);put(new THREE.CylinderGeometry(.15,.18,.72,8),p.p.x,.34,p.p.z)}{const m=new THREE.Mesh(raceWorld.merge(RP),railMat);m.receiveShadow=true;scene.add(m)}
- const podium=createPodium(scene);enhancePodium(podium);const stalls=createStartingStalls(scene),loader=new THREE.TextureLoader(),horses=[],horseTextures=[],podiumTextures=[],silks=[];for(let i=0;i<6;i++){const configure=loaded=>{loaded.anisotropy=renderer.capabilities.getMaxAnisotropy();loaded.minFilter=THREE.LinearMipmapLinearFilter;loaded.magFilter=THREE.LinearFilter;loaded.needsUpdate=true},raceTex=new THREE.Texture(),frontTex=new THREE.Texture();const mat=new THREE.SpriteMaterial({map:raceTex,transparent:true,alphaTest:.025,color:0xffffff,depthWrite:false}),sprite=new THREE.Sprite(mat);sprite.scale.set(i?7.2:7.9,i?10.2:11.2,1);sprite.frustumCulled=false;scene.add(sprite);horses.push(sprite);horseTextures.push(raceTex);podiumTextures.push(frontTex);const kit=new THREE.Object3D();kit.visible=false;scene.add(kit);silks.push(kit)}threeRace={sun,hemi,scene,camera,renderer,horses,horseTextures,podiumTextures,silks,podium,stalls,startPhase:'idle',introStart:0,goTime:0,falseStartPenalty:0,podiumActive:false,podiumOrder:[],lastW:0,lastH:0,camPos:null,camTarget:null,markers};raceFX.build(threeRace);$('#raceScreen').classList.add('webgl-active');return true}
+<script type="text/x-module" data-f="10-race.js">function initThreeRace(){if(threeRace||!window.THREE)return false;const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xc4d6de,380,2100);const camera=new THREE.PerspectiveCamera(64,1,.08,2400),renderer=new THREE.WebGLRenderer({canvas:race3d,antialias:true,powerPreference:'high-performance',precision:'highp'});renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;const hemi=new THREE.HemisphereLight(0xdcebff,0x3a4a26,1.3);scene.add(hemi);const sun=new THREE.DirectionalLight(0xfff0d2,3.3);sun.position.set(-260,360,180);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-500;sun.shadow.camera.right=500;sun.shadow.camera.top=500;sun.shadow.camera.bottom=-500;sun.shadow.camera.far=1100;scene.add(sun);
+ const podium=createPodium(scene);enhancePodium(podium);const stalls=null,markers=[],loader=new THREE.TextureLoader(),horses=[],horseTextures=[],podiumTextures=[],silks=[];for(let i=0;i<6;i++){const configure=loaded=>{loaded.anisotropy=renderer.capabilities.getMaxAnisotropy();loaded.minFilter=THREE.LinearMipmapLinearFilter;loaded.magFilter=THREE.LinearFilter;loaded.needsUpdate=true},raceTex=new THREE.Texture(),frontTex=new THREE.Texture();const mat=new THREE.SpriteMaterial({map:raceTex,transparent:true,alphaTest:.025,color:0xffffff,depthWrite:false}),sprite=new THREE.Sprite(mat);sprite.scale.set(i?7.2:7.9,i?10.2:11.2,1);sprite.frustumCulled=false;scene.add(sprite);horses.push(sprite);horseTextures.push(raceTex);podiumTextures.push(frontTex);const kit=new THREE.Object3D();kit.visible=false;scene.add(kit);silks.push(kit)}threeRace={sun,hemi,scene,camera,renderer,horses,horseTextures,podiumTextures,silks,podium,stalls,startPhase:'idle',introStart:0,goTime:0,falseStartPenalty:0,podiumActive:false,podiumOrder:[],lastW:0,lastH:0,camPos:null,camTarget:null,markers};raceFX.build(threeRace);raceVenue(threeRace);$('#raceScreen').classList.add('webgl-active');return true}
+/* 2.7 : l'hippodrome — gazon et piste, lices, poteaux, arrivée, stalles, décor (09-race-world) — forme un groupe (q.venue), reconstruit
+   seulement quand la course change d'hippodrome ; l'ancien est entièrement libéré (géométries, matériaux, textures). Construit dans le sens
+   de référence (TRACK.m = 1), puis retourné en bloc pour un hippodrome à main droite : les chevaux, eux, suivent trackPose (TRACK.m = -1). */
+function disposeTree(root){const seen=new Set(),free=x=>{if(x&&!seen.has(x)){seen.add(x);x.dispose()}};root.traverse(o=>{free(o.geometry);for(const m of[].concat(o.material||[])){if(seen.has(m))continue;for(const k in m){const t=m[k];if(t&&t.isTexture)free(t)}free(m)}if(o.isInstancedMesh)o.dispose()})}
+function raceVenue(q){try{venueBuild(q)}catch(e){TRACK.m=TRACK.dir;try{journal.erreur('hippodrome',String(e&&e.message||e),'',e&&e.stack)}catch(x){}}}
+function venueBuild(q){if(!q||q.headless)return;const id=hippoOf();if(q.venue&&q.venueId===id)return;
+ if(q.venue){q.scene.remove(q.venue);disposeTree(q.venue);q.venue=null}
+ setTrack(id);TRACK.m=1;const v=new THREE.Group();v.name='hippodrome-'+id;
+ try{raceFX.ground(v,q.renderer);
+  const railMat=new THREE.MeshStandardMaterial({color:0xf7f5e8,roughness:.55});const RP=[],put=(g,x,y,z,qt)=>RP.push({g,m:new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),qt||new THREE.Quaternion(),new THREE.Vector3(1,1,1))});// lices, poteaux et bornes fusionnés en un seul maillage (un seul appel de dessin)
+  function rail(offset){for(let i=0;i<160;i++){const a=trackPose(i/160,offset),b=trackPose((i+1)/160,offset),mid=a.p.clone().add(b.p).multiplyScalar(.5),len=a.p.distanceTo(b.p);put(new THREE.BoxGeometry(.38,.34,len+.25),mid.x,1.15,mid.z,new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),b.p.clone().sub(a.p).normalize()));if(i%4===0)put(new THREE.BoxGeometry(.48,1.5,.48),a.p.x,.7,a.p.z)}}rail(-20);rail(20);
+  const markers=[];for(let m=100;m<1600;m+=100){const t=RACE_ORIGIN+m/1600,p=trackPose(t,-22),s=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(String(1600-m)),transparent:true}));markers.push([m/1600,s]);s.position.copy(p.p);s.position.y=4.15;s.scale.set(8.8,3.8,1);v.add(s);put(new THREE.BoxGeometry(.3,4.2,.3),p.p.x,2,p.p.z)}
+  createRoyalFinishArch(v);
+  for(let i=0;i<48;i++){const p=trackPose(i/48,33);put(new THREE.CylinderGeometry(.15,.18,.72,8),p.p.x,.34,p.p.z)}{const m=new THREE.Mesh(raceWorld.merge(RP),railMat);m.receiveShadow=true;v.add(m)}
+  q.stalls=createStartingStalls(v);q.markers=markers;raceFX.world(q,v)}
+ finally{TRACK.m=TRACK.dir}
+ if(TRACK.dir<0)v.scale.x=-1;q.scene.add(v);q.venue=v;q.venueId=id;$('#raceScreen').dataset.hippo=id}
 function renderPodiumScene(q,now){const slots=[{x:0,h:3.3},{x:-6,h:2.2},{x:6,h:1.5}];q.podium.visible=true;for(let i=0;i<q.horses.length;i++){const slotIndex=q.podiumOrder.indexOf(i),visible=slotIndex>=0;q.horses[i].visible=visible;q.silks[i].visible=false;if(visible){const slot=slots[slotIndex],bounce=Math.sin(now*.003+i)*.025;q.horses[i].material.map=q.podiumTextures[i];if(raceFX.podium(q,i,slot,now))q.horses[i].visible=false;q.horses[i].position.set(slot.x,slot.h+4.3+bounce,0);q.horses[i].scale.set(4.3,8.6,1)}else raceFX.podium(q,i)}const desired=new THREE.Vector3(0,11.5,29),target=new THREE.Vector3(0,5,0);if(!q.camPos){q.camPos=desired.clone();q.camTarget=target.clone()}q.camPos.lerp(desired,.045);q.camTarget.lerp(target,.055);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);q.podium.rotation.y=Math.sin(now*.00035)*.025;raceFX.render(q);return true}
 function renderThreeRace(now,w,h){const q=threeRace;if(!q||w<2||h<2)return false;if(w!==q.lastW||h!==q.lastH){q.lastW=w;q.lastH=h;q.renderer.setSize(w,h,false);q.camera.aspect=w/h;q.camera.updateProjectionMatrix()}if(q.podiumActive)return renderPodiumScene(q,now);const source=visualProgress.length?visualProgress:progress;for(let i=0;i<q.horses.length;i++){const lane=((visualLane[i]??laneOf(i))-50)*.38,p=trackPose(RACE_ORIGIN+(source[i]||0)/100-(q.startPhase==='running'?0:.003),lane),speed=i?(rivalAI[i-1]?.speed||rivalBase[i-1]):autoSpeed;
   // cap du cheval : la piste + sa dérive latérale (vitesse latérale / vitesse d'avance, en unités de scène par seconde)
@@ -2158,8 +2365,10 @@ function smoothRace(now,dt){if(raceLoop>0)raceClock.pump();const S=raceSnap,cur=
  for(let i=0;i<6;i++){visualProgress[i]=S?S.p[i]+((progress[i]??0)-S.p[i])*a:progress[i]??0;const tl=S?S.l[i]+(cur[i]-S.l[i])*a:cur[i],nl=visualLane[i]+(tl-visualLane[i])*k;
   laneVel[i]+=((nl-visualLane[i])/Math.max(1,dt)*1000-laneVel[i])*kv;visualLane[i]=nl}}
 function renderScene(now=0){if(!$('#raceScreen').classList.contains('open'))return;const world=$('#povWorld'),w=world.clientWidth,h=world.clientHeight,dt=Math.min(34,now-lastScene||16.67);lastScene=now;smoothRace(now,dt);if(threeRace)renderThreeRace(now,w,h);sceneFrame=requestAnimationFrame(renderScene)}
-function courseTurn(p){const bell=(a,b,x)=>{if(x<=a||x>=b)return 0;return Math.sin((x-a)/(b-a)*Math.PI)};return bell(.015,.265,p)+bell(.515,.765,p)}
-function startRace(){if(!window.THREE)return toast('Le moteur 3D n’a pas pu se charger. Recharge la page.');const RH=stable.active();if(RH.injury)return toast(`${RH.name} est blessé`);if(RH.fatigue>=90)return toast(`${RH.name} est trop fatigué pour courir`);if(!currentField)buildField();if(state.feed<RACE.fee)return toast('Fourrage insuffisant');racePlayer=gear.apply(terrainPerf(stable.racePerf(RH.stats,RH,RACE.dist,RH.dist,state.strategy),RH.stats,RH.talent));playerFinal=false;resetRaceStats();$('#mapIdeal').style.opacity=1;$('#sprintBtn').dataset.st='';$('#sprintBtn').innerHTML='SPRINT<small>plus tard</small>';$('#sprintInfo').textContent='';state.feed-=RACE.fee;sync();raceSeed=currentField.seed;raceRng=seeded(raceSeed);raceHeader();$('#panel').classList.remove('open');$('#raceScreen').classList.add('open');initThreeRace();if(threeRace){applyRaceQuality(threeRace);raceFX.liveries(threeRace);threeRace.markers.forEach(([f,s])=>{s.material.map?.dispose();s.material.map=makeLabel(String(Math.round(RACE.dist*(1-f)/100)*100));s.material.needsUpdate=true})}sound.music(false);sound.crowdStart();sound.crowdLevel(.1);resetRacers();if(threeRace){threeRace.camPos=null;threeRace.camTarget=null;threeRace.finishView=false;threeRace.podiumActive=false;threeRace.podium.visible=false;threeRace.stalls.visible=true;threeRace.stalls.userData.doors.forEach(d=>{d.rotation.x=0;d.position.set(0,0,3.58)});threeRace.startPhase='cinematic';threeRace.introStart=performance.now();threeRace.tipped=0;threeRace.inStalls=0;threeRace.gatesAt=0;threeRace.doorsDone=0;threeRace.horses.forEach((h,i)=>{h.visible=true;h.material.map=threeRace.horseTextures[i];h.material.needsUpdate=true});threeRace.silks.forEach(s=>s.visible=false)}$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('waiting');raceGoAt=performance.now()+RACE_GO_MS;clearTimeout(goTimer);goTimer=setTimeout(openGates,RACE_GO_MS);updateEnergy();$('#sprintBtn').disabled=true;$('#sprintBtn').classList.remove('active');lookDir=0;updateLane();cancelAnimationFrame(sceneFrame);lastScene=0;sceneFrame=requestAnimationFrame(renderScene);$('#raceComment').textContent='Présentation de l’hippodrome…';clearInterval(raceLoop);raceLoop=null;hooks.emit('race:start')}
+// virages de l'hippodrome de la course (2.7) : place et force tirées du tracé ; l'Hippodrome Royal garde ses valeurs exactes (moteur 4)
+function courseTurn(p){const bell=(a,b,x)=>{if(x<=a||x>=b)return 0;return Math.sin((x-a)/(b-a)*Math.PI)},h=RACE&&RACE.hippo;
+ if(!h||h==='royal'||!TRACKS[h])return bell(.015,.265,p)+bell(.515,.765,p);const T=TRACKS[h];return T.k*(bell(T.t1[0],T.t1[1],p)+bell(T.t2[0],T.t2[1],p))}
+function startRace(){if(!window.THREE)return toast('Le moteur 3D n’a pas pu se charger. Recharge la page.');const RH=stable.active();if(RH.injury)return toast(`${RH.name} est blessé`);if(RH.fatigue>=90)return toast(`${RH.name} est trop fatigué pour courir`);if(!currentField)buildField();if(state.feed<RACE.fee)return toast('Fourrage insuffisant');racePlayer=gear.apply(terrainPerf(stable.racePerf(RH.stats,RH,RACE.dist,RH.dist,state.strategy),RH.stats,RH.talent));playerFinal=false;resetRaceStats();$('#mapIdeal').style.opacity=1;$('#sprintBtn').dataset.st='';$('#sprintBtn').innerHTML='SPRINT<small>plus tard</small>';$('#sprintInfo').textContent='';state.feed-=RACE.fee;sync();raceSeed=currentField.seed;raceRng=seeded(raceSeed);raceHeader();$('#panel').classList.remove('open');$('#raceScreen').classList.add('open');initThreeRace();if(threeRace){raceVenue(threeRace);applyRaceQuality(threeRace);raceFX.liveries(threeRace);threeRace.markers.forEach(([f,s])=>{s.material.map?.dispose();s.material.map=makeLabel(String(Math.round(RACE.dist*(1-f)/100)*100));s.material.needsUpdate=true})}sound.music(false);sound.crowdStart();sound.crowdLevel(.1);resetRacers();if(threeRace){threeRace.camPos=null;threeRace.camTarget=null;threeRace.finishView=false;threeRace.podiumActive=false;threeRace.podium.visible=false;threeRace.stalls.visible=true;threeRace.stalls.userData.doors.forEach(d=>{d.rotation.x=0;d.position.set(0,0,3.58)});threeRace.startPhase='cinematic';threeRace.introStart=performance.now();threeRace.tipped=0;threeRace.inStalls=0;threeRace.gatesAt=0;threeRace.doorsDone=0;threeRace.horses.forEach((h,i)=>{h.visible=true;h.material.map=threeRace.horseTextures[i];h.material.needsUpdate=true});threeRace.silks.forEach(s=>s.visible=false)}$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('waiting');raceGoAt=performance.now()+RACE_GO_MS;clearTimeout(goTimer);goTimer=setTimeout(openGates,RACE_GO_MS);updateEnergy();$('#sprintBtn').disabled=true;$('#sprintBtn').classList.remove('active');lookDir=0;updateLane();cancelAnimationFrame(sceneFrame);lastScene=0;sceneFrame=requestAnimationFrame(renderScene);$('#raceComment').textContent='Présentation de l’hippodrome…';clearInterval(raceLoop);raceLoop=null;hooks.emit('race:start')}
 function clampRace(value,min,max){return Math.max(min,Math.min(max,value))}
 // jauge d'endurance ; repère « réserve » (2.5) : sous 1,2 × la distance restante, retenir le cheval paie (mesuré au bot, voir PACE_IN)
 function updateEnergy(){const amount=Math.round(playerEnergy);$('#energyValue').textContent=amount+' %';$('#energyFill').style.width=amount+'%';$('#energyFill').style.filter=amount<25?'hue-rotate(-40deg) saturate(1.8)':'';
@@ -2168,15 +2377,17 @@ function nearbyHorses(index){const own=progress[index],lane=index? rivalLanes[in
 function drafting(index){const lane=index?rivalLanes[index-1]:playerLane;return nearbyHorses(index).find(h=>h.gap>.5&&Math.abs(h.l-lane)<12)}
 function markFinish(index){if(raceFinished[index]||progress[index]<100)return;raceFinished[index]=true;raceFinishTimes[index]=(raceTime-(progress[index]-100)/Math.max(.05,(index?rivalAI[index-1].speed:autoSpeed)*raceScaleNow()))*.2;{const prev=finishOrder.length?raceFinishTimes[finishOrder[finishOrder.length-1]]:0;if(raceFinishTimes[index]<=prev)raceFinishTimes[index]=prev+.01}finishOrder.push(index);if(index===0){RS.sprintLeft=playerFinal?playerEnergy:null;if(threeRace){threeRace.finishView=true;threeRace.camPos=null;threeRace.camTarget=null}$('#sprintBtn').disabled=true;$('#draft').classList.remove('show');$('#raceComment').textContent='Poteau franchi — caméra arrivée jusqu’au dernier cheval';$('#autoGallop b').textContent='Course terminée'}}
 // jauge : position du cheval (rond) et couloir visé (trait cyan) — le cheval s'y rend s'il a la place
-function updateLane(){playerLane=Math.max(7,Math.min(93,playerLane));const dot=$('#laneDot');dot.style.left=playerLane+'%';let t=updateLane.t;if(!t){t=updateLane.t=document.createElement('b');t.className='lane-target';dot.before(t)}t.style.left=clampRace(playerTarget,7,93)+'%';t.style.opacity=Math.abs(playerTarget-playerLane)>1.5?.9:0}
+function updateLane(){playerLane=Math.max(7,Math.min(93,playerLane));const dot=$('#laneDot'),X=v=>(TRACK.dir<0?100-v:v)+'%';dot.style.left=X(playerLane);let t=updateLane.t;if(!t){t=updateLane.t=document.createElement('b');t.className='lane-target';dot.before(t)}t.style.left=X(clampRace(playerTarget,7,93));t.style.opacity=Math.abs(playerTarget-playerLane)>1.5?.9:0}
 // ◀ ▶ : le joueur choisit un couloir ; son cheval s'y rend à l'allure latérale commune, sans traverser les chevaux qui l'entourent
+// ◀ ▶ à l'écran : sur un hippodrome à main droite la corde est à droite, l'entrée enregistrée reste en couloirs (corde = -1)
+function steerScreen(d){steer(d*(TRACK.dir<0?-1:1))}
 function steer(dir){hooks.emit('race:steer',dir);playerTarget=clampRace(Math.round(playerTarget)+dir*10,7,93);if(Math.abs(playerTarget-playerLane)>22)playerTarget=playerLane+Math.sign(playerTarget-playerLane)*22;updateLane();$('#raceComment').textContent=dir<0?'Tu te rapproches de la corde':'Tu prends l’extérieur'}
 function look(dir){lookDir=dir;$('#lookLabel').textContent=dir<0?'Regard à gauche':'Regard à droite';$('#lookLabel').classList.add('show');$('#lookLeft').classList.toggle('active',dir<0);$('#lookRight').classList.toggle('active',dir>0);setTimeout(()=>{lookDir=0;$('#lookLeft').classList.remove('active');$('#lookRight').classList.remove('active');$('#lookLabel').classList.remove('show')},800)}
 function leaveRace(){hooks.emit('race:leave',finishOrder.length===6);sound.crowdStop();sound.music(true);runRaceV2.said=0;runRaceV2.tipd=0;clearTimeout(goTimer);clearInterval(raceLoop);raceLoop=null;cancelAnimationFrame(sceneFrame);$('#raceScreen').classList.remove('open');$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('show','waiting');if(threeRace){threeRace.startPhase='idle';threeRace.finishView=false;threeRace.podiumActive=false}}
 function showPodium(){if(finishOrder.length<3)return;$('#finishBoard').classList.remove('show');if(threeRace){threeRace.finishView=false;threeRace.camPos=null;threeRace.camTarget=null;threeRace.podiumOrder=finishOrder.slice(0,3);threeRace.podiumActive=true;}$('#raceComment').textContent='Cérémonie du Podium Royal';setTimeout(()=>{if($('#raceScreen').classList.contains('open'))$('#raceResult').classList.add('show')},2400)}
 function raceScaleNow(){return .44*1600/RACE.dist}
 function terrainPerf(P,st,talent){const T=TERRAINS[RACE.terrain]||TERRAINS.bon,k=T.drain>1?(1.25-st.end*.005):1;const L=Math.pow(1600/RACE.dist,.55);const o={...P,talent,cruise:P.cruise*T.speed,drain:P.drain*(1+(T.drain-1)*k*1.6)*L,sprintDrain:P.sprintDrain*T.drain};if(talent==='finisseur')o.sprint*=1.06;if(talent==='increvable')o.drain*=RACE.terrain==='bon'?.92:.84;if(talent==='fusee')o.jump=(o.jump||1)*1.02;if(talent==='tacticien'){o.draft*=2.5;o.check=Math.min(1,(o.check||.97)+.012)}if(talent==='metronome'){o.noise*=.3;o.drain*=.93}return o}
-function raceHeader(){$('.race-head h2').textContent=RACE.n;$('.race-head small').textContent=`Hippodrome Royal • ${fmt(RACE.dist)} m • Terrain ${TERRAINS[RACE.terrain].n.toLowerCase()} • 6 partants`;$('#meters').textContent=fmt(RACE.dist);hooks.emit('race:header')}
+function raceHeader(){$('.race-head h2').textContent=RACE.n;$('.race-head small').textContent=`${HIPPOS[hippoOf()].n} • ${fmt(RACE.dist)} m • Terrain ${TERRAINS[RACE.terrain].n.toLowerCase()} • 6 partants`;$('#meters').textContent=fmt(RACE.dist);hooks.emit('race:header')}
 
 function initRivalAI(){const F=currentField||buildField();rivalAI=F.rivals.map((r,i)=>{const tac=['leader','stalker','finisher'][Math.floor(raceRng()*3)],P=terrainPerf(stable.racePerf(r.stats,{form:52+raceRng()*18,fatigue:10,moral:65},RACE.dist,r.pref,tac),r.stats,r.talent);
  return{P,tac,speed:0,targetLane:rivalLanes[i],nextDecision:6+Math.floor(raceRng()*13),final:false,err:(raceRng()-.5)*.14+(tac==='leader'?-.06:tac==='finisher'?.04:0),energy:100}});
@@ -2257,7 +2468,7 @@ function runRaceV2(){raceSnap={at:performance.now(),p:progress.slice(),l:[player
   // jauge de sprint : TROP TÔT / MAINTENANT / EN RETARD
   const rem=remainingM(progress[0]),reach=sprintReach(P,playerEnergy,S.cr),btn=$('#sprintBtn');
   if(!playerFinal){const k=reach/Math.max(1,rem);if(RS.idealAtM==null&&k>=.97)RS.idealAtM=rem;const s=phase<35?'wait':k<.9?'early':k<=1.12?'now':'late';if(btn.dataset.st!==s){btn.dataset.st=s;btn.innerHTML={wait:'SPRINT<small>plus tard</small>',early:'SPRINT<small>trop tôt</small>',now:'SPRINT<small>maintenant !</small>',late:'SPRINT<small>vite !</small>'}[s];if(s==='now')buzz(15);}
-   $('#sprintInfo').innerHTML=`Sprint possible : <b>${fmt(Math.round(Math.min(reach,9999)/10)*10)} m</b> · arrivée : <b>${fmt(Math.round(rem/10)*10)} m</b>`;const z=Math.max(0,Math.min(100,100-reach/RACE.dist*100));$('#mapIdeal').style.left=z+'%'}
+   $('#sprintInfo').innerHTML=`Sprint possible\u00a0: <b>${fmt(Math.round(Math.min(reach,9999)/10)*10)}\u00a0m</b> · arrivée\u00a0: <b>${fmt(Math.round(rem/10)*10)}\u00a0m</b>`;const z=Math.max(0,Math.min(100,100-reach/RACE.dist*100));$('#mapIdeal').style.left=z+'%'}
   else $('#sprintInfo').innerHTML=playerEnergy>0?`Sprint final · <b>${fmt(Math.round(rem/10)*10)} m</b> à tenir`:'<b>Épuisé</b> : le cheval ralentit';
   const pinned=Math.abs(playerTarget-playerLane)>2&&raceBlocked[0]===0&&progress.some((p,j)=>j&&!raceFinished[j]&&Math.abs(p-progress[0])<HORSE_LEN&&Math.abs(laneOf(j)-playerLane)<=HORSE_W+.01&&(laneOf(j)-playerLane)*(playerTarget-playerLane)>0);
   if(pinned&&!RS.pinned&&raceLoop>0){buzz(8);const sv=$('.steer');sv.classList.remove('bump');void sv.offsetWidth;sv.classList.add('bump')}RS.pinned=pinned;
@@ -2376,7 +2587,7 @@ document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
   armedAt=ts;
   q.classList.add('armed');q.innerHTML=`Abandonner ?<small>${RACE.fee&&!RACE.defi&&!RACE.duel&&!RACE.tour?'engagement perdu':'la course s’arrête'}</small>`;t=setTimeout(reset,3500)};
  hooks.on('race:leave',reset);hooks.on('race:start',reset)}
-$('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steer(-1);$('#moveRight').onclick=()=>steer(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;$('#paceUp').onclick=()=>setPace(playerPace+1);$('#paceDown').onclick=()=>setPace(playerPace-1);document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key==='ArrowLeft')steer(-1);if(e.key==='ArrowRight')steer(1);if(e.key===' ')sprint();if(!(typeof haies!=='undefined'&&haies.active)){if(e.key==='ArrowUp'){e.preventDefault();setPace(playerPace+1)}if(e.key==='ArrowDown'){e.preventDefault();setPace(playerPace-1)}}{const k=e.key.toLowerCase();if(k==='z'||k==='w')setPace(playerPace+1);if(k==='s')setPace(playerPace-1)}if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});
+$('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steerScreen(-1);$('#moveRight').onclick=()=>steerScreen(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;$('#paceUp').onclick=()=>setPace(playerPace+1);$('#paceDown').onclick=()=>setPace(playerPace-1);document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key==='ArrowLeft')steerScreen(-1);if(e.key==='ArrowRight')steerScreen(1);if(e.key===' ')sprint();if(!(typeof haies!=='undefined'&&haies.active)){if(e.key==='ArrowUp'){e.preventDefault();setPace(playerPace+1)}if(e.key==='ArrowDown'){e.preventDefault();setPace(playerPace-1)}}{const k=e.key.toLowerCase();if(k==='z'||k==='w')setPace(playerPace+1);if(k==='s')setPace(playerPace-1)}if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});
 /* ===== Atelier du champion ===== */
 const HN=()=>champion.get().name||'Mon champion';
 const studio=(()=>{const el=$('#studio'),cv=$('#studioCanvas'),ctx=cv.getContext('2d');let draft=null,view='portrait',anim=0,firstRun=false;
@@ -2478,7 +2689,8 @@ function openCourses(){if(RACE.tour){if(tour.active){RACE=tour.meeting();if(stab
 function renderCourses(){stable.tick();const H=stable.data.horses,h=stable.active(),F=currentField,rt=[stable.rating(h),...F.rivals.map(r=>r.rating)],od=odds(rt.map((x,i)=>i?x+(Math.abs(RACE.dist-F.rivals[i-1].pref)<300?1:0):x+(h.form-60)*.08-Math.max(0,h.fatigue-40)*.1-Math.abs(RACE.dist-h.dist)/400*1.5));
  const pr=pronostic(od);const ok=!h.injury&&h.fatigue<90,why=h.injury?'blessé':'trop fatigué';
  const rows=[{name:h.name,liv:livOf(h),r:rt[0],me:1,talent:h.talent},...F.rivals.map((x,i)=>({name:x.name,liv:x.livery,r:rt[i+1],talent:x.talent,nem:x.nemesis,ecurie:x.ecurie}))].map((x,i)=>{const fc=x.me||x.nem?'':ecuries.bilan(x.name);return `<tr class="${x.me?'me':''}"><td>${LIVERY.silkSVG(x.liv,30)}</td><td><b>${escapeHTML(x.name)}</b>${x.me?' · <small>VOUS</small>':''}${x.nem?' <span class="nem">RIVAL</span>':''}<br><small style="color:#9fb3c2">${x.me?'':escapeHTML(ecuries.nom(x.ecurie))+' · '}${coatName(x.liv.coat)} · ${TALENTS[x.talent].i} ${TALENTS[x.talent].n}</small>${fc?`<br><small class="face">${fc}</small>`:''}</td><td class="num"><span class="note">${x.r}</span></td><td class="num prono ${pr[i][0]}">${pr[i][1]}</td></tr>`}).join('');
- $('#panelBody').innerHTML=`<div class="meets">${tour.card()}${MEETINGS.map(meetingCard).join('')}</div><p style="margin:10px 0 0;color:#c9d7e2"><b style="color:#ffe09a">${escapeHTML(RACE.n)}</b> · ${fmt(RACE.dist)} m · Terrain ${TERRAINS[RACE.terrain].n.toLowerCase()} (${TERRAINS[RACE.terrain].d.toLowerCase()}) · Allocation 🪙 ${fmt(purseOf(RACE))} · ${RACE.tour?'<b style="color:#9fe39f">Engagement compris dans le tournoi</b>':`Engagement 🌾 ${fmt(RACE.fee)}`}</p>
+ const HP=HIPPOS[hippoOf()];
+ $('#panelBody').innerHTML=`<div class="meets">${tour.card()}${MEETINGS.slice().sort((a,b)=>a.league-b.league).map(meetingCard).join('')}</div><p class="hip-info" data-hippo="${hippoOf()}"><i>${HP.i}</i><span><b>${HP.n}</b> · ${HP.trait}<br><small>${HP.d}</small></span></p><p style="margin:10px 0 0;color:#c9d7e2"><b style="color:#ffe09a">${escapeHTML(RACE.n)}</b> · ${fmt(RACE.dist)} m · Terrain ${TERRAINS[RACE.terrain].n.toLowerCase()} (${TERRAINS[RACE.terrain].d.toLowerCase()}) · Allocation 🪙 ${fmt(purseOf(RACE))} · ${RACE.tour?'<b style="color:#9fe39f">Engagement compris dans le tournoi</b>':`Engagement 🌾 ${fmt(RACE.fee)}`}</p>
  <div class="st-horses">${H.map(x=>`<button class="st-pick${x.id===h.id?' on':''}${RACE.tour&&x.id!==tour.horse?' dim':''}" data-runner="${x.id}"><canvas width="84" height="112"></canvas><div><b>${escapeHTML(x.name)}</b><small>Forme ${condLabel('form',x.form).toLowerCase()} · ${condLabel('fatigue',x.fatigue).toLowerCase()}</small><br><span class="note">${stable.rating(x)}</span> <em class="suit ${meta.suit(x).k}">${meta.suit(x).i} ${meta.suit(x).n}</em> <small>${TALENTS[x.talent].i}</small></div></button>`).join('')}</div>
  <div class="taunt"><div class="tface">🎩</div><div><b>${VALMONT.owner}</b> <small>face-à-face : ${rival.rec.w} – ${rival.rec.l}</small><p>${rival.taunt()}</p></div></div><div class="rc-grid"><section class="st-box"><h4>PARTANTS</h4><table class="runners">${rows}</table></section>
  <section class="st-box"><h4>TACTIQUE DU JOCKEY</h4><div class="tactics">${TACTICS.map(([id,n,d])=>`<button data-tactic="${id}" class="${state.strategy===id?'on':''}"><b>${n}</b>${d}</button>`).join('')}</div>
@@ -2522,16 +2734,21 @@ const LEAGUES=[{id:'bronze',n:'Bronze',min:0,col:'#c9834a',reward:{gold:0}},{id:
  {id:'or',n:'Or',min:900,col:'#f3c64a',reward:{gold:25000,gems:60}},{id:'royale',n:'Royale',min:1800,col:'#b98cff',reward:{gold:60000,gems:150}}];
 const TERRAINS={bon:{n:'Bon',speed:1,drain:1,d:'Terrain rapide'},souple:{n:'Souple',speed:.985,drain:1.1,d:'L’endurance compte davantage'},lourd:{n:'Lourd',speed:.965,drain:1.22,d:'Épuisant : réservé aux chevaux de tenue'}};
 const MEETINGS=[
- {id:'m1',n:'Prix des Écuries',dist:1200,terrain:'bon',league:0,diff:-4,purse:3500,fee:300},
- {id:'m2',n:'Grand Prix du Domaine Royal',dist:1600,terrain:'bon',league:0,diff:0,purse:7000,fee:500},
- {id:'m3',n:'Prix de la Forêt',dist:2000,terrain:'souple',league:1,diff:1,purse:8500,fee:600},
- {id:'m4',n:'Coupe d’Automne',dist:2400,terrain:'lourd',league:2,diff:3,purse:14000,fee:900},
- {id:'m5',n:'Critérium des Sprinters',dist:1200,terrain:'bon',league:2,diff:4,purse:15000,fee:900},
- {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000},
+ {id:'m1',n:'Prix des Écuries',dist:1200,terrain:'bon',league:0,diff:-4,purse:3500,fee:300,hippo:'royal'},
+ {id:'m2',n:'Grand Prix du Domaine Royal',dist:1600,terrain:'bon',league:0,diff:0,purse:7000,fee:500,hippo:'royal'},
+ {id:'m3',n:'Prix de la Forêt',dist:2000,terrain:'souple',league:1,diff:1,purse:8500,fee:600,hippo:'foret'},
+ {id:'m4',n:'Coupe d’Automne',dist:2400,terrain:'lourd',league:2,diff:3,purse:14000,fee:900,hippo:'cimes'},
+ {id:'m5',n:'Critérium des Sprinters',dist:1200,terrain:'bon',league:2,diff:4,purse:15000,fee:900,hippo:'cote'},
+ {id:'m6',n:'Derby du Royaume',dist:2400,terrain:'bon',league:3,diff:7,purse:40000,fee:2000,hippo:'royal'},
+ {id:'n1',n:'Nocturne de la Capitale',dist:1600,terrain:'bon',league:1,diff:2,purse:11500,fee:700,hippo:'capitale'},
  // courses de haies (10-haies) : un choix d'élan avant chaque obstacle
- {id:'n1',n:'Nocturne Royale',dist:1600,terrain:'bon',league:1,diff:2,purse:11500,fee:700},
- {id:'h1',n:'Prix des Haies',dist:2000,terrain:'souple',league:1,diff:0,purse:9500,fee:600,haies:6},
- {id:'h2',n:'Grand Steeple Royal',dist:2400,terrain:'bon',league:2,diff:4,purse:19000,fee:1000,haies:8}];
+ {id:'h1',n:'Prix des Haies',dist:2000,terrain:'souple',league:1,diff:0,purse:9500,fee:600,haies:6,hippo:'cimes'},
+ {id:'h2',n:'Grand Steeple Royal',dist:2400,terrain:'bon',league:2,diff:4,purse:19000,fee:1000,haies:8,hippo:'royal'},
+ // 2.7 : une course sur chaque nouvel hippodrome (ajoutées en fin de liste : l'ordre des premières sert au Défi du jour)
+ {id:'p1',n:'Prix de la Plage',dist:1600,terrain:'bon',league:0,diff:-2,purse:4500,fee:350,hippo:'cote'},
+ {id:'p2',n:'Prix des Sapins',dist:1200,terrain:'bon',league:1,diff:1,purse:9000,fee:600,hippo:'foret'},
+ {id:'p3',n:'Grand Prix de la Capitale',dist:2000,terrain:'bon',league:2,diff:5,purse:21000,fee:1100,hippo:'capitale'},
+ {id:'p4',n:'Prix du Glacier',dist:1600,terrain:'souple',league:3,diff:6,purse:30000,fee:1500,hippo:'cimes'}];
 const TROPHY_DELTA=[30,18,10,2,-6,-12];
 const MISSION_POOL=[{k:'train',n:'Entraîner un cheval',goal:3,r:{gold:1500}},{k:'race',n:'Disputer des courses',goal:2,r:{feed:1500}},{k:'top3',n:'Finir sur le podium',goal:1,r:{gold:2500}},
  {k:'win',n:'Gagner une course',goal:1,r:{gems:10}},{k:'care',n:'Soigner ou reposer un cheval',goal:1,r:{feed:800}},{k:'sprint',n:'Réussir un sprint final parfait',goal:1,r:{gold:2000}},{k:'perfect',n:'Sortir des stalles dans les 2 premiers',goal:1,r:{gems:5}},{k:'double',n:'Doubler 5 adversaires en course',goal:5,r:{gold:2500}}];
@@ -2568,7 +2785,7 @@ const career=(()=>{const day=()=>new Date().toISOString().slice(0,10),week=()=>{
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.claimM!=null){claimMission(+b.dataset.claimM);openMissions()}else if(b.dataset.claimL!=null)claimLeague(+b.dataset.claimL);else if(b.hasAttribute('data-claim-w'))claimWeek()});
  return{bump,afterRace,league,badges,openMissions,openTrophies,openEvents,tip:k=>{if(C.tips[k])return false;C.tips[k]=1;save();return true},get data(){return C},roll,save}})();
 /* ---------- programme des courses ---------- */
-function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m);return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<small>${m.haies?`🏇 ${m.haies} haies · `:''}${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(purseOf(m))}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
+function meetingCard(m){const lock=m.league>career.league(),T=TERRAINS[m.terrain],sf=meta.suit(stable.active(),m),H=HIPPOS[hippoOf(m)];return `<button class="meet${RACE.id===m.id?' on':''}" data-meet="${m.id}" data-hippo="${hippoOf(m)}" ${lock?'disabled':''}><b>${m.n}</b>${lock?'':`<em class="suit ${sf.k}">${sf.i} ${sf.n}</em>`}<i class="hip" data-hippo="${hippoOf(m)}">${H.i} ${H.c}</i><small>${m.haies?`🏇 ${m.haies} haies · `:''}${fmt(m.dist)} m · ${T.n} · ${distName(m.dist)}</small><span>🪙 ${fmt(purseOf(m))}${lock?` · 🔒 Ligue ${LEAGUES[m.league].n}`:''}</span></button>`}
 $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('[data-meet]');if(!b)return;if(b.dataset.meet==='tour'){RACE=tour.meeting();stable.setActive(tour.horse);champion.emit()}else RACE={...MEETINGS.find(m=>m.id===b.dataset.meet)};buildField();renderCourses()});
 </script>
 <script type="text/x-module" data-f="15-sound.js">/* ===== Son : galop, foule, cloche de départ, fanfare, interface, musique douce, speaker (tout synthétisé, aucun fichier) ===== */
@@ -2755,13 +2972,13 @@ const tour=(()=>{const C=career.data;C.tour=C.tour||{day:'',used:false,cups:0,a:
  function roll(){if(T.day!==day()){T.day=day();T.used=false;save()}}
  // conditions du jour, identiques pour tous les joueurs d'une même ligue
  function conf(){let x=[...(day()+career.league())].reduce((a,c)=>a*31+c.charCodeAt(0),11)%2147483647;const r=()=>(x=(x*16807)%2147483647)/2147483647;r();
-  const dist=[1200,1600,2000,2400][Math.floor(r()*4)],ter=career.league()?['bon','souple','lourd'][Math.floor(r()*3)]:['bon','souple'][Math.floor(r()*2)];return{dist,terrain:ter}}
+  const dist=[1200,1600,2000,2400][Math.floor(r()*4)],ter=career.league()?['bon','souple','lourd'][Math.floor(r()*3)]:['bon','souple'][Math.floor(r()*2)],hippo=Object.keys(HIPPOS)[Math.floor(r()*5)];return{dist,terrain:ter,hippo}}
  function meeting(){const a=T.a;if(!a)return{...MEETINGS[1]};const L=career.league();
-  return{id:'tour',tour:true,round:a.round,n:`Tournoi royal · ${TOUR_ROUNDS[a.round]}`,dist:a.dist,terrain:a.terrain,league:0,diff:L*2-2+a.round*2.5,purse:Math.round([1500,2500,4000][a.round]*k()/50)*50,fee:0}}
+  return{id:'tour',tour:true,round:a.round,n:`Tournoi royal · ${TOUR_ROUNDS[a.round]}`,dist:a.dist,terrain:a.terrain,hippo:a.hippo,league:0,diff:L*2-2+a.round*2.5,purse:Math.round([1500,2500,4000][a.round]*k()/50)*50,fee:0}}
  const prizes=()=>{const K=k(),L=career.league();return[{gold:Math.round(8000*K/50)*50,gems:20,chest:L>=2?'royal':'or'},{gold:Math.round(4000*K/50)*50,chest:'argent'},{gold:Math.round(2500*K/50)*50,chest:'bois'}]};
  const ptxt=p=>[p.gold?`🪙 ${fmt(p.gold)}`:'',p.gems?`💎 ${p.gems}`:'',p.chest?`${CHESTS[p.chest].ico} coffre ${CHESTS[p.chest].n}`:''].filter(Boolean).join(' · ');
  function enter(){roll();const h=stable.byId(pickId||stable.data.active);if(!h)return;if(h.injury||h.fatigue>=70)return toast(`${h.name} doit être reposé (fatigue < 70) pour un tournoi`);
-  if(T.used){if(state.gems<TOUR_GEMS)return toast('Pas assez de gemmes');state.gems-=TOUR_GEMS;sync()}T.used=true;const c=conf();T.a={horse:h.id,round:0,dist:c.dist,terrain:c.terrain,ranks:[]};save();refresh();
+  if(T.used){if(state.gems<TOUR_GEMS)return toast('Pas assez de gemmes');state.gems-=TOUR_GEMS;sync()}T.used=true;const c=conf();T.a={horse:h.id,round:0,dist:c.dist,terrain:c.terrain,hippo:c.hippo,ranks:[]};save();refresh();
   stable.setActive(h.id);champion.emit();RACE=meeting();sound.fanfare();openCourses()}
  function abandon(){T.a=null;save();RACE={...MEETINGS[1]};refresh();open()}
  // appelé à la fin de chaque course
@@ -2771,15 +2988,15 @@ const tour=(()=>{const C=career.data;C.tour=C.tour||{day:'',used:false,cups:0,a:
   else{const p=prizes()[rank-1];T.best=Math.max(T.best,rank===1?3:2);if(p){state.gold+=p.gold||0;state.gems+=p.gems||0;const ch=p.chest&&meta.addChest(p.chest);msg=rank===1?`🏆 VAINQUEUR DU TOURNOI ROYAL ! ${ptxt(p)}${p.chest&&!ch?' (coffres pleins)':''}`:`Finale : ${rank}e · ${ptxt(p)}`;if(rank===1)T.cups++}else msg=`Finale : ${rank}e place`;T.a=null}
   sync();save();refresh();return msg}
  function pips(a){return `<div class="pips">${TOUR_ROUNDS.map((n,i)=>`<span class="${a&&i<a.round?'done':a&&i===a.round?'cur':''}">${a&&i<a.round?'✓ ':''}${n}</span>`).join('<i>›</i>')}</div>`}
- function html(){roll();const a=T.a,c=a?{dist:a.dist,terrain:a.terrain}:conf(),H=stable.data.horses,P=prizes(),m={dist:c.dist,terrain:c.terrain};if(!pickId||!stable.byId(pickId))pickId=[...H].sort((x,y)=>({ideal:0,ok:1,risk:2}[meta.suit(x,m).k]-{ideal:0,ok:1,risk:2}[meta.suit(y,m).k])||stable.rating(y)-stable.rating(x))[0].id;
-  const head=`<div class="tour-head"><div class="cup-art">🏆</div><div><b>Tournoi royal du jour</b><small>${fmt(c.dist)} m · terrain ${TERRAINS[c.terrain].n.toLowerCase()} · ${distName(c.dist)}</small><p>3 manches avec <b>le même cheval</b>. Termine dans les <b>3 premiers</b> pour passer à la manche suivante. La fatigue s’accumule : soigne-le entre deux manches !</p></div></div>${pips(a)}`;
+ function html(){roll();const a=T.a,c=a?{dist:a.dist,terrain:a.terrain,hippo:a.hippo}:conf(),H=stable.data.horses,P=prizes(),m={dist:c.dist,terrain:c.terrain};if(!pickId||!stable.byId(pickId))pickId=[...H].sort((x,y)=>({ideal:0,ok:1,risk:2}[meta.suit(x,m).k]-{ideal:0,ok:1,risk:2}[meta.suit(y,m).k])||stable.rating(y)-stable.rating(x))[0].id;
+  const head=`<div class="tour-head"><div class="cup-art">🏆</div><div><b>Tournoi royal du jour</b><small>${HIPPOS[hippoOf(c)].i} ${HIPPOS[hippoOf(c)].n} · ${fmt(c.dist)} m · terrain ${TERRAINS[c.terrain].n.toLowerCase()} · ${distName(c.dist)}</small><p>3 manches avec <b>le même cheval</b>. Termine dans les <b>3 premiers</b> pour passer à la manche suivante. La fatigue s’accumule : soigne-le entre deux manches !</p></div></div>${pips(a)}`;
   if(a){const h=stable.byId(a.horse);return `${head}<div class="tour-live">${h?`<canvas width="84" height="112" data-hid="${h.id}"></canvas><div><b>${escapeHTML(h.name)}</b><small>Fatigue : ${condLabel('fatigue',h.fatigue).toLowerCase()} (${Math.round(h.fatigue)}) · ${a.ranks.map((r,i)=>`${TOUR_ROUNDS[i]} : ${r}e`).join(' · ')||'prêt'}</small></div>`:''}<div class="tour-btns"><button class="action ghost-red" data-tour-quit>${armed?'CONFIRMER L’ABANDON':'ABANDONNER'}</button><button class="action" data-tour-care>SOIGNER</button><button class="action green" data-tour-go>COURIR · ${TOUR_ROUNDS[a.round].toUpperCase()}</button></div></div>`}
   return `${head}<div class="tour-prizes">${P.map((p,i)=>`<div><i>${['🥇','🥈','🥉'][i]}</i><small>${ptxt(p)}</small></div>`).join('')}</div>
   <div class="st-horses">${H.map(h=>{const sf=meta.suit(h,m);return `<button class="st-pick${h.id===pickId?' on':''}" data-tour-pick="${h.id}"><canvas width="84" height="112" data-hid="${h.id}"></canvas><div><b>${escapeHTML(h.name)}</b><small>Niv. ${h.level} · ${condLabel('fatigue',h.fatigue).toLowerCase()}</small><br><span class="note">${stable.rating(h)}</span> <em class="suit ${sf.k}">${sf.i} ${sf.n}</em></div></button>`}).join('')}</div>
   <div class="race-entry"><button class="action green" data-tour-enter>🏆 ENTRER DANS LE TOURNOI · ${T.used?`💎 ${TOUR_GEMS}`:'GRATUIT AUJOURD’HUI'}</button></div>${T.cups?`<p class="hint" style="text-align:center">Coupes remportées : <b>${T.cups}</b> 🏆</p>`:''}`}
  function open(){career.openEvents();$('#panelTitle').textContent='Événements';$('#panel .card').classList.add('wide');$('#panelBody').insertAdjacentHTML('afterbegin',`<section class="tour">${html()}</section>`);
   $$('#panelBody .tour canvas[data-hid]').forEach(cv=>drawPortrait(cv,stable.byId(cv.dataset.hid),1.6,-2));coach.tip('tour','Chaque jour, un <b>Tournoi royal</b> gratuit : choisis le cheval le mieux adapté (pastille verte), finis dans les 3 premiers pour passer la manche, et remporte la coupe en finale !','.tour')}
- function card(){if(!T.a)return '';const m=meeting();return `<button class="meet tourm${RACE.tour?' on':''}" data-meet="tour"><b>🏆 Tournoi royal</b><em class="suit ideal">${TOUR_ROUNDS[T.a.round]}</em><small>${fmt(m.dist)} m · ${TERRAINS[m.terrain].n}</small><span>Manche ${T.a.round+1} / 3</span></button>`}
+ function card(){if(!T.a)return '';const m=meeting();return `<button class="meet tourm${RACE.tour?' on':''}" data-meet="tour"><b>🏆 Tournoi royal</b><em class="suit ideal">${TOUR_ROUNDS[T.a.round]}</em><i class="hip" data-hippo="${hippoOf(m)}">${HIPPOS[hippoOf(m)].i} ${HIPPOS[hippoOf(m)].c}</i><small>${fmt(m.dist)} m · ${TERRAINS[m.terrain].n}</small><span>Manche ${T.a.round+1} / 3</span></button>`}
  function badge(){roll();$('.nav[data-view=events]')?.classList.toggle('hot',!T.used||!!T.a);const b=$('[data-panel=events] .badge');if(!b)return;if(!T.used||T.a){b.hidden=false;b.textContent='!'}}
  const refresh=()=>{try{career.badges()}catch(e){}};
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -2822,11 +3039,13 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
   ['enchere','Coup de marteau','🔨','Achète un cheval aux enchères',()=>C.ventes?.bought||0,1,{gems:10}],
   ['legende','Entrée dans l’histoire','🎖️','Mets un cheval à la retraite',()=>(C.legendes||[]).length,1,{gems:15}],
   ['duel3','Duelliste','⚔️','Gagne 3 duels contre des amis',()=>{try{return JSON.parse(localStorage.getItem('trr.duels')||'{}').wins||0}catch(e){return 0}},3,{gems:15}],
-  ['couronne','Vainqueur de la Couronne','👑','Remporte le Grand Prix de la Couronne',()=>(C.couronne?.done||[]).includes('c6')?1:0,1,{gems:80}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
+  ['couronne','Vainqueur de la Couronne','👑','Remporte le Grand Prix de la Couronne',()=>(C.couronne?.done||[]).includes('c6')?1:0,1,{gems:80}],
+  // 2.7 : les cinq hippodromes
+  ['hippos','Tour des hippodromes','🗺️','Gagne sur les cinq hippodromes',()=>(A.hippos||[]).length,5,{gems:40}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
  const rtxt=r=>r.gems?`💎 ${r.gems}`:`🪙 ${fmt(r.gold)}`,done=a=>{try{return a.p()>=a.goal}catch(e){return false}};
  function sample(){const H=stable.data.horses;A.horses=Math.max(A.horses,H.length);A.lvl=Math.max(A.lvl,...H.map(h=>h.level));A.foals=Math.max(A.foals,H.filter(h=>h.parents).length)}
  function check(silent){sample();let n=0;for(const a of LIST){if(done(a)&&!A.seen.includes(a.id)){A.seen.push(a.id);if(!silent)toast(`${a.i} Succès débloqué : ${a.n}`);n++}}save();badge();return n}
- function onRace(rank,stars){if(stars===3)A.s3++;if(rank===1){if(RACE.terrain==='lourd')A.lourd++;if(!A.dists.includes(RACE.dist))A.dists.push(RACE.dist)}A.streak=Math.max(A.streak,meta.streak);check()}
+ function onRace(rank,stars){if(stars===3)A.s3++;if(rank===1){if(RACE.terrain==='lourd')A.lourd++;if(!A.dists.includes(RACE.dist))A.dists.push(RACE.dist);A.hippos=A.hippos||[];if(!A.hippos.includes(hippoOf()))A.hippos.push(hippoOf())}A.streak=Math.max(A.streak,meta.streak);check()}
  function claim(id){const a=LIST.find(x=>x.id===id);if(!a||A.got.includes(id)||!done(a))return;A.got.push(id);state.gold+=a.r.gold||0;state.gems+=a.r.gems||0;save();sync();sound.coin();buzz(20);open()}
  function badge(){const b=$('[data-panel=palmares] .badge');if(!b)return;const n=LIST.filter(a=>done(a)&&!A.got.includes(a.id)).length;b.textContent=n;b.hidden=!n}
  function open(){sample();$('#panelTitle').textContent='Palmarès';$('#panel .card').classList.add('wide');const st=S(),pct=st.races?Math.round(st.wins/st.races*100):0,got=LIST.filter(done).length;
@@ -3016,7 +3235,7 @@ const AMBIANCES={
  couvert:{n:'Ciel couvert',i:'🌥️',zen:[.24,.29,.35],mid:[.4,.45,.51],hor:[.6,.64,.68],sunC:[1,1,1],sunK:.04,sun:[0xe4ebf2,1.25,-160,420,120],hemi:[0xcdd6df,0x323a31,1.45],fog:[0x8a949c,260,1500],cloud:.86,tint:0xd2d8de,board:0xaab1b7,horizon:0xa4adb5,exp:.9},
  nocturne:{n:'Nocturne sous les projecteurs',i:'🌙',zen:[.004,.008,.03],mid:[.012,.024,.06],hor:[.05,.07,.13],sunC:[.75,.82,1],sunK:.25,sun:[0xf4f6ff,2.5,-160,420,120],hemi:[0xeef2ff,0x2a3040,2.6],fog:[0x0b1222,340,1700],cloud:.18,tint:0xd8e0ff,board:0x7f8aa0,horizon:0x3a4660,exp:1.1,night:1},
  pluie:{n:'Sous la pluie',i:'🌧️',zen:[.13,.16,.2],mid:[.25,.29,.33],hor:[.42,.46,.5],sunC:[1,1,1],sunK:0,sun:[0xcfd8e2,.75,-160,420,120],hemi:[0xa8b4c0,0x26302a,1.25],fog:[0x5a636b,170,1000],cloud:.97,tint:0xb2bac2,board:0x8a939a,horizon:0x6f7a84,exp:.84,rain:true}};
-MEETINGS.forEach(m=>{if(m.id==='m5'||m.id==='m6')m.amb='couchant';if(m.id==='n1')m.amb='nocturne'});
+MEETINGS.forEach(m=>{if(m.id==='m5'||m.id==='m6'||m.id==='p3')m.amb='couchant';if(m.id==='n1')m.amb='nocturne'});
 const ambiance=(()=>{let rain=null,cur=null;
  // terrain bon : plein soleil, ou coucher de soleil quand c'est le soir chez le joueur (heure du domaine)
  const key=(m=RACE)=>m.amb||(m.terrain==='lourd'?'pluie':m.terrain==='souple'?'couvert':document.body.dataset.tod==='soir'?'couchant':document.body.dataset.tod==='nuit'?'nocturne':'jour');
@@ -3031,7 +3250,8 @@ const ambiance=(()=>{let rain=null,cur=null;
   q.sun.color.set(A.sun[0]);q.sun.intensity=A.sun[1];q.sun.position.set(A.sun[2],A.sun[3],A.sun[4]);q.hemi.color.set(A.hemi[0]);q.hemi.groundColor.set(A.hemi[1]);q.hemi.intensity=A.hemi[2];
   // reflets du ciel du moment (2.4) : l'environnement prend le relais d'une partie de la lumière d'ambiance
   if(!q.headless&&settings.level()!=='basse'){const g=new THREE.Color(A.hemi[1]),sc=new THREE.Color(A.sun[0]);try{q.scene.environment=raceFX.skyEnv(q.renderer,{zen:A.zen,hor:A.hor,gnd:[g.r,g.g,g.b],sun:A.sun.slice(2),sunC:[sc.r,sc.g,sc.b],sunK:Math.min(1,A.sunK)*(A.night?.05:1),k:A.night?.25:.85});q.hemi.intensity=A.hemi[2]*.62}catch(e){}}else q.scene.environment=null;
-  q.scene.fog.color.set(A.fog[0]);q.scene.fog.near=A.fog[1];q.scene.fog.far=A.fog[2];
+  // brume propre à l'hippodrome (2.7) : sous-bois plus voilé, air de montagne plus limpide
+  const HF=HIPPOS[hippoOf()].fog;q.scene.fog.color.set(A.fog[0]);q.scene.fog.near=A.fog[1]*HF[0];q.scene.fog.far=A.fog[2]*HF[1];
   if(fx){const U=fx.skyMat&&fx.skyMat.uniforms;if(U){U.uZen.value=v(A.zen);U.uMid.value=v(A.mid);U.uHor.value=v(A.hor);U.uSunC.value=v(A.sunC);U.uSunK.value=A.sunK;U.uSun.value=v(A.sun.slice(2)).normalize();if(U.uCloud)U.uCloud.value=A.cloud??.4;if(U.uNight)U.uNight.value=A.night||0}
    try{raceWorld.night(A.night||0)}catch(e){}
    fx.horizonMat&&fx.horizonMat.color.set(A.horizon);fx.boards.forEach(b=>b.material.color.set(A.board));raceFX.exposure=A.exp}
@@ -3178,8 +3398,10 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
    Chaque course terminée est enregistrée (10 dernières, trr.replays) puis rejouée aussitôt, sans affichage, pour vérifier
    qu'on retrouve exactement le même classement et les mêmes temps. C'est la base des courses fantômes et de la validation
    côté serveur : un serveur qui dispose du même moteur peut refaire la course et refuser un résultat truqué. */
-// ENGINE : version des formules de course ; un enregistrement d'une autre version ne peut pas être refait à l'identique (ok:null, why:'version')
-const ENGINE=4;
+// ENGINE : version des formules de course ; un enregistrement d'une autre version ne peut pas être refait à l'identique (ok:null, why:'version').
+// 5 (2.7) : hippodromes (RACE.hippo, virages tirés du tracé). Le moteur 4 n'avait que l'Hippodrome Royal, dont les formules n'ont pas
+// changé : ses enregistrements (ENGINE_OK) se refont toujours à l'identique, sur l'Hippodrome Royal quoi qu'indique la course.
+const ENGINE=5,ENGINE_OK=[4,5];
 const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o));let rec=null,busy=false,toCheck=null;
  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}},store=list=>{try{localStorage.setItem(KEY,JSON.stringify(list.slice(-10)))}catch(e){}};
  const at=(type,v)=>{if(rec&&!busy)rec.inputs.push([raceTime,type,v])};
@@ -3194,11 +3416,11 @@ const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o
  // vérification au retour au domaine (le podium n'utilise plus l'état de course)
  hooks.on('race:leave',()=>{const r=toCheck;toCheck=null;if(r)setTimeout(()=>{const v=verify(r);if(v.ok===false)console.warn('Rejeu : écart détecté',v);try{playtest.on&&playtest.log('rejeu',{ok:v.ok})}catch(e){}},400)});
  // refait la course sans rien afficher ni jouer de son, puis restaure l'état ; opts.track : trajectoire du joueur pas à pas (fantôme d'un duel)
- function verify(r,opts={}){if((r&&r.e||1)!==ENGINE)return{ok:null,why:'version'};if(busy||raceLoop>0)return{ok:null,why:'course en cours'};busy=true;
+ function verify(r,opts={}){const e=r&&r.e||1;if(!ENGINE_OK.includes(e))return{ok:null,why:'version'};if(busy||raceLoop>0)return{ok:null,why:'course en cours'};busy=true;
   const keep={RACE,currentField,racePlayer,strategy:state.strategy,complete:completeRace,say:sound.say,bump:career.bump,tip:coach.tip,said:runRaceV2.said,tipd:runRaceV2.tipd,
    progress,visualProgress,raceFinished,raceFinishTimes,finishOrder,rivalAI,raceTime,playerEnergy,playerFinal,playerPace,playerLane,playerTarget,autoSpeed,raceSeed,raceRng,stallOf,raceBlocked,lanes:rivalLanes.slice(),RS:{...RS}};
   try{completeRace=()=>{};sound.say=()=>{};career.bump=()=>{};coach.tip=()=>{};try{Object.defineProperty(navigator,'vibrate',{value:()=>false,configurable:true})}catch(e){}runRaceV2.said=1;runRaceV2.tipd=1;
-   RACE=clone(r.race);currentField=clone(r.field);racePlayer=clone(r.player);state.strategy=r.strategy;raceSeed=r.seed;raceRng=seeded(raceSeed);
+   RACE=clone(r.race);if(e<5)delete RACE.hippo;currentField=clone(r.field);racePlayer=clone(r.player);state.strategy=r.strategy;raceSeed=r.seed;raceRng=seeded(raceSeed);
    resetRacers();raceLoop=-1;
    initRivalAI();if(r.plan)moments.plan=r.plan;
    let i=0,n=0;const I=r.inputs,tr=opts.track?{p:[0],l:[Math.round(playerLane)]}:null;
@@ -3221,7 +3443,9 @@ const defi=(()=>{
  function today(){if(D.day!==day())D={day:day(),best:null,tries:0,first:false,pbGems:0,ghost:null};return D}
  // course du jour : graine, distance et terrain tirés de la date
  function meeting(){const h=hash('defi-'+day()),base=MEETINGS.filter(m=>m.league<=1)[h%3];
-  return{...base,id:'defi',n:'Défi du jour',defi:true,fee:0,purse:0,seed:1+h%89999,ref:60+h%6}}
+  // 2.7 : à partir du 1er octobre 2026, le défi change aussi d'hippodrome chaque jour (avant, celui de sa course de base)
+  const hp=day()<'2026-10-01'?base.hippo:Object.keys(HIPPOS)[Math.floor(h/3)%5];
+  return{...base,hippo:hp,id:'defi',n:'Défi du jour',defi:true,fee:0,purse:0,seed:1+h%89999,ref:60+h%6}}
  // plateau identique pour tous : force de référence fixe (pas celle du cheval du joueur), pas de rival personnel
  function field(M=meeting()){const seed=M.seed,rv=stable.rivals(M.ref,5,seed),E=ecuries.tirage(seed,5,ecuries.joueur()),T=seeded((seed^0x9e3779b9)>>>0);
   return{seed,rivals:rv.map((r,i)=>({...r,name:E[i].name,ecurie:E[i].ecurie,livery:E[i].livery,rating:ratingOf(r.stats)-7,tac:pace.choose(r.stats,T)}))}}
@@ -3231,7 +3455,7 @@ const defi=(()=>{
  // carte dans l'écran des courses
  hooks.on('courses:render',()=>{const g=$('#panelBody .meets');if(!g)return;const T=today(),M=meeting();
   if(RACE.defi){const info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#bfe6ff">Défi du jour</b> · ${fmt(M.dist)} m · Terrain ${TERRAINS[M.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : seul ton meilleur temps compte${T.best?` (record : ${sec(T.best,2)})`:''}.`;$('#panelBody .taunt')?.remove()}
-  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${sec(T.best,2)}`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
+  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><i class="hip" data-hippo="${hippoOf(M)}">${HIPPOS[hippoOf(M)].i} ${HIPPOS[hippoOf(M)].c}</i><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${sec(T.best,2)}`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
  $('#panelBody').addEventListener('click',e=>{if(e.target.closest('[data-defi]'))select()});
  // trajectoire de l'essai en cours (pour devenir le fantôme s'il bat le record)
  let track=null,ghost=null,gv=0,gap=null;
@@ -3306,7 +3530,7 @@ const manette=(()=>{
   if(E[0]){const c=vis('.coach:not([hidden]) button');if(c)c.click();else if(raceLoop)sprint();else(vis('#raceResult.show #raceAgain')||vis('#finishBoard.show #showPodium')||vis('#raceResult.show #returnDomain'))?.click()}
   if(haies.active&&raceLoop){const S=haies.state;if(E[12])haies.choose(S.choice==='f'?'n':'f');if(E[13])haies.choose(S.choice==='p'?'n':'p')}
   else if(raceLoop){if(E[12]||E[3])setPace(playerPace+1);if(E[13]||E[2])setPace(playerPace-1)} // allure : ↑ / Y presser, ↓ / X retenir
-  const ax=gp.axes[0]||0,left=P[14]||ax<-.55,right=P[15]||ax>.55;if((left||right)&&now>nextSteer){steer(left?-1:1);nextSteer=now+220}if(!left&&!right)nextSteer=0;
+  const ax=gp.axes[0]||0,left=P[14]||ax<-.55,right=P[15]||ax>.55;if((left||right)&&now>nextSteer){steerScreen(left?-1:1);nextSteer=now+220}if(!left&&!right)nextSteer=0;
   if(E[4])look(-1);if(E[5])look(1)}
  requestAnimationFrame(poll);
  return{get connected(){return !!prev.length}}})();
@@ -3354,7 +3578,7 @@ const tele=(()=>{let on=false,loop=0,rec=null,i=0,keep=null,speed=1;
   keep={emit:hooks.emit,bump:career.bump,say:sound.say,complete:completeRace};const E=keep.emit;
   hooks.emit=(e,...a)=>{if(e==='race:launch')return E(e,...a);if(e==='race:leave'){stop();return E(e,true)}};career.bump=()=>{};sound.say=()=>{};completeRace=()=>{};
   RACE=JSON.parse(JSON.stringify(r.race));currentField=JSON.parse(JSON.stringify(r.field));racePlayer=JSON.parse(JSON.stringify(r.player));state.strategy=r.strategy;raceSeed=r.seed;raceRng=seeded(raceSeed);
-  resetRacers();runRaceV2.said=1;runRaceV2.tipd=1;
+  raceVenue(threeRace);resetRacers();runRaceV2.said=1;runRaceV2.tipd=1;
   initRivalAI();if(r.plan)moments.plan=r.plan;
   const q=threeRace;q.podiumActive=false;q.finishView=false;q.tvView=true;q.startPhase='running';q.camPos=null;q.camTarget=null;q.podium.visible=false;q.stalls.visible=true;q.stalls.userData.doors.forEach(d=>{d.rotation.x=-Math.PI/2;d.position.y=.15});
   q.horses.forEach((h,k)=>{h.visible=true;h.material.map=q.horseTextures[k];h.material.needsUpdate=true});
@@ -3546,7 +3770,26 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  check();refresh();
  // pour les tests : tout au niveau maximal
  const debug={max(){ORDER.forEach(id=>{D.lv[id]=BATIMENTS[id].max});D.work=[];save();refresh()}};
- return{open,start,finishNow,collect,stock,cap,rate:id=>PROD[id].rate(dlv(id)),builders,free,block,cost,minutes,name,refresh,debug,get work(){return D.work}}})();
+ // ---------- 2.7 : la carte se pose au-dessus de la barre du bas (coffres, COURIR), mesurée à chaque changement de taille : aucun
+ // chevauchement, quel que soit l'écran. L'objectif s'efface tant qu'elle est ouverte. zone = partie du domaine 3D laissée libre
+ // par le HUD (51-domaine3d y garde l'étiquette du bâtiment choisi et y cadre la caméra).
+ const zone={l:0,r:innerWidth,t:96,b:innerHeight};
+ function place(){const g=$('#game'),bar=$('.homebar'),card=$('#selection');if(!g||!bar)return;const G=g.getBoundingClientRect(),B=bar.getBoundingClientRect();
+  const top=B.height?B.top:G.bottom-90,sb=Math.round(G.bottom-top+8);g.style.setProperty('--sel-b',sb+'px');
+  const r=s=>{const e=$(s);if(!e||!e.offsetParent)return null;const x=e.getBoundingClientRect();return x.width?x:null},L=r('.rail.left'),Rr=r('.rail.right'),top2=r('.resources');
+  // petit écran : si la carte ouverte touche les rails de boutons, ils s'effacent le temps qu'elle reste ouverte
+  const open=card.classList.contains('open'),cw=card.offsetWidth,ct=G.bottom-sb-card.offsetHeight,cl=G.left+(G.width-cw)/2,
+   serre=open&&[L,Rr].some(x=>x&&x.bottom>ct-6&&x.right>cl&&x.left<cl+cw);document.body.classList.toggle('hud-serre',serre);
+  zone.l=(L&&!serre?L.right:0)+6;zone.r=(Rr&&!serre?Rr.left:G.width)-6;zone.t=Math.max(80,(top2?top2.bottom:60)+12);
+  zone.b=open?ct-10:G.bottom-sb-40}
+ // mise en place synchrone (microtâche, mise en page forcée) : jamais une image avec l'ancienne position
+ const ob=new MutationObserver(()=>{document.body.classList.toggle('sel-open',$('#selection').classList.contains('open'));place()});ob.observe($('#selection'),{attributes:true,attributeFilter:['class']});
+ // le texte de COURIR (course, cheval) change la hauteur de la barre : la carte suit tout de suite
+ new MutationObserver(()=>place()).observe($('.homebar'),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden']});
+ $('#selClose').onclick=e=>{e.stopPropagation();village.deselect()};
+ addEventListener('resize',()=>requestAnimationFrame(place));try{new ResizeObserver(()=>place()).observe($('.homebar'))}catch(e){}
+ hooks.on('ready',()=>setTimeout(place,50));
+ return{open,start,finishNow,collect,stock,cap,rate:id=>PROD[id].rate(dlv(id)),builders,free,block,cost,minutes,name,refresh,debug,place,zone,get work(){return D.work}}})();
 </script>
 <script type="text/x-module" data-f="46-ventes.js">/* ===== Ventes aux enchères : chaque jour, 4 lots de chevaux à disputer au Comte de Valmont et à deux autres acheteurs =====
    Catalogue tiré de la date et de la ligue (le même pour tous les joueurs d'une ligue). Le vrai potentiel est caché : la visite
@@ -3707,7 +3950,9 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
   if(!o.result||!Array.isArray(o.result.times)||!o.result.times.every(num)||!str(o.horse,24)||!['leader','stalker','finisher'].includes(o.strategy))return false;
   return !o.liv||livOk(o.liv)}catch(e){return false}}
  // la course reçue est reconstruite à partir de champs connus : rien de ce qui vient du lien n'est affiché sans contrôle
- function safeRace(R){const M=MEETINGS.find(m=>m.id===R.id),D=R.id==='defi'||R.defi===true;return{id:M?M.id:D?'defi':'lien',n:M?M.n:D?'Défi du jour':'Course amicale',dist:R.dist,terrain:R.terrain,haies:M&&M.haies?M.haies:undefined,amb:AMBIANCES[R.amb]?R.amb:undefined,league:0,diff:0,purse:0,fee:0}}
+ // hippodrome (2.7, moteur 5) : celui de la course du programme si elle en est une, sinon celui du lien s'il existe ; avant le moteur 5, tout se courait à l'Hippodrome Royal
+ function safeRace(R,e=ENGINE){const M=MEETINGS.find(m=>m.id===R.id),D=R.id==='defi'||R.defi===true,hp=e<5?undefined:M&&!D?M.hippo:HIPPOS[R.hippo]&&R.hippo!=='royal'?R.hippo:undefined;
+  return{id:M?M.id:D?'defi':'lien',n:M?M.n:D?'Défi du jour':'Course amicale',dist:R.dist,terrain:R.terrain,haies:M&&M.haies?M.haies:undefined,amb:AMBIANCES[R.amb]?R.amb:undefined,hippo:hp,league:0,diff:0,purse:0,fee:0}}
  async function share(r=replays.last()){if(!r||!r.result)return toast('Aucune course à partager');const code=await encode(pack(r)),url=`${location.origin}${location.pathname}#duel=${code}`,
   me=r.result.order.indexOf(0)+1,text=`⚔️ ${r.horse} te défie sur « ${safeRace(r.race).n} » (${fmt(r.race.dist)} m) : ${t2(r.result.times[0])} s, ${me}${me===1?'er':'e'} sur 6. Tu fais mieux ?`;
   hooks.emit('duel:partage',url.length);
@@ -3716,7 +3961,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
    $('#panelTitle').textContent='Défier un ami';$('#panel .card').classList.remove('wide');$('#panelBody').innerHTML=`<p class="hint">Copie ce lien et envoie-le : ton ami courra la même course contre ton fantôme.</p><textarea class="savecode" readonly>${escapeHTML(text+'\n'+url)}</textarea>`;$('#panel').classList.add('open');$('#panelBody textarea').select()}}
  // ---------- réception ----------
  const idOf=r=>`${r.seed}-${r.horse}-${r.result.times[0]}`;
- function add(r){r.race=safeRace(r.race);const id=idOf(r);let d=D.list.find(x=>x.id===id);if(!d){d={id,rec:r,got:Date.now(),tries:0,best:null,won:false};D.list.push(d);if(D.list.length>12)D.list.shift();save()}return d}
+ function add(r){r.race=safeRace(r.race,r.e||1);const id=idOf(r);let d=D.list.find(x=>x.id===id);if(!d){d={id,rec:r,got:Date.now(),tries:0,best:null,won:false};D.list.push(d);if(D.list.length>12)D.list.shift();save()}return d}
  async function fromHash(){const m=location.hash.match(/duel=([A-Za-z0-9_-]+)/);if(!m)return;history.replaceState(null,'',location.pathname+location.search);
   let r=null;try{r=await decode(m[1])}catch(e){}
   if(!r||r.v!==DUEL_V)return later(()=>toast(r&&r.v?'Ce duel vient d’une autre version du jeu : demande à ton ami de le renvoyer':'Lien de duel illisible'));
@@ -3733,7 +3978,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
    <p class="hint">${escapeHTML(safeRace(r.race).n)} · ${fmt(r.race.dist)} m · terrain ${TERRAINS[r.race.terrain].n.toLowerCase()}</p><div class="duel-time"><b>${t2(r.result.times[0])} s</b><small>${me}${me===1?'er':'e'} sur 6</small></div>
    <p class="hint">Même course, mêmes adversaires, même départ : avec ton propre cheval, bats son temps. Son fantôme court à côté de toi. Gratuit, sans fatigue ni trophées.</p>
    <div class="race-entry"><button class="action green" data-duel-go="${escapeHTML(d.id)}">⚔️ RELEVER LE DÉFI</button></div></div>`;$('#panel').classList.add('open')}
- function meeting(d){const R=safeRace(d.rec.race);return{...R,id:'duel',src:R.id,n:`Duel · ${R.n}`,duel:true,defi:false,tour:false}}
+ function meeting(d){const R=safeRace(d.rec.race,d.rec.e||1);return{...R,id:'duel',src:R.id,n:`Duel · ${R.n}`,duel:true,defi:false,tour:false}}
  function select(d){while(coach.open)coach.hide();const tr=check(d);if(tr===null)return toast('Un instant…');if(tr==='old'){toast('Ce duel vient d’une ancienne version du jeu : demande à ton ami de t’en envoyer un nouveau');return false}if(tr===false){toast('Ce duel n’a pas pu être vérifié : le temps de ton ami ne correspond pas à sa course');return false}
   cur=d;G=tr;RACE=meeting(d);currentField=null;buildField();return true}
  // (openCourses remettrait une course du programme : on ouvre l'écran directement)
@@ -3773,7 +4018,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
   $('#fbGain').insertAdjacentHTML('beforeend',`<br><button class="action duel-btn" id="duelShare">⚔️ ${RACE.duel?'RENVOYER LE DÉFI':'DÉFIER UN AMI'}</button>`);$('#duelShare').onclick=e=>{e.stopPropagation();share()}});
  hooks.on('ready',()=>{fromHash();addEventListener('hashchange',fromHash)});
  PANELS.duel=()=>{const d=D.list[D.list.length-1];if(d)card(d)};
- return{share,encode,decode,valid,pack,add,card,select,go,get list(){return D.list},get wins(){return D.wins},get cur(){return cur}}})();
+ return{share,encode,decode,valid,pack,add,card,select,go,safeRace,get list(){return D.list},get wins(){return D.wins},get cur(){return cur}}})();
 </script>
 <script type="text/x-module" data-f="49-couronne.js">/* ===== La Couronne : la campagne contre le Comte de Valmont, six Grands Prix jusqu'au Grand Prix de la Couronne =====
    Chaque chapitre est une vraie course (allocation, trophées, fatigue) sur un plateau relevé, avec un objectif : finir devant
@@ -3781,27 +4026,27 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
    motifs de casaque exclusifs (Écharpe, Éclair, Damier, Couronne) et, au bout du chemin, un cheval d'exception.
    On retente un chapitre autant qu'on veut (engagement en fourrage). Débloqué après 4 courses. */
 const COURONNE=[
- {id:'c1',n:'Le défi du Comte',race:{n:'Prix du Comte',dist:1600,terrain:'bon',diff:1,purse:9000,fee:400},goal:'rival',req:{},reward:{gold:6000,pattern:'echarpe'},
+ {id:'c1',n:'Le défi du Comte',race:{n:'Prix du Comte',hippo:'royal',dist:1600,terrain:'bon',diff:1,purse:9000,fee:400},goal:'rival',req:{},reward:{gold:6000,pattern:'echarpe'},
   intro:'« Vous avez de beaux chevaux… pour un débutant. Venez donc mesurer votre champion à Black Majesty, au Prix du Comte. Si vous osez. »',
   armand:'Pas besoin de gagner : finis simplement devant Black Majesty. Regarde sa tactique dans la liste des partants, et ne le laisse pas s’abriter dans ton sillage.',
   after:'« Une course ne fait pas une saison, mon cher. »'},
- {id:'c2',n:'La Poule d’Essai',race:{n:'Poule d’Essai Royale',dist:1600,terrain:'bon',diff:2,purse:12000,fee:500},goal:'top3',req:{},reward:{gold:8000,gems:10},
+ {id:'c2',n:'La Poule d’Essai',race:{n:'Poule d’Essai Royale',hippo:'cote',dist:1600,terrain:'bon',diff:2,purse:12000,fee:500},goal:'top3',req:{},reward:{gold:8000,gems:10},
   intro:'« La Poule d’Essai réunit les meilleurs milers du royaume. Votre place n’y est pas encore… prouvez-moi le contraire. »',
   armand:'Un podium suffit. Lis le rythme avant le départ : sur un mile, la tactique fait la différence.',
   after:'« Troisième, deuxième… le public ne se souvient que du vainqueur. »'},
- {id:'c3',n:'Sous l’orage',race:{n:'Prix de l’Orage',dist:2000,terrain:'lourd',diff:2.5,purse:15000,fee:700},goal:'rival',req:{league:1},reward:{gems:15,pattern:'eclair'},
+ {id:'c3',n:'Sous l’orage',race:{n:'Prix de l’Orage',hippo:'cimes',dist:2000,terrain:'lourd',diff:2.5,purse:15000,fee:700},goal:'rival',req:{league:1},reward:{gems:15,pattern:'eclair'},
   intro:'« Il pleut sur le domaine. Black Majesty adore la boue, et vos chevaux de salon la détestent. »',
   armand:'Terrain lourd : l’endurance compte double. Engage un cheval de tenue, des fers à crampons, et garde des forces pour la ligne droite.',
   after:'« La chance… sans doute la chance. »'},
- {id:'c4',n:'Le Jockey-Club',race:{n:'Prix du Jockey-Club Royal',dist:2400,terrain:'bon',amb:'couchant',diff:1,purse:22000,fee:900},goal:'win',req:{league:1,haras:2},reward:{gems:25,chest:'or'},
+ {id:'c4',n:'Le Jockey-Club',race:{n:'Prix du Jockey-Club Royal',hippo:'foret',dist:2400,terrain:'bon',amb:'couchant',diff:1,purse:22000,fee:900},goal:'win',req:{league:1,haras:2},reward:{gems:25,chest:'or'},
   intro:'« Le Jockey-Club ! Mon grand-père l’a gagné, mon père l’a gagné, et je le gagnerai. »',
   armand:'2 400 m, la plus longue course du royaume, et cette fois il faut gagner. Un cheval tenace, un jockey économe… et du sang-froid pour sprinter au bon moment.',
   after:'« … Profitez-en. Cela ne se reproduira pas. »'},
- {id:'c5',n:'Le Sprint des Rois',race:{n:'Sprint des Rois',dist:1200,terrain:'bon',diff:2.5,purse:26000,fee:1000},goal:'win',req:{league:2},reward:{gems:30,pattern:'damier'},
+ {id:'c5',n:'Le Sprint des Rois',race:{n:'Sprint des Rois',hippo:'capitale',dist:1200,terrain:'bon',diff:2.5,purse:26000,fee:1000},goal:'win',req:{league:2},reward:{gems:30,pattern:'damier'},
   intro:'« Sur 1 200 m, pas de place pour la tactique. Seulement pour la vitesse. Black Majesty en a à revendre. »',
   armand:'Tout se joue au départ : un sprinter, une sortie des stalles éclair, et un placement sans hésitation.',
   after:'« Vous commencez à m’agacer. La Couronne, en revanche, ne vous échappera pas… à moi. »'},
- {id:'c6',n:'La Couronne',race:{n:'Grand Prix de la Couronne',dist:2400,terrain:'souple',amb:'couchant',diff:2,purse:60000,fee:2500},goal:'win',bm:3,req:{league:2,haras:3},reward:{gems:100,pattern:'couronne',horse:true},
+ {id:'c6',n:'La Couronne',race:{n:'Grand Prix de la Couronne',hippo:'royal',dist:2400,terrain:'souple',amb:'couchant',diff:2,purse:60000,fee:2500},goal:'win',bm:3,req:{league:2,haras:3},reward:{gems:100,pattern:'couronne',horse:true},
   intro:'« Le Grand Prix de la Couronne. Son vainqueur devient le premier éleveur du royaume. Black Majesty n’a jamais été aussi prêt. Et vous ? »',
   armand:'C’est la course de ta vie : terrain souple, 2 400 m, le meilleur Black Majesty qu’on ait jamais vu. Repose ton cheval, choisis ton jockey… et fais-moi honneur.',
   after:'« Le royaume a un nouveau maître… Je vous salue. Mais retenez bien ceci : Black Majesty a un fils. »'}];
@@ -3821,7 +4066,7 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
  hooks.on('courses:render',()=>{const g=$('#panelBody .meets');if(!g)return;const ch=cur();
   if(RACE.couronne){const c=byId(RACE.couronne),info=g.nextElementSibling;if(info&&info.tagName==='P')info.insertAdjacentHTML('beforeend',` · <b class="cour-goal">👑 Objectif : ${GOALS[c.goal].charAt(0).toLowerCase()+GOALS[c.goal].slice(1)}</b>`);
    const t=$('#panelBody .taunt p');if(t)t.textContent=c.intro;$('#panelBody .taunt')?.insertAdjacentHTML('afterend',`<div class="taunt cour-armand"><div class="tface">🎩</div><div><b>Maître Armand</b><p>${c.armand}</p></div></div>`)}
-  if(ch&&!lock(ch))g.insertAdjacentHTML('afterbegin',`<button class="meet cour-meet${RACE.couronne===ch.id?' on':''}" data-cour="${ch.id}"><b>👑 ${ch.n}</b><em class="suit ideal">Chapitre ${idx()+1} / 6</em><small>${fmt(ch.race.dist)} m · ${TERRAINS[ch.race.terrain].n} · ${GOALS[ch.goal]}</small><span>🪙 ${fmt(purseOf(ch.race))}</span></button>`)});
+  if(ch&&!lock(ch))g.insertAdjacentHTML('afterbegin',`<button class="meet cour-meet${RACE.couronne===ch.id?' on':''}" data-cour="${ch.id}"><b>👑 ${ch.n}</b><em class="suit ideal">Chapitre ${idx()+1} / 6</em><i class="hip" data-hippo="${hippoOf(ch.race)}">${HIPPOS[hippoOf(ch.race)].i} ${HIPPOS[hippoOf(ch.race)].c}</i><small>${fmt(ch.race.dist)} m · ${TERRAINS[ch.race.terrain].n} · ${GOALS[ch.goal]}</small><span>🪙 ${fmt(purseOf(ch.race))}</span></button>`)});
  $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.cour){if(select(b.dataset.cour))renderCourses()}
   else if(b.dataset.courGo){if(select(b.dataset.courGo)){$('#panelTitle').textContent='Courses';$('#panel .card').classList.add('wide');renderCourses()}}});
@@ -3846,7 +4091,7 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
  function open(){$('#panelTitle').textContent='La Couronne';$('#panel .card').classList.add('wide');const i=idx();
   $('#panelBody').innerHTML=`<p class="hint">Six Grands Prix contre le <b>Comte de Valmont</b> et son Black Majesty, jusqu’au Grand Prix de la Couronne. Chaque chapitre a un objectif ; on le retente autant qu’on veut.</p>
   <div class="cour-path">${COURONNE.map((ch,k)=>{const done=K.done.includes(ch.id),L=!done&&lock(ch),now=k===i;
-   return `<article class="cour-ch${done?' done':''}${now?' now':''}${L?' locked':''}"><div class="cour-n">${done?'✓':k+1}</div><div class="cour-body"><b>${ch.n}</b><small>${escapeHTML(ch.race.n)} · ${fmt(ch.race.dist)} m · ${TERRAINS[ch.race.terrain].n} · ${GOALS[ch.goal]}</small>
+   return `<article class="cour-ch${done?' done':''}${now?' now':''}${L?' locked':''}"><div class="cour-n">${done?'✓':k+1}</div><div class="cour-body"><b>${ch.n}</b><small>${escapeHTML(ch.race.n)} · ${HIPPOS[hippoOf(ch.race)].i} ${HIPPOS[hippoOf(ch.race)].c} · ${fmt(ch.race.dist)} m · ${TERRAINS[ch.race.terrain].n} · ${GOALS[ch.goal]}</small>
     ${now?`<p class="cour-quote">${ch.intro}</p><p class="cour-tip">🎩 ${ch.armand}</p>`:''}<span class="cour-rw">${rtxt(ch.reward)}</span>
     ${now?(L?`<span class="dom-lock">🔒 ${L}</span>`:`<button class="action green" data-cour-go="${ch.id}">👑 DISPUTER LE CHAPITRE${K.tries[ch.id]?` · essai ${K.tries[ch.id]+1}`:''}</button>`):done?'<span class="chip">Réussi</span>':''}</div></article>`}).join('')}</div>`;
   $('#panel').classList.add('open')}
@@ -3861,6 +4106,8 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
 <script type="text/x-module" data-f="50-nouveautes.js">/* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🗺️','Cinq hippodromes','Forêt (main droite, virages serrés), Côte face à la mer (longues lignes droites), Cimes au pied des glaciers, Capitale sous les projecteurs, et l’Hippodrome Royal. Le tracé compte : dans les virages serrés, courir au large coûte plus cher. Quatre nouvelles courses, et un succès pour qui gagne partout.',0,'2.7'],
+ ['📐','Domaine plus lisible','La fiche d’un bâtiment ne recouvre plus l’objectif, les coffres ni COURIR, sur aucun téléphone ; la caméra cadre le bâtiment au-dessus de sa fiche. Gros montants abrégés (2,3 M) dans la barre du haut.',0,'2.7'],
  ['📱','Course lisible sur petits téléphones','Sur les écrans étroits, la carte du cheval, l’allure, le sprint et les couloirs ne se chevauchent plus. Le commentaire ne s’affiche plus par-dessus la course : tu entends le speaker, le classement en direct donne les écarts.',0,'2.6'],
  ['🔋','Plus économe, sans ralentir','Le domaine affiche moitié moins d’images quand tu ne le touches pas, et la mémoire graphique ne s’accumule plus de course en course : de longues sessions restent fluides.',0,'2.6'],
  ['✨','Finitions','Bouton COURIR toujours visible, temps à la française (89,55 s), atelier du champion dès l’ouverture du jeu, réglage « réduire les animations » de ton appareil respecté.',0,'2.6'],
@@ -4314,13 +4561,26 @@ const domaine3d = (() => {
     ui = village.layer; moved = $$('#d3ui [data-id]').map(el => [el, '', el.dataset.id]); T.nUI = moved.length
   }
   const V3 = new THREE.Vector3();
+  // 2.7 : cadrage du bâtiment choisi au centre de la zone laissée libre par le HUD (sous la barre du haut, au-dessus de sa carte,
+  // entre les rails), et non plus au centre de l'écran, où la carte le cachait sur téléphone
+  function zoneHUD() { try { domaine.place(); return domaine.zone } catch (e) { return null } }
+  function cadre(id) {
+    const d = Math.min(W3.dist, id === 'hippodrome' ? 170 : 115), Wd = world.clientWidth, Hd = Math.max(1, world.clientHeight), z = zoneHUD();
+    if (!z || z.b - z.t < 80) return { x: B[id][0], z: B[id][1] + 6, d };
+    const dx = (z.l + z.r) / 2 - Wd / 2, dy = z.t + (z.b - z.t) * .62 - Hd / 2, k = 2 * Math.tan(cam.fov * Math.PI / 360) * d / Hd, c = Math.cos(W3.yaw), sn = Math.sin(W3.yaw);
+    return { x: B[id][0] - (dx * c + dy * sn * 1.25) * k, z: B[id][1] - (-dx * sn + dy * c * 1.25) * k, d };
+  }
   function placeUI() {
     const Wd = world.clientWidth, Hd = world.clientHeight;
+    // étiquette du bâtiment choisi : toujours entière, entre les rails et au-dessus de la carte (mesurée avant toute écriture de style)
+    const st = selId && village.els[selId] ? village.els[selId].tag : null, tw = st ? st.offsetWidth : 0, th = st ? st.offsetHeight : 0, z = st ? domaine.zone : null;
     for (const h of horses) { if (h.kind !== 'free' || !h.mine) continue; const tag = horseTag(h); if (!tag) continue; V3.set(h.m.position.x, 7.2, h.m.position.z).project(cam);
       const x = (V3.x * .5 + .5) * Wd, y = (-V3.y * .5 + .5) * Hd, off = W3.dist > 150 || V3.z > 1 || x < -60 || x > Wd + 60 || y < 70 || y > Hd - 60; tag.style.visibility = off ? 'hidden' : ''; if (!off) { tag.style.left = x.toFixed(1) + 'px'; tag.style.top = y.toFixed(1) + 'px' } }
     for (const [el, , id] of moved) { if (!id) continue; const b = B[id], harvest = el.classList.contains('bld-harvest'), hit = el.classList.contains('bld-hit'); V3.set(b[0], harvest ? b[2] * .55 : hit ? b[2] * .4 : b[2] + 2, b[1]).project(cam);
-      const x = (V3.x * .5 + .5) * Wd, y = (-V3.y * .5 + .5) * Hd, off = V3.z > 1 || x < -80 || x > Wd + 80 || y < -40 || y > Hd + 80;
-      el.style.left = x.toFixed(1) + 'px'; el.style.top = Math.max(harvest ? 60 : 96, y).toFixed(1) + 'px'; el.style.visibility = off ? 'hidden' : ''; if (hit) { el.style.width = '64px'; el.style.height = '64px'; el.style.marginLeft = el.style.marginTop = '-32px' } }
+      const x = (V3.x * .5 + .5) * Wd, y = (-V3.y * .5 + .5) * Hd, off = V3.z > 1 || (el !== st && (x < -80 || x > Wd + 80 || y < -40 || y > Hd + 80));
+      let px = x, py = Math.max(harvest ? 60 : 96, y);
+      if (el === st && z) { const l = z.l + tw / 2 + 4, r = z.r - tw / 2 - 4; px = l <= r ? Math.min(r, Math.max(l, x)) : (z.l + z.r) / 2; py = Math.min(Math.max(py, z.t + th + 8), Math.max(z.t + th + 8, z.b)) }
+      el.style.left = px.toFixed(1) + 'px'; el.style.top = py.toFixed(1) + 'px'; el.style.visibility = off ? 'hidden' : ''; if (hit) { el.style.width = '64px'; el.style.height = '64px'; el.style.marginLeft = el.style.marginTop = '-32px' } }
   }
   // ---------- entrées ----------
   const pts = new Map(); let drag = null, pinch = null, lastMove = 0, hover = null, geste = 0;
@@ -4364,7 +4624,7 @@ const domaine3d = (() => {
     if (!drag && !pinch && (Math.abs(W3.vx) + Math.abs(W3.vz) > .2)) { pan(W3.vx, W3.vz); W3.vx *= .92; W3.vz *= .92 }
     stepKeys(dt);
     // sélection : la caméra glisse vers le bâtiment, anneau doré qui pulse, bâtiment éclairé
-    const sel = village.selected; if (sel !== selId) { selId = sel; if (sel && B[sel]) W3.goal = { x: B[sel][0], z: B[sel][1] + 6, d: Math.min(W3.dist, sel === 'hippodrome' ? 170 : 115) } }
+    const sel = village.selected; if (sel !== selId) { selId = sel; if (sel && B[sel]) W3.goal = cadre(sel) }
     if (W3.goal) { const k = 1 - Math.pow(.02, dt); W3.tx += (W3.goal.x - W3.tx) * k; W3.tz += (W3.goal.z - W3.tz) * k; W3.dist += (W3.goal.d - W3.dist) * k; if (Math.hypot(W3.goal.x - W3.tx, W3.goal.z - W3.tz) < .3) W3.goal = null }
     const chk = t > (T.nextChk || 0); if (chk) T.nextChk = t + .5;
     for (const id in T.blds) { const b = T.blds[id], s = id === selId, hv = id === hover; b.ring.material.opacity += ((s ? .55 + .3 * Math.sin(t * 4) : hv ? .35 : 0) - b.ring.material.opacity) * .2; T.bmats[id].userData.u.uHi.value += ((s ? .7 + .3 * Math.sin(t * 4) : hv ? .45 : 0) - T.bmats[id].userData.u.uHi.value) * .2;

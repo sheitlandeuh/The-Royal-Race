@@ -1,7 +1,7 @@
 // Test de fumée (nécessite Playwright) : charge le jeu avec plusieurs sauvegardes types et ouvre tous les écrans.
 //   node tools/smoke.cjs                 le jeu doit être servi sur http://localhost:8765 (python3 -m http.server 8765)
 //   node tools/smoke.cjs --shots dossier captures de chaque écran, en 1280×800 et 390×844
-//   ONLY=confirme,neuf node tools/smoke.cjs   seulement ces profils ; MOBILE=1 : aussi en 390×844, sans captures (intégration continue)
+//   ONLY=confirme,neuf node tools/smoke.cjs   seulement ces profils ; MOBILE=1 : aussi en 390×844 (et 320×568 pour les parties avancées), sans captures (intégration continue)
 // Échoue (code 1) à la moindre erreur JavaScript, à un module manquant ou à un texte cassé (undefined, NaN).
 const { chromium } = require('playwright');
 const URL = process.env.URL || 'http://localhost:8765/index.html';
@@ -47,8 +47,9 @@ const SCREENS = [
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   let failed = 0;
   for (const [name, P] of Object.entries(PROFILES).filter(([n]) => !process.env.ONLY || process.env.ONLY.split(',').includes(n))) {
-    for (const vp of shotsDir || process.env.MOBILE ? [{ width: 1280, height: 800, tag: 'pc' }, { width: 390, height: 844, tag: 'mobile' }] : [{ width: 1280, height: 800, tag: 'pc' }]) {
-      const ctx = await b.newContext({ viewport: { width: vp.width, height: vp.height }, hasTouch: vp.tag === 'mobile' });
+    // MOBILE : aussi en 390×844 et, pour les parties avancées (tout débloqué, grands nombres), sur un petit téléphone 320×568 (2.7)
+    for (const vp of shotsDir || process.env.MOBILE ? [{ width: 1280, height: 800, tag: 'pc' }, { width: 390, height: 844, tag: 'mobile' }, ...(['confirme', 'fin-de-partie'].includes(name) ? [{ width: 320, height: 568, tag: 'petit' }] : [])] : [{ width: 1280, height: 800, tag: 'pc' }]) {
+      const ctx = await b.newContext({ viewport: { width: vp.width, height: vp.height }, hasTouch: vp.tag !== 'pc' });
       const p = await ctx.newPage(), errs = [];
       p.on('pageerror', e => errs.push(e.message));
       p.on('console', m => { if (m.type() === 'error') errs.push(m.text()) });
@@ -71,6 +72,16 @@ const SCREENS = [
         const tiny = await p.evaluate(() => { const vis = e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > .05 };
           return [...new Set([...document.querySelectorAll('body *')].filter(e => vis(e) && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && parseFloat(getComputedStyle(e).fontSize) < 10).map(e => `« ${e.textContent.trim().slice(0, 16)} » ${getComputedStyle(e).fontSize}`))] }).catch(() => []);
         if (tiny.length) errs.push(`${screen}: texte trop petit (${tiny.slice(0, 4).join(', ')})`);
+        // HUD du domaine (2.7) : carte du bâtiment, objectif, coffres, COURIR, navigation, rails, ressources et profil ne se chevauchent jamais
+        if (screen === 'domaine' || screen === 'batiment' || screen === 'domaine-3d') {
+          await p.waitForFunction(() => { const c = document.querySelector('#selection'); return !c.classList.contains('open') || +getComputedStyle(c).opacity > .99 }, null, { timeout: 8000 }).catch(() => {}); await p.waitForTimeout(350);
+          const hud = await p.evaluate(() => { const vis = e => { if (!e) return false; const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && +cs.opacity > .05 };
+            const E = { carte: '#selection', objectif: '.homebar .goal', coffres: '.homebar .slots', COURIR: '#playBtn', navigation: '.dock', 'rail gauche': '.rail.left', 'rail droit': '.rail.right', ressources: '.resources', profil: '.profile' };
+            const k = Object.keys(E).filter(n => vis(document.querySelector(E[n]))), el = n => document.querySelector(E[n]), R = n => el(n).getBoundingClientRect(), o = [];
+            for (let i = 0; i < k.length; i++) for (let j = i + 1; j < k.length; j++) { const a = R(k[i]), b = R(k[j]); if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1 && !el(k[i]).contains(el(k[j])) && !el(k[j]).contains(el(k[i]))) o.push(k[i] + ' × ' + k[j]) }
+            return o }).catch(() => []);
+          if (hud.length) errs.push(`${screen}: HUD du domaine qui se chevauche (${hud.join(', ')})`);
+        }
         if (shotsDir) await p.screenshot({ path: `${shotsDir}/${name}-${vp.tag}-${screen}.png` });
       }
       // erreurs rattrapées sans bruit (écouteurs de hooks, fichiers introuvables) : le journal du jeu les a notées

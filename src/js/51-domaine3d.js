@@ -406,13 +406,26 @@ const domaine3d = (() => {
     ui = village.layer; moved = $$('#d3ui [data-id]').map(el => [el, '', el.dataset.id]); T.nUI = moved.length
   }
   const V3 = new THREE.Vector3();
+  // 2.7 : cadrage du bâtiment choisi au centre de la zone laissée libre par le HUD (sous la barre du haut, au-dessus de sa carte,
+  // entre les rails), et non plus au centre de l'écran, où la carte le cachait sur téléphone
+  function zoneHUD() { try { domaine.place(); return domaine.zone } catch (e) { return null } }
+  function cadre(id) {
+    const d = Math.min(W3.dist, id === 'hippodrome' ? 170 : 115), Wd = world.clientWidth, Hd = Math.max(1, world.clientHeight), z = zoneHUD();
+    if (!z || z.b - z.t < 80) return { x: B[id][0], z: B[id][1] + 6, d };
+    const dx = (z.l + z.r) / 2 - Wd / 2, dy = z.t + (z.b - z.t) * .62 - Hd / 2, k = 2 * Math.tan(cam.fov * Math.PI / 360) * d / Hd, c = Math.cos(W3.yaw), sn = Math.sin(W3.yaw);
+    return { x: B[id][0] - (dx * c + dy * sn * 1.25) * k, z: B[id][1] - (-dx * sn + dy * c * 1.25) * k, d };
+  }
   function placeUI() {
     const Wd = world.clientWidth, Hd = world.clientHeight;
+    // étiquette du bâtiment choisi : toujours entière, entre les rails et au-dessus de la carte (mesurée avant toute écriture de style)
+    const st = selId && village.els[selId] ? village.els[selId].tag : null, tw = st ? st.offsetWidth : 0, th = st ? st.offsetHeight : 0, z = st ? domaine.zone : null;
     for (const h of horses) { if (h.kind !== 'free' || !h.mine) continue; const tag = horseTag(h); if (!tag) continue; V3.set(h.m.position.x, 7.2, h.m.position.z).project(cam);
       const x = (V3.x * .5 + .5) * Wd, y = (-V3.y * .5 + .5) * Hd, off = W3.dist > 150 || V3.z > 1 || x < -60 || x > Wd + 60 || y < 70 || y > Hd - 60; tag.style.visibility = off ? 'hidden' : ''; if (!off) { tag.style.left = x.toFixed(1) + 'px'; tag.style.top = y.toFixed(1) + 'px' } }
     for (const [el, , id] of moved) { if (!id) continue; const b = B[id], harvest = el.classList.contains('bld-harvest'), hit = el.classList.contains('bld-hit'); V3.set(b[0], harvest ? b[2] * .55 : hit ? b[2] * .4 : b[2] + 2, b[1]).project(cam);
-      const x = (V3.x * .5 + .5) * Wd, y = (-V3.y * .5 + .5) * Hd, off = V3.z > 1 || x < -80 || x > Wd + 80 || y < -40 || y > Hd + 80;
-      el.style.left = x.toFixed(1) + 'px'; el.style.top = Math.max(harvest ? 60 : 96, y).toFixed(1) + 'px'; el.style.visibility = off ? 'hidden' : ''; if (hit) { el.style.width = '64px'; el.style.height = '64px'; el.style.marginLeft = el.style.marginTop = '-32px' } }
+      const x = (V3.x * .5 + .5) * Wd, y = (-V3.y * .5 + .5) * Hd, off = V3.z > 1 || (el !== st && (x < -80 || x > Wd + 80 || y < -40 || y > Hd + 80));
+      let px = x, py = Math.max(harvest ? 60 : 96, y);
+      if (el === st && z) { const l = z.l + tw / 2 + 4, r = z.r - tw / 2 - 4; px = l <= r ? Math.min(r, Math.max(l, x)) : (z.l + z.r) / 2; py = Math.min(Math.max(py, z.t + th + 8), Math.max(z.t + th + 8, z.b)) }
+      el.style.left = px.toFixed(1) + 'px'; el.style.top = py.toFixed(1) + 'px'; el.style.visibility = off ? 'hidden' : ''; if (hit) { el.style.width = '64px'; el.style.height = '64px'; el.style.marginLeft = el.style.marginTop = '-32px' } }
   }
   // ---------- entrées ----------
   const pts = new Map(); let drag = null, pinch = null, lastMove = 0, hover = null, geste = 0;
@@ -456,7 +469,7 @@ const domaine3d = (() => {
     if (!drag && !pinch && (Math.abs(W3.vx) + Math.abs(W3.vz) > .2)) { pan(W3.vx, W3.vz); W3.vx *= .92; W3.vz *= .92 }
     stepKeys(dt);
     // sélection : la caméra glisse vers le bâtiment, anneau doré qui pulse, bâtiment éclairé
-    const sel = village.selected; if (sel !== selId) { selId = sel; if (sel && B[sel]) W3.goal = { x: B[sel][0], z: B[sel][1] + 6, d: Math.min(W3.dist, sel === 'hippodrome' ? 170 : 115) } }
+    const sel = village.selected; if (sel !== selId) { selId = sel; if (sel && B[sel]) W3.goal = cadre(sel) }
     if (W3.goal) { const k = 1 - Math.pow(.02, dt); W3.tx += (W3.goal.x - W3.tx) * k; W3.tz += (W3.goal.z - W3.tz) * k; W3.dist += (W3.goal.d - W3.dist) * k; if (Math.hypot(W3.goal.x - W3.tx, W3.goal.z - W3.tz) < .3) W3.goal = null }
     const chk = t > (T.nextChk || 0); if (chk) T.nextChk = t + .5;
     for (const id in T.blds) { const b = T.blds[id], s = id === selId, hv = id === hover; b.ring.material.opacity += ((s ? .55 + .3 * Math.sin(t * 4) : hv ? .35 : 0) - b.ring.material.opacity) * .2; T.bmats[id].userData.u.uHi.value += ((s ? .7 + .3 * Math.sin(t * 4) : hv ? .45 : 0) - T.bmats[id].userData.u.uHi.value) * .2;

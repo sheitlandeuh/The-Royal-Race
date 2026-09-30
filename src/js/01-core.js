@@ -1,4 +1,4 @@
-const VERSION='2.6';
+const VERSION='2.7';
 const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
@@ -22,4 +22,6 @@ function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.ad
 // sauvegarde impossible (stockage du navigateur plein ou bloqué, 2.6) : prévenir une fois par session au lieu de perdre la progression en silence
 const saveKo=(()=>{let said=false;return e=>{try{journal.erreur('sauvegarde',String(e&&e.name||e),'')}catch(x){}if(said||window.__noSave)return;said=true;
  setTimeout(()=>toast('Sauvegarde impossible : le stockage du navigateur est plein ou bloqué. Exporte ta partie : Réglages → Transférer ma partie.',8000),0)}})();
-function sync(){ $('#gold').textContent=fmt(state.gold);$('#feed').textContent=fmt(state.feed);$('#gems').textContent=fmt(state.gems);$('#trophies').textContent=fmt(state.trophies)}
+// barre du haut : nombres compacts au-delà de 100 000 (« 150 k », « 2,5 M », arrondis vers le bas), valeur exacte au survol
+const fmtC=n=>n<1e5?fmt(n):n<1e6?fmt(Math.floor(n/1e3))+'\u00a0k':(Math.floor(n/1e4)/100).toLocaleString('fr-FR')+'\u00a0M';
+function sync(){ for(const k of['gold','feed','gems']){const e=$('#'+k);e.textContent=fmtC(state[k]);e.parentElement.title=fmt(state[k])}$('#trophies').textContent=fmt(state.trophies)}

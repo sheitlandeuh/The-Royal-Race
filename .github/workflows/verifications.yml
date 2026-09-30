@@ -1,4 +1,4 @@
-# Vérifications à chaque envoi : bundle à jour, syntaxe, tests du jeu, test de fumée (7 sauvegardes types)
+# Vérifications à chaque envoi : bundle à jour, syntaxe, tests du jeu, test de fumée (7 sauvegardes types), chevauchements de l'interface
 name: Vérifications
 
 on:
@@ -45,3 +45,6 @@ jobs:
 
       - name: Test de fumée PC et mobile (neuve → fin de partie, sauvegarde abîmée)
         run: MOBILE=1 node tools/smoke.cjs
+
+      - name: Interface sans chevauchement (domaine et course, de 320 à 1920 px)
+        run: node tools/hud.cjs

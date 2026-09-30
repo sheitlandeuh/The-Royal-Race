@@ -10,7 +10,9 @@ const defi=(()=>{
  function today(){if(D.day!==day())D={day:day(),best:null,tries:0,first:false,pbGems:0,ghost:null};return D}
  // course du jour : graine, distance et terrain tirés de la date
  function meeting(){const h=hash('defi-'+day()),base=MEETINGS.filter(m=>m.league<=1)[h%3];
-  return{...base,id:'defi',n:'Défi du jour',defi:true,fee:0,purse:0,seed:1+h%89999,ref:60+h%6}}
+  // 2.7 : à partir du 1er octobre 2026, le défi change aussi d'hippodrome chaque jour (avant, celui de sa course de base)
+  const hp=day()<'2026-10-01'?base.hippo:Object.keys(HIPPOS)[Math.floor(h/3)%5];
+  return{...base,hippo:hp,id:'defi',n:'Défi du jour',defi:true,fee:0,purse:0,seed:1+h%89999,ref:60+h%6}}
  // plateau identique pour tous : force de référence fixe (pas celle du cheval du joueur), pas de rival personnel
  function field(M=meeting()){const seed=M.seed,rv=stable.rivals(M.ref,5,seed),E=ecuries.tirage(seed,5,ecuries.joueur()),T=seeded((seed^0x9e3779b9)>>>0);
   return{seed,rivals:rv.map((r,i)=>({...r,name:E[i].name,ecurie:E[i].ecurie,livery:E[i].livery,rating:ratingOf(r.stats)-7,tac:pace.choose(r.stats,T)}))}}
@@ -20,7 +22,7 @@ const defi=(()=>{
  // carte dans l'écran des courses
  hooks.on('courses:render',()=>{const g=$('#panelBody .meets');if(!g)return;const T=today(),M=meeting();
   if(RACE.defi){const info=g.nextElementSibling;if(info&&info.tagName==='P')info.innerHTML=`<b style="color:#bfe6ff">Défi du jour</b> · ${fmt(M.dist)} m · Terrain ${TERRAINS[M.terrain].n.toLowerCase()} · <b>gratuit</b>, sans fatigue ni trophées : seul ton meilleur temps compte${T.best?` (record : ${sec(T.best,2)})`:''}.`;$('#panelBody .taunt')?.remove()}
-  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${sec(T.best,2)}`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
+  g.insertAdjacentHTML('afterbegin',`<button class="meet defi-card${RACE.defi?' on':''}" data-defi><b>⏱️ Défi du jour</b><em class="suit ideal">Même course pour tous</em><i class="hip" data-hippo="${hippoOf(M)}">${HIPPOS[hippoOf(M)].i} ${HIPPOS[hippoOf(M)].c}</i><small>${fmt(M.dist)} m · ${TERRAINS[M.terrain].n} · ${T.tries?`${T.tries} essai${T.tries>1?'s':''}`:'jamais tenté'}</small><span>${T.best?`Record : ${sec(T.best,2)}`:'🎁 Coffre à la 1re arrivée'}</span></button>`)});
  $('#panelBody').addEventListener('click',e=>{if(e.target.closest('[data-defi]'))select()});
  // trajectoire de l'essai en cours (pour devenir le fantôme s'il bat le record)
  let track=null,ghost=null,gv=0,gap=null;

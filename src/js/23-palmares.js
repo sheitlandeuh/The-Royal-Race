@@ -27,11 +27,13 @@ const palmares=(()=>{const C=career.data;C.pal=C.pal||{got:[],seen:[],s3:0,lourd
   ['enchere','Coup de marteau','🔨','Achète un cheval aux enchères',()=>C.ventes?.bought||0,1,{gems:10}],
   ['legende','Entrée dans l’histoire','🎖️','Mets un cheval à la retraite',()=>(C.legendes||[]).length,1,{gems:15}],
   ['duel3','Duelliste','⚔️','Gagne 3 duels contre des amis',()=>{try{return JSON.parse(localStorage.getItem('trr.duels')||'{}').wins||0}catch(e){return 0}},3,{gems:15}],
-  ['couronne','Vainqueur de la Couronne','👑','Remporte le Grand Prix de la Couronne',()=>(C.couronne?.done||[]).includes('c6')?1:0,1,{gems:80}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
+  ['couronne','Vainqueur de la Couronne','👑','Remporte le Grand Prix de la Couronne',()=>(C.couronne?.done||[]).includes('c6')?1:0,1,{gems:80}],
+  // 2.7 : les cinq hippodromes
+  ['hippos','Tour des hippodromes','🗺️','Gagne sur les cinq hippodromes',()=>(A.hippos||[]).length,5,{gems:40}]].map(([id,n,i,d,p,goal,r])=>({id,n,i,d,p,goal,r}));
  const rtxt=r=>r.gems?`💎 ${r.gems}`:`🪙 ${fmt(r.gold)}`,done=a=>{try{return a.p()>=a.goal}catch(e){return false}};
  function sample(){const H=stable.data.horses;A.horses=Math.max(A.horses,H.length);A.lvl=Math.max(A.lvl,...H.map(h=>h.level));A.foals=Math.max(A.foals,H.filter(h=>h.parents).length)}
  function check(silent){sample();let n=0;for(const a of LIST){if(done(a)&&!A.seen.includes(a.id)){A.seen.push(a.id);if(!silent)toast(`${a.i} Succès débloqué : ${a.n}`);n++}}save();badge();return n}
- function onRace(rank,stars){if(stars===3)A.s3++;if(rank===1){if(RACE.terrain==='lourd')A.lourd++;if(!A.dists.includes(RACE.dist))A.dists.push(RACE.dist)}A.streak=Math.max(A.streak,meta.streak);check()}
+ function onRace(rank,stars){if(stars===3)A.s3++;if(rank===1){if(RACE.terrain==='lourd')A.lourd++;if(!A.dists.includes(RACE.dist))A.dists.push(RACE.dist);A.hippos=A.hippos||[];if(!A.hippos.includes(hippoOf()))A.hippos.push(hippoOf())}A.streak=Math.max(A.streak,meta.streak);check()}
  function claim(id){const a=LIST.find(x=>x.id===id);if(!a||A.got.includes(id)||!done(a))return;A.got.push(id);state.gold+=a.r.gold||0;state.gems+=a.r.gems||0;save();sync();sound.coin();buzz(20);open()}
  function badge(){const b=$('[data-panel=palmares] .badge');if(!b)return;const n=LIST.filter(a=>done(a)&&!A.got.includes(a.id)).length;b.textContent=n;b.hidden=!n}
  function open(){sample();$('#panelTitle').textContent='Palmarès';$('#panel .card').classList.add('wide');const st=S(),pct=st.races?Math.round(st.wins/st.races*100):0,got=LIST.filter(done).length;

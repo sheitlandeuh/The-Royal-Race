@@ -12,7 +12,7 @@ const manette=(()=>{
   if(E[0]){const c=vis('.coach:not([hidden]) button');if(c)c.click();else if(raceLoop)sprint();else(vis('#raceResult.show #raceAgain')||vis('#finishBoard.show #showPodium')||vis('#raceResult.show #returnDomain'))?.click()}
   if(haies.active&&raceLoop){const S=haies.state;if(E[12])haies.choose(S.choice==='f'?'n':'f');if(E[13])haies.choose(S.choice==='p'?'n':'p')}
   else if(raceLoop){if(E[12]||E[3])setPace(playerPace+1);if(E[13]||E[2])setPace(playerPace-1)} // allure : ↑ / Y presser, ↓ / X retenir
-  const ax=gp.axes[0]||0,left=P[14]||ax<-.55,right=P[15]||ax>.55;if((left||right)&&now>nextSteer){steer(left?-1:1);nextSteer=now+220}if(!left&&!right)nextSteer=0;
+  const ax=gp.axes[0]||0,left=P[14]||ax<-.55,right=P[15]||ax>.55;if((left||right)&&now>nextSteer){steerScreen(left?-1:1);nextSteer=now+220}if(!left&&!right)nextSteer=0;
   if(E[4])look(-1);if(E[5])look(1)}
  requestAnimationFrame(poll);
  return{get connected(){return !!prev.length}}})();

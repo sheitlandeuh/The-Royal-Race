@@ -26,7 +26,9 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
   if(!o.result||!Array.isArray(o.result.times)||!o.result.times.every(num)||!str(o.horse,24)||!['leader','stalker','finisher'].includes(o.strategy))return false;
   return !o.liv||livOk(o.liv)}catch(e){return false}}
  // la course reçue est reconstruite à partir de champs connus : rien de ce qui vient du lien n'est affiché sans contrôle
- function safeRace(R){const M=MEETINGS.find(m=>m.id===R.id),D=R.id==='defi'||R.defi===true;return{id:M?M.id:D?'defi':'lien',n:M?M.n:D?'Défi du jour':'Course amicale',dist:R.dist,terrain:R.terrain,haies:M&&M.haies?M.haies:undefined,amb:AMBIANCES[R.amb]?R.amb:undefined,league:0,diff:0,purse:0,fee:0}}
+ // hippodrome (2.7, moteur 5) : celui de la course du programme si elle en est une, sinon celui du lien s'il existe ; avant le moteur 5, tout se courait à l'Hippodrome Royal
+ function safeRace(R,e=ENGINE){const M=MEETINGS.find(m=>m.id===R.id),D=R.id==='defi'||R.defi===true,hp=e<5?undefined:M&&!D?M.hippo:HIPPOS[R.hippo]&&R.hippo!=='royal'?R.hippo:undefined;
+  return{id:M?M.id:D?'defi':'lien',n:M?M.n:D?'Défi du jour':'Course amicale',dist:R.dist,terrain:R.terrain,haies:M&&M.haies?M.haies:undefined,amb:AMBIANCES[R.amb]?R.amb:undefined,hippo:hp,league:0,diff:0,purse:0,fee:0}}
  async function share(r=replays.last()){if(!r||!r.result)return toast('Aucune course à partager');const code=await encode(pack(r)),url=`${location.origin}${location.pathname}#duel=${code}`,
   me=r.result.order.indexOf(0)+1,text=`⚔️ ${r.horse} te défie sur « ${safeRace(r.race).n} » (${fmt(r.race.dist)} m) : ${t2(r.result.times[0])} s, ${me}${me===1?'er':'e'} sur 6. Tu fais mieux ?`;
   hooks.emit('duel:partage',url.length);
@@ -35,7 +37,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
    $('#panelTitle').textContent='Défier un ami';$('#panel .card').classList.remove('wide');$('#panelBody').innerHTML=`<p class="hint">Copie ce lien et envoie-le : ton ami courra la même course contre ton fantôme.</p><textarea class="savecode" readonly>${escapeHTML(text+'\n'+url)}</textarea>`;$('#panel').classList.add('open');$('#panelBody textarea').select()}}
  // ---------- réception ----------
  const idOf=r=>`${r.seed}-${r.horse}-${r.result.times[0]}`;
- function add(r){r.race=safeRace(r.race);const id=idOf(r);let d=D.list.find(x=>x.id===id);if(!d){d={id,rec:r,got:Date.now(),tries:0,best:null,won:false};D.list.push(d);if(D.list.length>12)D.list.shift();save()}return d}
+ function add(r){r.race=safeRace(r.race,r.e||1);const id=idOf(r);let d=D.list.find(x=>x.id===id);if(!d){d={id,rec:r,got:Date.now(),tries:0,best:null,won:false};D.list.push(d);if(D.list.length>12)D.list.shift();save()}return d}
  async function fromHash(){const m=location.hash.match(/duel=([A-Za-z0-9_-]+)/);if(!m)return;history.replaceState(null,'',location.pathname+location.search);
   let r=null;try{r=await decode(m[1])}catch(e){}
   if(!r||r.v!==DUEL_V)return later(()=>toast(r&&r.v?'Ce duel vient d’une autre version du jeu : demande à ton ami de le renvoyer':'Lien de duel illisible'));
@@ -52,7 +54,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
    <p class="hint">${escapeHTML(safeRace(r.race).n)} · ${fmt(r.race.dist)} m · terrain ${TERRAINS[r.race.terrain].n.toLowerCase()}</p><div class="duel-time"><b>${t2(r.result.times[0])} s</b><small>${me}${me===1?'er':'e'} sur 6</small></div>
    <p class="hint">Même course, mêmes adversaires, même départ : avec ton propre cheval, bats son temps. Son fantôme court à côté de toi. Gratuit, sans fatigue ni trophées.</p>
    <div class="race-entry"><button class="action green" data-duel-go="${escapeHTML(d.id)}">⚔️ RELEVER LE DÉFI</button></div></div>`;$('#panel').classList.add('open')}
- function meeting(d){const R=safeRace(d.rec.race);return{...R,id:'duel',src:R.id,n:`Duel · ${R.n}`,duel:true,defi:false,tour:false}}
+ function meeting(d){const R=safeRace(d.rec.race,d.rec.e||1);return{...R,id:'duel',src:R.id,n:`Duel · ${R.n}`,duel:true,defi:false,tour:false}}
  function select(d){while(coach.open)coach.hide();const tr=check(d);if(tr===null)return toast('Un instant…');if(tr==='old'){toast('Ce duel vient d’une ancienne version du jeu : demande à ton ami de t’en envoyer un nouveau');return false}if(tr===false){toast('Ce duel n’a pas pu être vérifié : le temps de ton ami ne correspond pas à sa course');return false}
   cur=d;G=tr;RACE=meeting(d);currentField=null;buildField();return true}
  // (openCourses remettrait une course du programme : on ouvre l'écran directement)
@@ -92,4 +94,4 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
   $('#fbGain').insertAdjacentHTML('beforeend',`<br><button class="action duel-btn" id="duelShare">⚔️ ${RACE.duel?'RENVOYER LE DÉFI':'DÉFIER UN AMI'}</button>`);$('#duelShare').onclick=e=>{e.stopPropagation();share()}});
  hooks.on('ready',()=>{fromHash();addEventListener('hashchange',fromHash)});
  PANELS.duel=()=>{const d=D.list[D.list.length-1];if(d)card(d)};
- return{share,encode,decode,valid,pack,add,card,select,go,get list(){return D.list},get wins(){return D.wins},get cur(){return cur}}})();
+ return{share,encode,decode,valid,pack,add,card,select,go,safeRace,get list(){return D.list},get wins(){return D.wins},get cur(){return cur}}})();

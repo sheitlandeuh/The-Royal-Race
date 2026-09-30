@@ -17,7 +17,7 @@ Textes de licence : en-tête de `three.min.js`, `assets/fonts/OFL.txt`, et l'éc
 
 ## 2. Créé par le code du jeu (aucun droit tiers)
 
-Chevaux et jockeys 3D (`08-horse3d`), hippodrome 3D (`09-race-world`), domaine 3D (`51-domaine3d`), ciel et lumière, icônes de l'interface (SVG, `tools/icons.py`), bruitages et musique (Web Audio, synthétisés en direct).
+Chevaux et jockeys 3D (`08-horse3d`), les cinq hippodromes 3D et leurs décors (`09-race-world`, 2.7 : forêt, bord de mer, montagne, ville), domaine 3D (`51-domaine3d`), ciel et lumière, icônes de l'interface (SVG, `tools/icons.py`), bruitages et musique (Web Audio, synthétisés en direct).
 Texture calculée : `assets/race/grass.webp` (bruit procédural, `tools/race/race_assets.py`).
 
 ## 3. Images sources de provenance NON documentée — à régulariser

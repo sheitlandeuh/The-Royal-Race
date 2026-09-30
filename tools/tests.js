@@ -154,8 +154,33 @@ export async function run({ quick = false } = {}) {
 
     // mémoire graphique (2.6) : trois courses d'affilée ne doivent pas accumuler de textures (squelettes des chevaux 3D, portraits du podium)
     if (threeRace && !threeRace.headless) { const frames = n => new Promise(r => { const f = () => --n > 0 ? requestAnimationFrame(f) : r(); requestAnimationFrame(f) }), T = [];
-      for (let k = 0; k < 3; k++) { RACE = { ...MEETINGS[k] }; currentField = null; buildField(300 + k); stable.active().fatigue = 10; state.feed = 99999; startRace(); await frames(6); while (coach.open) coach.hide(); leaveRace(); while (coach.open) coach.hide(); await frames(3); T.push(threeRace.renderer.info.memory.textures) }
+      for (let k = 0; k < 3; k++) { RACE = { ...MEETINGS[k % 2] }; currentField = null; buildField(300 + k); stable.active().fatigue = 10; state.feed = 99999; startRace(); await frames(6); while (coach.open) coach.hide(); leaveRace(); while (coach.open) coach.hide(); await frames(3); T.push(threeRace.renderer.info.memory.textures) }
       pass('Mémoire graphique stable entre les courses', T[2] - T[0] <= 2, `textures après chaque course : ${T.join(' → ')}`) }
+
+    // hippodromes (2.7) : l'Hippodrome Royal n'a pas bougé (moteur 4), chaque hippodrome se rejoue à l'identique, le tracé compte,
+    // commandes à l'écran sur un tracé à main droite, un lien de duel garde son hippodrome, changer d'hippodrome ne laisse rien en mémoire graphique
+    { const keep = RACE, bell = (a, b, x) => x <= a || x >= b ? 0 : Math.sin((x - a) / (b - a) * Math.PI); let diff = 0;
+      for (let p = 0; p <= 1.0001; p += .0005) { const old = bell(.015, .265, p) + bell(.515, .765, p); RACE = { ...MEETINGS[1] }; delete RACE.hippo; diff += Math.abs(courseTurn(p) - old); RACE = { ...MEETINGS[1], hippo: 'royal' }; diff += Math.abs(courseTurn(p) - old) }
+      setTrack('royal'); const ref = (t, lane) => { const S = 520, R = 165, L = S * 2 + Math.PI * 2 * R, d = (((t % 1) + 1) % 1) * L; if (d < S) return [-S / 2 + d, R + lane]; if (d < S + Math.PI * R) { const a = Math.PI / 2 - (d - S) / R; return [S / 2 + (R + lane) * Math.cos(a), (R + lane) * Math.sin(a)] } if (d < S * 2 + Math.PI * R) return [S / 2 - (d - S - Math.PI * R), -R - lane]; const a = -Math.PI / 2 - (d - S * 2 - Math.PI * R) / R; return [-S / 2 + (R + lane) * Math.cos(a), (R + lane) * Math.sin(a)] };
+      for (let t = 0; t < 1; t += .013) for (const lane of [-7, 0, 9]) { const q = trackPose(t, lane).p, r = ref(t, lane); diff += Math.abs(q.x - r[0]) + Math.abs(q.z - r[1]) }
+      RACE = keep; pass('Hippodromes : Hippodrome Royal inchangé', diff < 1e-6 && RACE_ORIGIN === .235 && ENGINE_OK.includes(4), `écart ${diff.toExponential(1)} (virages et tracé) · rejeux du moteur 4 acceptés`) }
+    { const I = id => { RACE = { ...MEETINGS[1], hippo: id }; let s = 0; for (let p = 0; p <= 1; p += .001) s += courseTurn(p) * .001; return s }, v = Object.fromEntries(Object.keys(HIPPOS).map(id => [id, I(id)])); RACE = { ...MEETINGS[1] };
+      pass('Hippodromes : le tracé compte en course', v.foret > v.capitale && v.capitale > v.cimes && v.cimes > v.royal && v.royal > v.cote, Object.entries(v).map(([k, x]) => `${k} ${x.toFixed(3)}`).join(' · ') + ' (coût des virages pour qui court au large)') }
+    { let ok = 0, hp = 0; const ids = Object.keys(HIPPOS), done = completeRace;
+      for (const id of ids) { RACE = { ...MEETINGS[1], hippo: id }; currentField = null; buildField(9001 + id.length); stable.active().fatigue = 10; state.feed = 99999; state.strategy = 'stalker';
+        bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+        while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); if (n % 29 === 0) steerScreen(n % 58 ? 1 : -1); if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
+        raceLoop = null; const r = replays.last(); hp += r.race.hippo === id; while (coach.open) coach.hide(); if (replays.verify(r).ok) ok++; leaveRace(); while (coach.open) coach.hide(); await tick() }
+      completeRace = done; pass('Hippodromes : rejeu identique sur chacun', ok === ids.length && hp === ids.length, `${ok}/${ids.length} rejeux identiques · hippodrome enregistré ${hp}/${ids.length}`) }
+    { const keep = { ...TRACK }; setTrack('foret'); playerTarget = 50; playerLane = 50; steerScreen(-1); const a = playerTarget; steerScreen(1); steerScreen(1); const b = playerTarget; setTrack('royal'); playerTarget = 50; steerScreen(-1); const c = playerTarget; TRACK = keep; setTrack(keep.id);
+      pass('Hippodromes : à main droite, ◀ va vers l’extérieur', a > 50 && b < a && c < 50, `main droite : ◀ ${a}, puis ▶▶ ${b} · main gauche : ◀ ${c}`) }
+    { const r = { e: 5, race: { id: 'lien', dist: 1600, terrain: 'bon', hippo: 'cimes' } }, o = { e: 4, race: { id: 'm3', dist: 2000, terrain: 'souple' } };
+      const a = duel.safeRace(r.race, 5).hippo, b = duel.safeRace(o.race, 4).hippo, c = duel.safeRace({ id: 'm3', dist: 2000, terrain: 'souple', hippo: 'cote' }, 5).hippo;
+      pass('Hippodromes : un duel garde son hippodrome', a === 'cimes' && b === undefined && c === 'foret', `lien → ${a} · ancien lien (moteur 4) → ${b || 'Hippodrome Royal'} · course du programme → ${c} (celui du programme, pas celui du lien)`) }
+    if (threeRace && !threeRace.headless) { const frames = n => new Promise(r => { const f = () => --n > 0 ? requestAnimationFrame(f) : r(); requestAnimationFrame(f) }), M = [];
+      for (const id of ['royal', 'cote', 'royal', 'cote', 'royal']) { RACE = { ...MEETINGS[1], hippo: id }; raceVenue(threeRace); threeRace.renderer.render(threeRace.scene, threeRace.camera); await frames(2); M.push(threeRace.renderer.info.memory.geometries + '/' + threeRace.renderer.info.memory.textures) }
+      RACE = { ...MEETINGS[1] }; raceVenue(threeRace); const g = M.map(x => x.split('/').map(Number));
+      pass('Hippodromes : changer d’hippodrome ne laisse rien en mémoire', Math.abs(g[4][0] - g[2][0]) <= 2 && Math.abs(g[4][1] - g[2][1]) <= 2 && Math.abs(g[3][0] - g[1][0]) <= 2, `géométries / textures : ${M.join(' → ')}`) }
 
     // 12. aucun contenu factice visible
     const txt = document.body.innerText, bad = ['bientôt', 'Lorem', 'TODO', 'undefined', 'NaN'].filter(w => txt.includes(w));

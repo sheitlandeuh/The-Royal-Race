@@ -118,7 +118,7 @@ const HORSE3D = (() => {
     const N = [E([1.37, 1.6, .04], [.016, .026, .014]), E([1.37, 1.6, -.04], [.016, .026, .014]), E([1.35, 1.54, 0], [.03, .006, .04], 0, -.7)];
     return { prims: P, negs: N, k: .07, kn: .012, min: [-1.12, .06, -.42], max: [1.46, 2.12, .42], h, smooth: 1 };
   }
-  // Jockey en position de course (accroupi sur les étriers), mains aux rênes. Régions :
+  // Jockey en position de course (accroupi sur les étriers, jambes contre les flancs), mains aux rênes. Régions :
   // 0 casaque (motif), 1 manches, 2 culotte blanche, 3 bottes, 4 peau, 7 gants, 8 revers de botte,
   // 10 bras gauche (manche), 11 bras droit (manche), 12 main gauche, 13 main droite — les bras sont pondérés sur leurs os.
   function JOCKEY_SPEC(h) {
@@ -133,10 +133,11 @@ const HORSE3D = (() => {
     for (const [s, arm, hand] of [[1, 10, 12], [-1, 11, 13]]) P.push(
       // bras : épaule -> coude -> poignet, gant
       C([.26, 2.05, .16 * s], [.43, 1.94, .14 * s], .052, .043, arm), C([.43, 1.94, .14 * s], [.61, 1.875, .08 * s], .043, .034, arm), E([.645, 1.865, .07 * s], [.042, .036, .036], hand),
-      // cuisse, genou, jambe (botte), pied dans l'étrier
-      C([-.08, 1.95, .12 * s], [.18, 1.85, .2 * s], .08, .064, 2), E([.19, 1.84, .21 * s], [.06, .058, .052], 2),
-      C([.18, 1.83, .21 * s], [.12, 1.72, .235 * s], .058, .052, 8), C([.12, 1.72, .235 * s], [.05, 1.62, .25 * s], .052, .042, 3), C([.04, 1.6, .255 * s], [.16, 1.575, .255 * s], .036, .032, 3));
-    return { prims: P, negs: [], k: .035, kn: .01, min: [-.32, 1.5, -.34], max: [.74, 2.36, .34], h, smooth: 1 };
+      // 2.8 : cuisse le long du garrot, genou calé devant la selle, jambe qui descend contre le flanc, pied dans l'étrier (sur le quartier)
+      C([-.08, 1.94, .115 * s], [.19, 1.775, .225 * s], .08, .063, 2), E([.205, 1.765, .232 * s], [.062, .058, .054], 2),
+      C([.2, 1.75, .24 * s], [.172, 1.69, .26 * s], .057, .053, 2), C([.172, 1.69, .26 * s], [.158, 1.655, .27 * s], .054, .051, 8), C([.158, 1.655, .27 * s], [.075, 1.49, .318 * s], .05, .041, 3),
+      E([.06, 1.475, .322 * s], [.045, .034, .036], 3), C([.06, 1.462, .322 * s], [.185, 1.448, .322 * s], .034, .028, 3));
+    return { prims: P, negs: [], k: .035, kn: .01, min: [-.32, 1.38, -.42], max: [.74, 2.36, .42], h, smooth: 1 };
   }
   // Pondérations de peau (4 os au plus par sommet) calculées d'après la région sculptée et la position au repos.
   // Os du cheval : 0 corps, 1 encolure, 2 tête, 3-5 queue, 6-8 antérieur gauche (bras, canon, paturon), 9-11 antérieur droit, 12-14 postérieur gauche, 15-17 postérieur droit.
@@ -160,14 +161,16 @@ const HORSE3D = (() => {
     }
     return { si, sw }
   }
-  // Os du jockey : 0 bassin, 1 buste, 2 tête, 3 bras gauche, 4 avant-bras gauche, 5 bras droit, 6 avant-bras droit.
+  // Os du jockey : 0 bassin, 1 buste, 2 tête, 3 bras gauche, 4 avant-bras gauche, 5 bras droit, 6 avant-bras droit, 7 jambes (2.8 : indépendantes
+  // du bassin, pieds dans les étriers pendant que le jockey s'assoit ou se relève).
   function JOCKEY_WEIGHTS(pos, reg) {
     const n = reg.length, si = new Uint16Array(n * 4), sw = new Float32Array(n * 4), ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t) };
     for (let v = 0; v < n; v++) {
       const x = pos[v * 3], y = pos[v * 3 + 1], r = reg[v], W = {}; const add = (b, w) => { if (w > 1e-4) W[b] = (W[b] || 0) + w };
       if (r >= 10) { const left = r === 10 || r === 12, up = left ? 3 : 5, t = ss(.39, .47, x), sh = ss(.2, .31, x); add(1, 1 - sh); add(up, sh * (1 - t)); add(up + 1, sh * t) }
       else if (r === 4 || r === 5 || r === 6) { const t = ss(.3, .38, x); add(1, 1 - t); add(2, t) }
-      else if (r === 2 || r === 3 || r === 8) add(0, 1);
+      else if (r === 3 || r === 8) add(7, 1);
+      else if (r === 2) { const t = ss(-.03, .11, x); add(0, 1 - t); add(7, t) }
       else { const t = ss(-.04, .1, x); add(0, 1 - t); add(1, t) }
       const L = Object.entries(W).sort((a, b) => b[1] - a[1]).slice(0, 4), s = L.reduce((a, e) => a + e[1], 0) || 1;
       L.forEach(([b, w], k) => { si[v * 4 + k] = +b; sw[v * 4 + k] = w / s })
@@ -234,7 +237,7 @@ const HORSE3D = (() => {
   for (const [x0, top, knee, z] of [[.48, 1.1, [.46, .575], .135], [.48, 1.1, [.46, .575], -.135], [-.7, 1.05, [-.87, .62], .145], [-.7, 1.05, [-.87, .62], -.145]]) {
     const b = HB.length; HB.push([x0, top, z, 0], [knee[0], knee[1], z, b], [knee[0] + (x0 > 0 ? .002 : .01), .225, z, b + 1])
   }
-  const JB = [[-.08, 1.9, 0, -1], [.1, 1.98, 0, 0], [.36, 2.12, 0, 1], [.26, 2.05, .16, 1], [.43, 1.94, .14, 3], [.26, 2.05, -.16, 1], [.43, 1.94, -.14, 5]];
+  const JB = [[-.08, 1.9, 0, -1], [.1, 1.98, 0, 0], [.36, 2.12, 0, 1], [.26, 2.05, .16, 1], [.43, 1.94, .14, 3], [.26, 2.05, -.16, 1], [.43, 1.94, -.14, 5], [.05, 1.86, 0, -1]];
   function bones(list) { const B = list.map(([x, y, z]) => { const b = new THREE.Bone(); b.position.set(x, y, z); return b }); list.forEach(([, , , p], i) => { if (p >= 0) { B[p].add(B[i]); B[i].position.sub(V(list[p][0], list[p][1], list[p][2])) } }); return B }
   // ---------- crins : cartes texturées (crinière couchée à droite, toupet, queue en gerbe) ----------
   const hairTex = {};
@@ -316,9 +319,11 @@ const HORSE3D = (() => {
     // pièces rigides regroupées par os et par matière (un seul appel de dessin chacune), positions relatives à l'os au repos
     const T = (g, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => g.clone().applyMatrix4(new THREE.Matrix4().compose(V(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), V(sx, sy, sz)));
     const both = f => [f(1), f(-1)], HX = .97, HY = 1.95, JX = .36, JY = 2.12;
+    // lanière plate de a à b (face large vers l'extérieur)
+    const leatherStrap = (a, b) => { const d = b.clone().sub(a), L = d.length(); return new THREE.BoxGeometry(.026, 1, .006).applyMatrix4(new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(.5), new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), d.divideScalar(L)), V(1, L, 1))) };
     const nose = new THREE.TorusGeometry(.086, .012, 6, 22), brow = new THREE.TorusGeometry(.1, .011, 6, 22), cheek = new THREE.CylinderGeometry(.008, .008, 1, 5), bit = new THREE.TorusGeometry(.026, .006, 6, 14), blink = new THREE.SphereGeometry(.05, 12, 8, 0, Math.PI * 2, 0, Math.PI * .5);
     const helmet = new THREE.SphereGeometry(1, 28, 14, 0, Math.PI * 2, 0, Math.PI * .58).scale(.112, .1, .104), peak = new THREE.CylinderGeometry(1, 1, 1, 16, 1, false, 0, Math.PI).scale(.075, .007, .095), pom = new THREE.SphereGeometry(.018, 10, 8);
-    const lens = new THREE.SphereGeometry(1, 12, 8).scale(.012, .02, .026), band = new THREE.TorusGeometry(1, .08, 5, 26).rotateX(Math.PI / 2).scale(.084, .084, .078), iron = new THREE.TorusGeometry(.035, .008, 6, 12), strap = new THREE.CylinderGeometry(.007, .007, 1, 5);
+    const lens = new THREE.SphereGeometry(1, 12, 8).scale(.012, .02, .026), band = new THREE.TorusGeometry(1, .08, 5, 26).rotateX(Math.PI / 2).scale(.084, .084, .078), iron = new THREE.TorusGeometry(.036, .008, 6, 14);
     const eye = new THREE.SphereGeometry(.027, 14, 10), earA = s => T(ear, 1.0 - HX, 2.06 - HY, .06 * s, s * .35, s * (Math.PI * .5 - .25), -.25);
     return PARTS = { hoof,
       head: {
@@ -328,10 +333,14 @@ const HORSE3D = (() => {
         blink: mergeG(both(s => T(blink, 1.08 - HX, 1.93 - HY, .1 * s, s * -Math.PI / 2))) },
       cap: mergeG([T(helmet, .418 - JX, 2.19 - JY, 0, 0, 0, .18), T(peak, .505 - JX, 2.186 - JY, 0, 0, 0, -.1), T(pom, .4 - JX, 2.29 - JY, 0)]),
       glass: mergeG([...both(s => T(lens, .508 - JX, 2.168 - JY, .031 * s)), T(band, .43 - JX, 2.168 - JY, 0)]),
-      irons: mergeG(both(s => T(iron, .1, 1.56, .26 * s, 0, Math.PI / 2))), straps: mergeG(both(s => T(strap, .03, 1.625, .255 * s, 0, 0, .35, 1, .13, 1))),
-      cloth: tube([[V(-.34, 1.36), .33, .345], [V(-.1, 1.32), .337, .372], [V(.16, 1.32), .327, .377]], 30, [-.28, Math.PI + .28]),
-      saddle: tube([[V(-.17, 1.68), .14, .03], [V(0, 1.668), .15, .035], [V(.13, 1.695), .12, .03]], 12),
-      girth: new THREE.TorusGeometry(1, .05, 6, 44).rotateY(Math.PI / 2).scale(1, .335, .292),
+      // 2.8 : étriers sous le pied du jockey, contre le flanc ; étrivières de la selle à l'étrier (par-dessus le quartier)
+      irons: mergeG(both(s => T(iron, .12, 1.45, .322 * s, 0, Math.PI / 2))), straps: mergeG(both(s => leatherStrap(V(.07, 1.705, .2 * s), V(.12, 1.486, .322 * s)))),
+      // tapis (numéro) posé sur le dos et tombant sur les flancs — l'arc du tube passe par le haut (« up » du tube = -y)
+      cloth: tube([[V(-.36, 1.32), .305, .36], [V(-.1, 1.31), .31, .372], [V(.17, 1.31), .3, .366]], 34, [-Math.PI - .42, .42]),
+      // selle de course : siège plat sur le tapis, quartiers de cuir sous les genoux
+      saddle: tube([[V(-.22, 1.712), .15, .028], [V(-.05, 1.708), .17, .036], [V(.1, 1.714), .16, .032], [V(.17, 1.73), .1, .026]], 14),
+      flaps: tube([[V(-.08, 1.33), .324, .39], [V(.07, 1.33), .324, .39], [V(.2, 1.33), .312, .384]], 22, [-Math.PI + .42, -.42]),
+      girth: new THREE.TorusGeometry(1, .036, 6, 44).rotateY(Math.PI / 2).scale(1, .335, .292),
       rein: new THREE.CylinderGeometry(.007, .007, 1, 5).translate(0, .5, 0).rotateZ(-Math.PI / 2),
       whip: new THREE.CylinderGeometry(.005, .009, .62, 5).translate(0, -.31, 0) }
   }
@@ -340,7 +349,7 @@ const HORSE3D = (() => {
   // pelage : robe, extrémités sombres, balzanes (hauteur par jambe), liste / étoile, pommelures, bout du nez, poil fin, occlusion
   function coatMat(col, dark, o) {
     // robe lustrée d'un pur-sang : vernis léger (clearcoat) qui prend les reflets du ciel, reflet de poil (sheen) et relief musculaire (bosselage procédural)
-    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .42, sheen: .8, sheenRoughness: .38, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .32, clearcoatRoughness: .36, envMapIntensity: 1.15 });
+    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .42, sheen: .6, sheenRoughness: .42, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .3, clearcoatRoughness: .44, envMapIntensity: 1.15 });
     m.onBeforeCompile = s => {
       Object.assign(s.uniforms, { uDark: { value: dark }, uPts: { value: o.points ? 1 : 0 }, uDap: { value: o.dapple ? 1 : 0 }, uSocks: { value: new THREE.Vector4(...o.socks) }, uBlaze: { value: o.blaze } });
       s.vertexShader = 'attribute float ao;attribute float reg;varying float vAo;varying float vReg;varying vec3 vRest;varying vec3 vRestN;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvAo=ao;vReg=reg;vRest=position;vRestN=normal;');
@@ -357,7 +366,7 @@ const HORSE3D = (() => {
        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.93,.91,.87),max(sock,bl));
        diffuseColor.rgb*=pow(vAo,1.25);}`).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
       {vec3 P=vRest;float lg=mix(.3,1.,smoothstep(.85,1.15,P.y));
-       float hB=(n3(P*vec3(6.,7.5,6.))*.05+n3(P*17.)*.01)*lg;vec2 dH=vec2(dFdx(hB),dFdy(hB));
+       float hB=(n3(P*vec3(3.4,4.2,3.4))*.034+n3(P*11.)*.0035)*lg;vec2 dH=vec2(dFdx(hB),dFdy(hB));
        vec3 sX=dFdx(-vViewPosition),sY=dFdy(-vViewPosition),R1=cross(sY,normal),R2=cross(normal,sX);float fD=dot(sX,R1);
        normal=normalize(abs(fD)*normal-sign(fD)*(dH.x*R1+dH.y*R2));}`)
     }; return m
@@ -385,8 +394,11 @@ const HORSE3D = (() => {
   function silkTexture(liv) { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'), img = x.createImageData(256, 256), m = hexRGB(liv.main), s = hexRGB(liv.second), pat = LIVERY.pattern;
     for (let j = 0; j < 256; j++) for (let i = 0; i < 256; i++) { const u = i / 256, v = j / 256, alt = pat(liv.pattern, u, v), c2 = alt ? s : m, k = ((255 - j) * 256 + i) * 4, fold = .93 + .07 * Math.sin(u * 40 + v * 9); img.data[k] = c2[0] * fold; img.data[k + 1] = c2[1] * fold; img.data[k + 2] = c2[2] * fold; img.data[k + 3] = 255 }
     x.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t }
-  function clothTexture(liv, num) { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d'); x.fillStyle = liv.main; x.fillRect(0, 0, 512, 128); x.fillStyle = liv.second; x.fillRect(0, 0, 512, 10); x.fillRect(0, 118, 512, 10);
-    x.fillStyle = '#fff'; x.font = '64px "Russo One",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; for (const cx of [128, 384]) { x.save(); x.translate(cx, 64); x.scale(cx < 256 ? 1 : -1, 1); x.fillText(String(num || 1), 0, 4); x.restore() }
+  function clothTexture(liv, num) { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d'); x.fillStyle = liv.main; x.fillRect(0, 0, 512, 128); x.fillStyle = liv.second; x.fillRect(0, 0, 512, 9); x.fillRect(0, 119, 512, 9); x.fillRect(0, 0, 12, 128); x.fillRect(500, 0, 12, 128);
+    // u (largeur) fait le tour du dos (0 = bas du flanc droit, 0,5 = dos, 1 = bas du flanc gauche), v (hauteur) suit le cheval de l'arrière à l'avant :
+    // chaque numéro est tourné d'un quart de tour pour se lire droit sur son flanc
+    x.font = '74px "Russo One",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+    for (const [cx, a] of [[80, Math.PI / 2], [432, -Math.PI / 2]]) { x.save(); x.translate(cx, 66); x.rotate(a); x.lineWidth = 7; x.strokeStyle = 'rgba(0,0,0,.35)'; x.strokeText(String(num || 1), 0, 3); x.fillStyle = '#fff'; x.fillText(String(num || 1), 0, 3); x.restore() }
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t }
   function coatColor(liv) { const i = Math.max(0, LIVERY.COATS.findIndex(c => c.id === liv.coat)), l = LIVERY.coatLut(i); return new THREE.Color().setRGB(l[0] / 255, l[1] / 255, l[2] / 255, THREE.SRGBColorSpace) }
   // balzanes et liste : tirées du nom (le même cheval garde ses marques partout)
@@ -411,11 +423,11 @@ const HORSE3D = (() => {
     const hair = new THREE.MeshStandardMaterial({ color: HAIR[liv.coat] || 0x120c09, map: hairTexture(), alphaTest: .42, side: THREE.DoubleSide, roughness: .55 });
     const tailM = new THREE.MeshStandardMaterial({ color: HAIR[liv.coat] || 0x120c09, map: hairTexture(1), roughness: .6 });
     const hoof = new THREE.MeshStandardMaterial({ color: 0x2b2420, roughness: .42 }), leather = new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: .45 }), steel = new THREE.MeshStandardMaterial({ color: 0xc9ccd0, roughness: .25, metalness: .9 });
-    const glass = new THREE.MeshStandardMaterial({ color: 0x1c2228, roughness: .08, metalness: .6 });
+    const glass = new THREE.MeshStandardMaterial({ color: 0x1c2228, roughness: .08, metalness: .6 }), flapM = new THREE.MeshStandardMaterial({ color: 0x2e1d12, roughness: .5, side: THREE.DoubleSide });
     const eye = new THREE.MeshPhysicalMaterial({ color: 0x0a0706, roughness: .04, clearcoat: 1 }), earIn = new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: .8, side: THREE.DoubleSide });
     const silkTex = silkTexture(liv), clothTex = clothTexture(liv, opt.number), cloth = new THREE.MeshStandardMaterial({ map: clothTex, roughness: .85, side: THREE.DoubleSide }), capM = new THREE.MeshStandardMaterial({ color: liv.cap, roughness: .35 });
     const lin = h => new THREE.Color(h), jk = jockeyMat(silkTex, [lin(liv.main), lin(liv.pattern === 'manches' ? liv.second : liv.main), lin(0xf1efe8), lin(0x141312), lin(0xdfa487), lin(liv.cap), lin(0x1a1f24), lin(0xf4f2ec), lin(0x8a5a32)]);
-    u.mats.push(coat, hair, tailM, glass, hoof, leather, steel, eye, earIn, cloth, capM, jk); u.texs.push(silkTex, clothTex);
+    u.mats.push(coat, hair, tailM, glass, flapM, hoof, leather, steel, eye, earIn, cloth, capM, jk); u.texs.push(silkTex, clothTex);
     // cheval : corps sculpté + crins, un seul squelette
     const B = bones(HB), body = new THREE.SkinnedMesh(D.H, coat); body.castShadow = true; body.add(B[0]); root.add(body);
     root.updateMatrixWorld(true); const sk = new THREE.Skeleton(B); body.bind(sk);
@@ -425,9 +437,9 @@ const HORSE3D = (() => {
     onHead(P.head.eye, eye); onHead(P.head.ear, coat).castShadow = true; onHead(P.head.earIn, earIn);
     const u2 = { B, body, reins: [] }; if (opt.free) { Object.assign(u, u2); return }
     onHead(P.head.leather, leather); onHead(P.head.steel, steel); if (opt.blinkers) onHead(P.head.blink, capM);
-    at(0, P.cloth, cloth, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.saddle, leather, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.girth, leather, .24, 1.29, 0);
+    at(0, P.cloth, cloth, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.saddle, leather, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.flaps, flapM, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.girth, leather, .24, 1.29, 0);
     // jockey : son propre squelette, accroché au corps du cheval
-    const jg = new THREE.Group(); jg.position.set(0, -1.3, 0); B[0].add(jg); const JB_ = bones(JB), jm = new THREE.SkinnedMesh(D.J, jk); jm.castShadow = true; jm.add(JB_[0]); jg.add(jm); root.updateMatrixWorld(true); jm.bind(new THREE.Skeleton(JB_));
+    const jg = new THREE.Group(); jg.position.set(0, -1.3, 0); B[0].add(jg); const JB_ = bones(JB), jm = new THREE.SkinnedMesh(D.J, jk); jm.castShadow = true; jm.add(JB_[0], JB_[7]); jg.add(jm); root.updateMatrixWorld(true); jm.bind(new THREE.Skeleton(JB_));
     jg.add(new THREE.Mesh(P.irons, steel), new THREE.Mesh(P.straps, leather));
     // casque (toque aux couleurs), visière, lunettes : pièces rigides sur l'os de la tête
     { const cap = new THREE.Mesh(P.cap, capM); cap.castShadow = true; JB_[2].add(cap, new THREE.Mesh(P.glass, glass)) }
@@ -471,8 +483,12 @@ const HORSE3D = (() => {
     // jockey : amortit le galop, pousse au sprint (bras qui accompagnent l'encolure, cravache)
     const bob = B[0].position.y - 1.3; u.jg.position.y = -1.3 - bob * .75; u.jg.position.x = Math.sin(p * TAU * 2 + .8) * .012 * run; u.jg.rotation.z = -B[0].rotation.z * .85;
     const push = Math.sin(p * TAU + 2.6) * (.08 + drive * .22) * run;
-    JB_[1].rotation.z = -push * .25 - drive * .05 - jup * .22; JB_[2].rotation.z = push * .2 + jup * .12; u.jg.position.y += jup * .05;
-    for (const [sh, el] of [[3, 4], [5, 6]]) { JB_[sh].rotation.z = -push * 1.1; JB_[el].rotation.z = push * .8 }
+    // 2.8 : à l'arrêt et au pas, le jockey se redresse et s'assoit sur la selle (buste relevé, regard devant, mains basses sur le garrot) ;
+    // il reprend la position accroupie de course dès le trot
+    const sit = Math.max(0, Math.min(1, 1 - run * 2.5)), br = Math.sin(p * TAU) * .012 * sit;
+    JB_[0].rotation.z = sit * .3; JB_[0].position.set(-.08 - sit * .035, 1.9 - sit * .065, 0);
+    JB_[1].rotation.z = -push * .25 - drive * .05 - jup * .22 + sit * .2 + br; JB_[2].rotation.z = push * .2 + jup * .12 - sit * .42 - br; u.jg.position.y += jup * .05;
+    for (const [sh, el] of [[3, 4], [5, 6]]) { JB_[sh].rotation.z = -push * 1.1 - sit * .78; JB_[el].rotation.z = push * .8 + sit * .42 }
     u.whip.visible = drive > .5; JB_[6].rotation.x = drive > .5 ? Math.sin(p * TAU * 2) * .25 : 0;
     // rênes : du mors aux mains
     root.updateMatrixWorld(true);

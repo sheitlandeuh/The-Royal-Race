@@ -21,7 +21,7 @@
   .nav{height:40px;min-width:92px;padding:2px 8px;font-size:10px;grid-auto-flow:column;gap:6px}
   .nav svg,.nav .ico{width:20px;height:20px}
   .homebar{bottom:calc(54px + env(safe-area-inset-bottom,0px));width:min(560px,calc(100% - 140px))}
-  .slot{height:44px}.slot i{font-size:20px}.slot small{font-size:9px}
+  .slot{height:44px;gap:0}.slot i{font-size:20px}.slot i svg.chest{width:1.1em;height:1.1em}.slot small{font-size:9px}.slot .prog{bottom:3px;height:3px}.slot.going small{margin-bottom:3px}
   .play{width:150px;border-radius:14px}.play b{font-size:18px}.play small{font-size:9px}
   .rail{top:64px;gap:5px}.square{width:40px;height:40px;font-size:19px;border-radius:11px}
   .panel{padding:8px 10px 56px}

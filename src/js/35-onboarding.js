@@ -19,7 +19,7 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
  let pending=[];
  hooks.on('race:end',()=>{if(RACE.defi)return;const n=races();pending.push(...UNLOCKS.filter(U=>U.at===n))});
  // les annonces attendent le retour au domaine (après la course, le podium et le récapitulatif)
- hooks.on('race:leave',()=>{if(!pending.length)return;const list=pending;pending=[];setTimeout(()=>{apply();list.forEach(U=>coach.tip('unlock-'+U.k,`<b>Nouveau : ${U.n} !</b><br>${U.txt}`,U.sel[0]));buzz([20,30,20]);sound.coin()},700)});
+ hooks.on('race:leave',()=>{if(!pending.length)return;const list=pending;pending=[];setTimeout(()=>{if(enCourse()){pending.unshift(...list);return}apply();list.forEach(U=>coach.tip('unlock-'+U.k,`<b>Nouveau : ${U.n} !</b><br>${U.txt}`,U.sel[0]));buzz([20,30,20]);sound.coin()},700)});
  // objectif suivant, toujours visible au-dessus du bouton COURIR
  const bar=$('.homebar'),goal=document.createElement('button');goal.className='goal';bar.appendChild(goal);
  function next(){const C=career.data,h=stable.active(),n=races(),M=C.missions||[],ready=(C.chests||[]).findIndex(c=>c&&c.ends&&Date.now()>=c.ends);
@@ -34,10 +34,10 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
   try{const g=couronne.goal();if(g)return g}catch(e){}
   const R=rival.rec;if(R.w<=R.l)return[`Prends l’avantage sur Black Majesty (${R.w} – ${R.l})`,'courses'];
   return[n>=5?'Remporte le Tournoi royal du jour':'Enchaîne les victoires','courses']}
- function render(){const[t,a]=next();if(goal.dataset.a!==a||goal.textContent!=='🎯 '+t){goal.textContent='🎯 '+t;goal.dataset.a=a}}
+ function render(){const[t,a]=next();if(goal.dataset.a!==a||goal.dataset.t!==t){goal.textContent='🎯 '+t;goal.dataset.a=a;goal.dataset.t=t}}
  goal.onclick=()=>{const a=goal.dataset.a;if(a.startsWith('chest:'))return bar.querySelectorAll('.slots [data-slot]')[+a.slice(6)]?.click();if(a==='ecurie')return openStable();if(a==='defi'){openCourses();return defi.select()}openPanel(a)};
  // la récompense quotidienne attend la fin de la première course (sinon, rien ne doit détourner du premier départ)
- hooks.on('race:leave',()=>{if(races()>0)setTimeout(()=>meta.login(),1600)});
+ hooks.on('race:leave',()=>{if(races()>0)setTimeout(()=>{if(!enCourse())meta.login()},1600)});
  // premier affichage une fois tous les modules chargés : next() lit le Défi du jour (module 37), pas encore défini ici
  apply();hooks.on('ready',()=>{render();setInterval(render,1500)});hooks.on('race:leave',()=>setTimeout(render,50));
  return{apply,next}})();

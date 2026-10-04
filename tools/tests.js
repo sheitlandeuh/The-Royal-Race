@@ -182,6 +182,27 @@ export async function run({ quick = false } = {}) {
       RACE = { ...MEETINGS[1] }; raceVenue(threeRace); const g = M.map(x => x.split('/').map(Number));
       pass('Hippodromes : changer d’hippodrome ne laisse rien en mémoire', Math.abs(g[4][0] - g[2][0]) <= 2 && Math.abs(g[4][1] - g[2][1]) <= 2 && Math.abs(g[3][0] - g[1][0]) <= 2, `géométries / textures : ${M.join(' → ')}`) }
 
+    // RECOURIR (2.8) : la vérification de la course précédente ne doit rien laisser dans la nouvelle (caméra d'arrivée = écran uni, HUD figé)
+    if (threeRace && !threeRace.headless) { RACE = { ...MEETINGS[1] }; currentField = null; buildField(4242); stable.active().fatigue = 10; state.feed = 99999; state.strategy = 'stalker';
+      startRace(); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0; while (finishOrder.length < 6 && n++ < 9000) { if (!playerFinal && progress[0] > 40) sprint(); runRaceV2() } raceLoop = null; while (coach.open) coach.hide();
+      $('#raceAgain').onclick(); await new Promise(r => setTimeout(r, 900)); while (coach.open) coach.hide();
+      const st = { camera: threeRace.finishView ? 'arrivée' : 'course', pas: raceTime, distance: $('#meters').textContent, phase: threeRace.startPhase };
+      leaveRace(); while (coach.open) coach.hide(); await new Promise(r => setTimeout(r, 600));
+      pass('Recourir : la nouvelle course part proprement', st.camera === 'course' && st.pas === 0 && st.distance === fmt(RACE.dist) && st.phase === 'cinematic', `caméra ${st.camera} · ${st.pas} pas · ${st.distance} m affichés · ${st.phase}`) }
+
+    // 2.8 : jockey en selle (jambes sur leur propre os, assis à l'arrêt, accroupi au galop), coffres au décompte à la seconde,
+    // une seule icône par ressource partout, podium au nom de la course
+    { const g = await HORSE3D.ready(2), h = HORSE3D.build(champion.get(), { lod: 2 }), u = h.userData, V = new THREE.Vector3(), y = run => { HORSE3D.pose(h, .3, run, 0); h.updateMatrixWorld(true); return u.JB[0].getWorldPosition(V).y };
+      const assis = y(0), galop = y(1), pied = (u.JB[7] && u.JB[7].getWorldPosition(new THREE.Vector3())) || V; HORSE3D.dispose(h);
+      pass('Jockey en selle : assis à l’arrêt, accroupi au galop', !!g && u.JB.length === 8 && assis < galop - .03, `${u.JB.length} os · bassin ${assis.toFixed(2)} m à l’arrêt, ${galop.toFixed(2)} m au galop`) }
+    { const a = chestLeft(47 * 6e4 + 12e3), b = chestLeft(2 * 36e5 + 5 * 6e4), c = chestSVG('royal');
+      pass('Coffres : décompte à la seconde, coffre dessiné', a === '47:12' && b === '2 h 05' && c.includes('ch-lid') && !c.includes('id='), `${a} · ${b} · ${c.length} caractères`) }
+    { const d = document.createElement('div'); d.textContent = 'Gain : 🪙 500 · 🌾 20 · 💎 3'; document.body.appendChild(d); await new Promise(r => setTimeout(r, 30));
+      const n = d.querySelectorAll('svg.ri use').length, reste = /🪙|🌾|💎/.test(d.textContent); d.remove();
+      pass('Icônes : une seule icône par ressource, partout', n === 3 && !reste, `${n} icônes dessinées · émoji restant : ${reste ? 'OUI' : 'non'}`) }
+    if (threeRace && !threeRace.headless) { podiumTitle(threeRace.podium, MEETINGS[1]); const U = threeRace.podium.userData;
+      pass('Podium : trois marches, bandeau au nom de la course', PODIUM_SLOTS.length === 3 && !!U.banner.map && U.conf.N > 100 && !!podiumGarland(), `bandeau ${U.bannerKey} · ${U.conf.N} confettis`) }
+
     // 12. aucun contenu factice visible
     const txt = document.body.innerText, bad = ['bientôt', 'Lorem', 'TODO', 'undefined', 'NaN'].filter(w => txt.includes(w));
     pass('Aucun texte factice ou cassé', !bad.length, bad.length ? 'trouvé : ' + bad.join(', ') : 'rien trouvé');

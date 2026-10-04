@@ -35,7 +35,7 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
  // conditions d'un chapitre (le précédent doit être réussi)
  function lock(ch){const i=COURONNE.indexOf(ch);if(i>0&&!K.done.includes(COURONNE[i-1].id))return 'Réussis le chapitre précédent';const R=ch.req;
   if(R.league&&career.league()<R.league)return `Ligue ${LEAGUES[R.league].n} requise`;if(R.haras&&dlv('haras')<R.haras)return `Haras niveau ${R.haras} requis`;return null}
- const rtxt=r=>[r.gold?`🪙 ${fmt(r.gold)}`:'',r.gems?`💎 ${r.gems}`:'',r.chest?`${CHESTS[r.chest].ico} coffre ${CHESTS[r.chest].n}`:'',r.pattern?`🎨 motif « ${LIVERY.PATTERNS.find(p=>p[0]===r.pattern)[1]} »`:'',r.horse?'🐎 un cheval d’exception':''].filter(Boolean).join(' · ');
+ const rtxt=r=>[r.gold?`🪙 ${fmt(r.gold)}`:'',r.gems?`💎 ${r.gems}`:'',r.chest?`${chestIco(r.chest)} coffre ${CHESTS[r.chest].n}`:'',r.pattern?`🎨 motif « ${LIVERY.PATTERNS.find(p=>p[0]===r.pattern)[1]} »`:'',r.horse?'🐎 un cheval d’exception':''].filter(Boolean).join(' · ');
  function meeting(ch){return{id:'cour',keep:true,couronne:ch.id,league:0,...ch.race,n:ch.race.n}}
  function select(id){const ch=byId(id);if(!ch||lock(ch))return false;RACE=meeting(ch);currentField=null;buildField();return true}
  // Black Majesty au sommet de sa forme pour la finale
@@ -59,7 +59,7 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
   $('#fbGain').insertAdjacentHTML('beforeend',`<div class="cour-res${ok?' ok':''}"><b>👑 ${ch.n} : ${ok?(first?'chapitre réussi !':'objectif atteint'):'objectif manqué'}</b><span>${GOALS[ch.goal]}${ok?'':' · retente ta chance'}</span>${first?`<small>${rtxt(ch.reward)}</small>`:''}</div>`);
   });
  // de retour au domaine : Valmont réagit, et le chapitre suivant s'annonce
- hooks.on('race:leave',()=>{if(!epilogue)return;const ch=epilogue;epilogue=null;setTimeout(()=>scene(ch),900)});
+ hooks.on('race:leave',()=>{if(!epilogue)return;const ch=epilogue;epilogue=null;setTimeout(()=>{if(enCourse()){epilogue=ch;return}scene(ch)},900)});
  function scene(ch){const nx=cur(),end=!nx;$('#panelTitle').textContent=end?'La Couronne est à toi !':`${ch.n} : réussi !`;$('#panel .card').classList.remove('wide');
   $('#panelBody').innerHTML=`<div class="cour-scene"><div class="tface big">🎩</div><p class="cour-quote">${ch.after}</p><small>— Le Comte de Valmont</small>
    <p class="hint">Récompense : ${rtxt(ch.reward)}${ch.reward.pattern?' — à choisir dans l’atelier du champion (touche ta casaque).':''}</p>

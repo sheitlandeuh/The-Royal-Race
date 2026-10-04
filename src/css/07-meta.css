@@ -27,8 +27,42 @@
     .finish-board-card{max-height:calc(100dvh - 30px);overflow:auto}
     .ses.flash{animation:flash 1s ease-in-out 3 alternate}@keyframes flash{to{box-shadow:0 0 0 3px #ffd66b,0 0 24px #ffd66b}}
     /* coffres, connexion */
-    .chest-pop{text-align:center;padding:10px 0}.chest-big{font-size:74px;width:130px;height:130px;margin:6px auto 10px;display:grid;place-items:center;border-radius:28px;background:radial-gradient(circle,var(--c),#071a2d 72%);animation:chestWob 1.2s ease-in-out infinite}@keyframes chestWob{50%{transform:rotate(-4deg) scale(1.04)}}
-    .chest-pop.open .chest-big{animation:chestOpen .6s cubic-bezier(.3,1.7,.5,1)}@keyframes chestOpen{from{transform:scale(.4)}}
-    .loot{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px}.loot div{min-width:92px;padding:10px;border-radius:14px;background:#ffffff0d;border:1px solid #ffffff22;animation:lootIn .4s both}.loot i{font-style:normal;font-size:28px;display:block}.loot b{display:block;font-size:18px}.loot small{color:#b9cbd8}@keyframes lootIn{from{transform:translateY(16px);opacity:0}}
+    /* 2.8 : coffre dessiné (chestSVG), décompte en direct, ouverture en trois temps (secousse, couvercle et lumière, gains comptés) */
+    svg.chest{display:block;width:100%;height:100%;overflow:visible}
+    svg.chest .ch-lid{transform-box:fill-box;transform-origin:0 100%;transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
+    svg.chest .ch-glow{opacity:0;transition:opacity .3s}
+    svg.chest.ready .ch-lid{animation:lidPeek 1.1s ease-in-out infinite}@keyframes lidPeek{0%,60%,100%{transform:none}75%{transform:translateY(-2px) rotate(-5deg)}}
+    svg.chest.ready .ch-glow{opacity:.85}
+    .slot i svg.chest{width:1.3em;height:1.3em}
+    .login i svg.chest{width:1.25em;height:1.25em;margin:0 auto}
+    .ware>i svg.chest{width:1.35em;height:1.35em}
+    .ico-chest{display:inline-block;width:1.3em;height:1.3em;vertical-align:-.3em;margin-right:.1em}
+    .slot .prog{position:absolute;left:7px;right:7px;bottom:5px;height:4px;border-radius:3px;background:#ffffff1f;overflow:hidden}
+    .slot .prog::after{content:'';position:absolute;inset:0;transform-origin:0 50%;transform:scaleX(var(--p,0));background:linear-gradient(90deg,var(--c),#fff);box-shadow:0 0 8px var(--c);transition:transform 1s linear}
+    .slot.going small{letter-spacing:.02em;margin-bottom:5px}
+    .chest-pop{text-align:center;padding:10px 0}
+    .chest-stage{position:relative;width:150px;height:150px;margin:0 auto 6px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 50% 58%,color-mix(in srgb,var(--c) 55%,transparent),transparent 68%);cursor:pointer}
+    .chest-stage svg.chest{width:118px;height:118px;position:relative;z-index:1;filter:drop-shadow(0 8px 10px #0009)}
+    .chest-pop.timing .chest-stage svg.chest,.chest-pop.ready .chest-stage svg.chest{animation:chestWob 1.6s ease-in-out infinite}@keyframes chestWob{50%{transform:rotate(-3deg) scale(1.03)}}
+    .chest-count{margin:4px 0 8px;font:600 15px/1.2 var(--fu);color:#d5e1ea}.chest-count b,.chest-pop .chest-left{font:400 22px/1 var(--fd);color:#fff;font-variant-numeric:tabular-nums;margin-left:4px}
+    .chest-pop.ready .chest-count b{color:#8dff7a}
+    .chest-bar{position:relative;height:9px;max-width:260px;margin:0 auto 14px;border-radius:6px;background:#ffffff14;border:1px solid #ffffff22;overflow:hidden}.chest-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--c),#fff);box-shadow:0 0 10px var(--c);transition:width 1s linear}
+    .chest-rays{position:absolute;inset:-34px;border-radius:50%;opacity:0;background:repeating-conic-gradient(from 0deg,#fff3c0 0 7deg,transparent 7deg 22deg);-webkit-mask:radial-gradient(circle,#000 18%,transparent 66%);mask:radial-gradient(circle,#000 18%,transparent 66%);transition:opacity .4s}
+    .chest-sparks{position:absolute;inset:0;pointer-events:none;z-index:2}.chest-sparks i{position:absolute;left:50%;top:44%;width:7px;height:7px;border-radius:2px;background:var(--c);opacity:0;box-shadow:0 0 6px #fff}
+    .chest-sparks i:nth-child(odd){background:#fff3b0}
+    .chest-pop.opening .chest-stage svg.chest{animation:chestShake .7s ease-in-out}@keyframes chestShake{0%,100%{transform:none}15%{transform:rotate(-7deg) scale(1.03)}30%{transform:rotate(6deg)}45%{transform:rotate(-5deg) scale(1.06)}60%{transform:rotate(4deg)}75%{transform:rotate(-2deg) scale(1.08)}}
+    .chest-pop.opened .chest-stage svg.chest{animation:chestPop .5s cubic-bezier(.3,1.7,.5,1)}@keyframes chestPop{from{transform:scale(1.12)}}
+    .chest-pop.opened svg.chest .ch-lid{transform:translate(-4px,-11px) rotate(-24deg)}.chest-pop.opened svg.chest .ch-glow{opacity:1}
+    .chest-pop.opened .chest-rays{opacity:.75;animation:raysTurn 9s linear infinite}@keyframes raysTurn{to{transform:rotate(360deg)}}
+    .chest-pop.opened .chest-sparks i{animation:spark 1s cubic-bezier(.2,.7,.4,1) both}
+    @keyframes spark{0%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(220deg)}}
+    .chest-sparks i:nth-child(1){--x:-70px;--y:-62px}.chest-sparks i:nth-child(2){--x:68px;--y:-70px}.chest-sparks i:nth-child(3){--x:-92px;--y:-8px}.chest-sparks i:nth-child(4){--x:90px;--y:-14px}.chest-sparks i:nth-child(5){--x:-40px;--y:-92px}
+    .chest-sparks i:nth-child(6){--x:44px;--y:-96px}.chest-sparks i:nth-child(7){--x:-74px;--y:40px}.chest-sparks i:nth-child(8){--x:76px;--y:34px}.chest-sparks i:nth-child(9){--x:-8px;--y:-104px;animation-delay:.08s!important}.chest-sparks i:nth-child(10){--x:18px;--y:-84px;animation-delay:.12s!important}
+    .loot{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px;min-height:96px}.loot div{min-width:96px;padding:10px;border-radius:14px;background:#ffffff0d;border:1px solid #ffffff22;opacity:0;transform:translateY(16px) scale(.9);transition:opacity .3s,transform .4s cubic-bezier(.3,1.6,.5,1)}
+    .loot div.in{opacity:1;transform:none;border-color:color-mix(in srgb,var(--c) 60%,#ffffff22);box-shadow:0 0 18px color-mix(in srgb,var(--c) 30%,transparent)}
+    .loot i{font-style:normal;font-size:28px;display:block}.loot b{display:block;font-size:19px;font-variant-numeric:tabular-nums}.loot small{color:#b9cbd8}
+    .chest-pop.opening #lootOk{opacity:0;pointer-events:none;transition:opacity .3s}.chest-pop.shown #lootOk{opacity:1;pointer-events:auto}
+    .chest-skip{margin:8px 0 0;font-size:11px;color:#8fa3b3}.chest-pop.shown .chest-skip{display:none}
+    @media (prefers-reduced-motion:reduce){svg.chest .ch-lid,.slot .prog::after,.chest-bar i{transition:none}.chest-rays{display:none}}
     .login{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0}.login div{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border-radius:12px;background:#ffffff0a;border:1px solid #ffffff1a;font-size:11px}.login i{font-style:normal;font-size:22px}.login .got{opacity:.45}.login .today{border-color:#f0c457;background:#f0c4572a;box-shadow:0 0 18px #f0c45755}
     @media(max-width:520px){.login{grid-template-columns:repeat(4,1fr)}.an{grid-template-columns:1fr}}

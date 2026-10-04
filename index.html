@@ -109,6 +109,10 @@
     .sw{width:32px;height:32px;border-radius:50%;border:2px solid #ffffff44;padding:0;box-shadow:inset 0 -4px 8px #0005,inset 0 3px 6px #fff4;transition:transform .12s}
     .sw:hover{transform:scale(1.08)}.sw.on{border-color:#ffd66b;box-shadow:0 0 0 3px #ffd66b55,inset 0 -4px 8px #0005,inset 0 3px 6px #fff4}
     .sw:focus-visible,.coat:focus-visible,.motif:focus-visible{outline:2px solid #ffd66b;outline-offset:2px}
+    .sw-free{position:relative;display:inline-block;cursor:pointer;background:conic-gradient(#ff4d4d,#ffd84d,#5dff6a,#4de3ff,#5a6bff,#ff4dd8,#ff4d4d)}
+    .sw-free:not(.on)::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;font:800 18px/1 var(--fu,sans-serif);color:#fff;text-shadow:0 1px 3px #000}
+    .sw-free input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+    .sw-free:focus-within{outline:2px solid #ffd66b;outline-offset:2px}
     .coat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
     .coat{display:flex;flex-direction:column;align-items:center;gap:5px;border:1.5px solid #ffffff22;border-radius:12px;background:#ffffff08;padding:8px 2px;font-size:11px;font-weight:700;color:#dfe8ee}
     .coat i{width:30px;height:30px;border-radius:50%;box-shadow:inset 0 -5px 9px #0007,inset 0 3px 6px #fff5,0 2px 5px #0006}
@@ -226,9 +230,43 @@
     .finish-board-card{max-height:calc(100dvh - 30px);overflow:auto}
     .ses.flash{animation:flash 1s ease-in-out 3 alternate}@keyframes flash{to{box-shadow:0 0 0 3px #ffd66b,0 0 24px #ffd66b}}
     /* coffres, connexion */
-    .chest-pop{text-align:center;padding:10px 0}.chest-big{font-size:74px;width:130px;height:130px;margin:6px auto 10px;display:grid;place-items:center;border-radius:28px;background:radial-gradient(circle,var(--c),#071a2d 72%);animation:chestWob 1.2s ease-in-out infinite}@keyframes chestWob{50%{transform:rotate(-4deg) scale(1.04)}}
-    .chest-pop.open .chest-big{animation:chestOpen .6s cubic-bezier(.3,1.7,.5,1)}@keyframes chestOpen{from{transform:scale(.4)}}
-    .loot{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px}.loot div{min-width:92px;padding:10px;border-radius:14px;background:#ffffff0d;border:1px solid #ffffff22;animation:lootIn .4s both}.loot i{font-style:normal;font-size:28px;display:block}.loot b{display:block;font-size:18px}.loot small{color:#b9cbd8}@keyframes lootIn{from{transform:translateY(16px);opacity:0}}
+    /* 2.8 : coffre dessiné (chestSVG), décompte en direct, ouverture en trois temps (secousse, couvercle et lumière, gains comptés) */
+    svg.chest{display:block;width:100%;height:100%;overflow:visible}
+    svg.chest .ch-lid{transform-box:fill-box;transform-origin:0 100%;transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
+    svg.chest .ch-glow{opacity:0;transition:opacity .3s}
+    svg.chest.ready .ch-lid{animation:lidPeek 1.1s ease-in-out infinite}@keyframes lidPeek{0%,60%,100%{transform:none}75%{transform:translateY(-2px) rotate(-5deg)}}
+    svg.chest.ready .ch-glow{opacity:.85}
+    .slot i svg.chest{width:1.3em;height:1.3em}
+    .login i svg.chest{width:1.25em;height:1.25em;margin:0 auto}
+    .ware>i svg.chest{width:1.35em;height:1.35em}
+    .ico-chest{display:inline-block;width:1.3em;height:1.3em;vertical-align:-.3em;margin-right:.1em}
+    .slot .prog{position:absolute;left:7px;right:7px;bottom:5px;height:4px;border-radius:3px;background:#ffffff1f;overflow:hidden}
+    .slot .prog::after{content:'';position:absolute;inset:0;transform-origin:0 50%;transform:scaleX(var(--p,0));background:linear-gradient(90deg,var(--c),#fff);box-shadow:0 0 8px var(--c);transition:transform 1s linear}
+    .slot.going small{letter-spacing:.02em;margin-bottom:5px}
+    .chest-pop{text-align:center;padding:10px 0}
+    .chest-stage{position:relative;width:150px;height:150px;margin:0 auto 6px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 50% 58%,color-mix(in srgb,var(--c) 55%,transparent),transparent 68%);cursor:pointer}
+    .chest-stage svg.chest{width:118px;height:118px;position:relative;z-index:1;filter:drop-shadow(0 8px 10px #0009)}
+    .chest-pop.timing .chest-stage svg.chest,.chest-pop.ready .chest-stage svg.chest{animation:chestWob 1.6s ease-in-out infinite}@keyframes chestWob{50%{transform:rotate(-3deg) scale(1.03)}}
+    .chest-count{margin:4px 0 8px;font:600 15px/1.2 var(--fu);color:#d5e1ea}.chest-count b,.chest-pop .chest-left{font:400 22px/1 var(--fd);color:#fff;font-variant-numeric:tabular-nums;margin-left:4px}
+    .chest-pop.ready .chest-count b{color:#8dff7a}
+    .chest-bar{position:relative;height:9px;max-width:260px;margin:0 auto 14px;border-radius:6px;background:#ffffff14;border:1px solid #ffffff22;overflow:hidden}.chest-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--c),#fff);box-shadow:0 0 10px var(--c);transition:width 1s linear}
+    .chest-rays{position:absolute;inset:-34px;border-radius:50%;opacity:0;background:repeating-conic-gradient(from 0deg,#fff3c0 0 7deg,transparent 7deg 22deg);-webkit-mask:radial-gradient(circle,#000 18%,transparent 66%);mask:radial-gradient(circle,#000 18%,transparent 66%);transition:opacity .4s}
+    .chest-sparks{position:absolute;inset:0;pointer-events:none;z-index:2}.chest-sparks i{position:absolute;left:50%;top:44%;width:7px;height:7px;border-radius:2px;background:var(--c);opacity:0;box-shadow:0 0 6px #fff}
+    .chest-sparks i:nth-child(odd){background:#fff3b0}
+    .chest-pop.opening .chest-stage svg.chest{animation:chestShake .7s ease-in-out}@keyframes chestShake{0%,100%{transform:none}15%{transform:rotate(-7deg) scale(1.03)}30%{transform:rotate(6deg)}45%{transform:rotate(-5deg) scale(1.06)}60%{transform:rotate(4deg)}75%{transform:rotate(-2deg) scale(1.08)}}
+    .chest-pop.opened .chest-stage svg.chest{animation:chestPop .5s cubic-bezier(.3,1.7,.5,1)}@keyframes chestPop{from{transform:scale(1.12)}}
+    .chest-pop.opened svg.chest .ch-lid{transform:translate(-4px,-11px) rotate(-24deg)}.chest-pop.opened svg.chest .ch-glow{opacity:1}
+    .chest-pop.opened .chest-rays{opacity:.75;animation:raysTurn 9s linear infinite}@keyframes raysTurn{to{transform:rotate(360deg)}}
+    .chest-pop.opened .chest-sparks i{animation:spark 1s cubic-bezier(.2,.7,.4,1) both}
+    @keyframes spark{0%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(220deg)}}
+    .chest-sparks i:nth-child(1){--x:-70px;--y:-62px}.chest-sparks i:nth-child(2){--x:68px;--y:-70px}.chest-sparks i:nth-child(3){--x:-92px;--y:-8px}.chest-sparks i:nth-child(4){--x:90px;--y:-14px}.chest-sparks i:nth-child(5){--x:-40px;--y:-92px}
+    .chest-sparks i:nth-child(6){--x:44px;--y:-96px}.chest-sparks i:nth-child(7){--x:-74px;--y:40px}.chest-sparks i:nth-child(8){--x:76px;--y:34px}.chest-sparks i:nth-child(9){--x:-8px;--y:-104px;animation-delay:.08s!important}.chest-sparks i:nth-child(10){--x:18px;--y:-84px;animation-delay:.12s!important}
+    .loot{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px;min-height:96px}.loot div{min-width:96px;padding:10px;border-radius:14px;background:#ffffff0d;border:1px solid #ffffff22;opacity:0;transform:translateY(16px) scale(.9);transition:opacity .3s,transform .4s cubic-bezier(.3,1.6,.5,1)}
+    .loot div.in{opacity:1;transform:none;border-color:color-mix(in srgb,var(--c) 60%,#ffffff22);box-shadow:0 0 18px color-mix(in srgb,var(--c) 30%,transparent)}
+    .loot i{font-style:normal;font-size:28px;display:block}.loot b{display:block;font-size:19px;font-variant-numeric:tabular-nums}.loot small{color:#b9cbd8}
+    .chest-pop.opening #lootOk{opacity:0;pointer-events:none;transition:opacity .3s}.chest-pop.shown #lootOk{opacity:1;pointer-events:auto}
+    .chest-skip{margin:8px 0 0;font-size:11px;color:#8fa3b3}.chest-pop.shown .chest-skip{display:none}
+    @media (prefers-reduced-motion:reduce){svg.chest .ch-lid,.slot .prog::after,.chest-bar i{transition:none}.chest-rays{display:none}}
     .login{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0}.login div{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border-radius:12px;background:#ffffff0a;border:1px solid #ffffff1a;font-size:11px}.login i{font-style:normal;font-size:22px}.login .got{opacity:.45}.login .today{border-color:#f0c457;background:#f0c4572a;box-shadow:0 0 18px #f0c45755}
     @media(max-width:520px){.login{grid-template-columns:repeat(4,1fr)}.an{grid-template-columns:1fr}}
     /* ===== Route des étoiles, élevage, rival ===== */
@@ -499,7 +537,7 @@
   .nav{height:40px;min-width:92px;padding:2px 8px;font-size:10px;grid-auto-flow:column;gap:6px}
   .nav svg,.nav .ico{width:20px;height:20px}
   .homebar{bottom:calc(54px + env(safe-area-inset-bottom,0px));width:min(560px,calc(100% - 140px))}
-  .slot{height:44px}.slot i{font-size:20px}.slot small{font-size:9px}
+  .slot{height:44px;gap:0}.slot i{font-size:20px}.slot i svg.chest{width:1.1em;height:1.1em}.slot small{font-size:9px}.slot .prog{bottom:3px;height:3px}.slot.going small{margin-bottom:3px}
   .play{width:150px;border-radius:14px}.play b{font-size:18px}.play small{font-size:9px}
   .rail{top:64px;gap:5px}.square{width:40px;height:40px;font-size:19px;border-radius:11px}
   .panel{padding:8px 10px 56px}
@@ -823,6 +861,43 @@
       #raceScreen .steer button{width:58px}
       #raceScreen .lane-meter span{display:none}
     }
+    /* ===== 2.8 : icônes des ressources (01-icones) — même dessin que la barre du haut, à la taille du texte ===== */
+    .ri{display:inline-block;width:1.18em;height:1.18em;vertical-align:-.24em;flex:none;overflow:visible;filter:drop-shadow(0 1px 0 #0006)}
+    .ri+.ri{margin-left:.1em}
+    /* ===== 2.8 : atelier en 3D (08-portrait3d) — scène de studio, vues, choix du cheval ===== */
+    .studio-stage{background:radial-gradient(90% 60% at 50% 88%,#2a3f7a 0,#151d4b 45%,#080b1e 100%)}
+    .studio-stage.is3d #studioCanvas{display:none}
+    .studio-stage .studio3d{position:relative;z-index:1;flex:1;width:100%;min-height:0;display:block;touch-action:none;cursor:grab}
+    .studio-stage .studio3d:active{cursor:grabbing}
+    .studio-stage.loading::before{content:'Le cheval se prépare…';display:grid;place-items:center;z-index:2;color:var(--mut);font:600 13px var(--fu);letter-spacing:.08em;background:none}
+    .studio-plate{z-index:2}.studio-view{z-index:2}
+    .studio-view button{font:700 12.5px var(--fu);letter-spacing:.05em;padding:7px 12px}
+    .studio-hint{position:absolute;z-index:2;left:0;right:0;top:64px;margin:0;text-align:center;color:#c9d3ff99;font:600 11px var(--fu);letter-spacing:.08em;pointer-events:none}
+    .studio-stage:not(.is3d) .studio-hint,.studio-stage.turned .studio-hint{display:none}
+    .studio-horses{display:flex;gap:6px;overflow-x:auto;padding:12px 20px 4px;scrollbar-width:none;flex:none}
+    .studio-horses:empty{display:none}
+    .studio-horses button{flex:none;display:flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;border-radius:999px;border:1px solid var(--line);background:#ffffff0a;color:var(--txt);font:700 13px var(--fu);letter-spacing:.02em;white-space:nowrap}
+    .studio-horses button.on{border-color:var(--gold);background:linear-gradient(180deg,#f0c75c33,#b27a1f22);color:#fff}
+    .studio-note{margin:-2px 0 8px;color:var(--mut);font-size:12px;line-height:1.35}
+    @media (max-width:760px){.studio-horses{padding:8px 16px 2px}.studio-hint{top:auto;bottom:58px}}
+    /* vignettes 3D : un fond discret le temps que le cheval soit rendu */
+    canvas.p3d{background:none}
+    /* 2.8 : cérémonie du podium — les commandes de course s'effacent, il reste le titre, le classement et la carte du résultat */
+    #raceScreen.podium :is(.steer,.look,.auto-gallop,.pace-ctl,.sprint-btn,.race-map,.race-call,.race-head .position,.race-head .distance,#quitRace,.look-label,.draft){opacity:0!important;pointer-events:none!important;transition:opacity .4s}
+    /* 2.8 : carte du résultat — boutons alignés et espacés (Recourir d'abord), qui passent à la ligne sur téléphone */
+    #raceResult .result-card{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:10px}
+    #raceResult .result-card>:not(button){flex:1 0 100%;margin-left:0;margin-right:0}
+    #raceResult .result-card>button{margin:0!important;flex:1 1 140px;max-width:240px;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.1}
+    #raceResult .result-card>button[hidden]{display:none}
+    #raceAgain{order:1}#tvBtn{order:2}#returnDomain{order:3}
+    /* classement officiel : le bouton du podium reste visible en bas de la carte, même quand l'analyse la fait défiler */
+    .finish-board-card #showPodium{position:sticky;bottom:-1px;z-index:2;display:block;width:100%;margin:14px 0 0;box-shadow:0 -22px 18px 10px #090c22,0 10px 0 10px #090c22}
+    /* 2.8 : les fenêtres s'ouvrent en douceur ; barres de défilement aux couleurs du jeu */
+    .panel.open .card{animation:cardIn .24s cubic-bezier(.2,.9,.3,1.12) both}@keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.975)}}
+    .card,.finish-board-card,.studio-body,.studio-horses{scrollbar-width:thin;scrollbar-color:#8b5cff80 transparent}
+    .card::-webkit-scrollbar,.finish-board-card::-webkit-scrollbar,.studio-body::-webkit-scrollbar{width:8px;height:8px}
+    .card::-webkit-scrollbar-thumb,.finish-board-card::-webkit-scrollbar-thumb,.studio-body::-webkit-scrollbar-thumb{background:#8b5cff70;border-radius:8px}
+    @media (prefers-reduced-motion:reduce){.panel.open .card{animation:none}}
   </style>
 </head>
 <body>
@@ -862,12 +937,12 @@
   </section>
   <section class="studio" id="studio" aria-label="Atelier du champion"><div class="studio-card">
     <div class="studio-stage"><div class="studio-plate" id="studioPlate"></div><canvas id="studioCanvas" aria-label="Aperçu du cheval et de la casaque"></canvas>
-      <div class="studio-view"><button class="on" data-view="portrait">Portrait</button><button data-view="gallop">Au galop</button></div></div>
-    <div class="studio-side"><header><div style="flex:1"><h2 id="studioTitle">Mon champion</h2><p id="studioIntro"></p></div><button class="close" id="studioClose" aria-label="Fermer">×</button></header>
+      <div class="studio-view" role="group" aria-label="Vue du cheval"><button class="on" data-view="portrait">3/4</button><button data-view="profil">Profil</button><button data-view="galop">Galop</button><button data-view="casaque">Casaque</button></div><p class="studio-hint">Glisse pour tourner le cheval</p></div>
+    <div class="studio-side"><header><div style="flex:1"><h2 id="studioTitle">Mon champion</h2><p id="studioIntro"></p></div><button class="close" id="studioClose" aria-label="Fermer">×</button></header><div class="studio-horses" id="studioHorses" role="tablist" aria-label="Cheval à personnaliser"></div>
       <div class="studio-body">
         <div class="studio-sec"><h3>NOM DU CHEVAL</h3><input class="studio-name" id="studioName" maxlength="18" autocomplete="off" spellcheck="false" /></div>
         <div class="studio-sec"><h3>ROBE</h3><div class="coat-row" id="studioCoats"></div></div>
-        <div class="studio-sec"><h3>CASAQUE — COULEUR PRINCIPALE</h3><div class="sw-row" id="studioMain"></div></div>
+        <div class="studio-sec"><h3>CASAQUE — COULEUR PRINCIPALE</h3><p class="studio-note">La casaque et la toque sont les couleurs de ton écurie : tous tes chevaux les portent.</p><div class="sw-row" id="studioMain"></div></div>
         <div class="studio-sec"><h3>CASAQUE — COULEUR SECONDAIRE</h3><div class="sw-row" id="studioSecond"></div></div>
         <div class="studio-sec"><h3>MOTIF</h3><div class="motif-row" id="studioMotifs"></div></div>
         <div class="studio-sec"><h3>TOQUE</h3><div class="sw-row" id="studioCap"></div></div>
@@ -970,7 +1045,7 @@ const journal = (() => {
   };
 })();
 </script>
-<script type="text/x-module" data-f="01-core.js">const VERSION='2.7';
+<script type="text/x-module" data-f="01-core.js">const VERSION='2.8';
 const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
@@ -989,6 +1064,8 @@ const fmt=n=>n.toLocaleString('fr-FR');
 // temps affichés (2.6) : virgule décimale et espace insécable avant l'unité — « 89,55 s » ne se coupe jamais en fin de ligne
 // réglage système « réduire les animations » (2.6) : pas de secousse de caméra, animations CSS coupées (13-gaming)
 const REDUCE_MOTION=matchMedia('(prefers-reduced-motion: reduce)');
+// une course est à l'écran (2.8) : ce qui attendait la sortie d'une course (récompense du jour, scène, invitation) attend la suivante
+const enCourse=()=>!!document.querySelector('#raceScreen.open');
 const sec=(x,d=2)=>Number(x).toFixed(d).replace('.',',')+'\u00a0s';
 function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),ms)}
 // sauvegarde impossible (stockage du navigateur plein ou bloqué, 2.6) : prévenir une fois par session au lieu de perdre la progression en silence
@@ -997,6 +1074,35 @@ const saveKo=(()=>{let said=false;return e=>{try{journal.erreur('sauvegarde',Str
 // barre du haut : nombres compacts au-delà de 100 000 (« 150 k », « 2,5 M », arrondis vers le bas), valeur exacte au survol
 const fmtC=n=>n<1e5?fmt(n):n<1e6?fmt(Math.floor(n/1e3))+'\u00a0k':(Math.floor(n/1e4)/100).toLocaleString('fr-FR')+'\u00a0M';
 function sync(){ for(const k of['gold','feed','gems']){const e=$('#'+k);e.textContent=fmtC(state[k]);e.parentElement.title=fmt(state[k])}$('#trophies').textContent=fmt(state.trophies)}
+</script>
+<script type="text/x-module" data-f="01-icones.js">/* ===== Icônes des ressources (2.8) : une seule icône par ressource, dans tout le jeu =====
+   Les dessins de la barre du haut (or, fourrage, gemmes, ouvriers) et la coupe du bouton des trophées servent de modèle : copiés une fois
+   en <symbol> (identifiants préfixés, pour ne dépendre d'aucun élément masqué), ils remplacent partout les émojis 🪙 🌾 💎 🏆 🔨 des
+   textes du jeu (boutons, récompenses, coffres, boutique, messages, étiquettes du domaine). Un observateur convertit tout texte ajouté ou
+   modifié : aucun écran n'a à s'en soucier, et un texte écrit plus tard suit la règle d'office. Les émojis restent dans les textes envoyés
+   hors du jeu (partage d'un duel) et dans les attributs (title, aria-label). */
+const RESSOURCE_ICONES=(()=>{
+ const NS='http://www.w3.org/2000/svg';
+ const MAP={'🪙':['or','.resources .resource:nth-child(1) svg','or'],'🌾':['fourrage','.resources .resource:nth-child(2) svg','fourrage'],
+  '💎':['gemmes','.resources .resource:nth-child(3) svg','gemmes'],'🔨':['ouvrier','.resources .builder svg','ouvriers'],'🏆':['trophee','[data-panel=trophees] svg','trophée']};
+ const HAS=/🪙|🌾|💎|🏆|🔨/,ALL=/🪙|🌾|💎|🏆|🔨/g,SKIP=new Set(['SCRIPT','STYLE','TEXTAREA','INPUT','OPTION','TITLE','CANVAS','svg']);
+ // planche de symboles, rendue (pas display:none : un dégradé défini dans un élément masqué ne se peint pas)
+ const sp=document.createElementNS(NS,'svg');sp.setAttribute('aria-hidden','true');sp.style.cssText='position:absolute;width:0;height:0;overflow:hidden;pointer-events:none';
+ for(const[,[id,sel]]of Object.entries(MAP)){const src=document.querySelector(sel);if(!src)continue;const sym=document.createElementNS(NS,'symbol');sym.id='ri-'+id;sym.setAttribute('viewBox',src.getAttribute('viewBox')||'0 0 64 64');
+  sym.innerHTML=src.innerHTML.replace(/id="([^"]+)"/g,(m,x)=>`id="ri-${id}-${x}"`).replace(/url\(#([^)]+)\)/g,(m,x)=>`url(#ri-${id}-${x})`);sp.appendChild(sym)}
+ document.body.prepend(sp);
+ function icon(e){const[id,,lab]=MAP[e],s=document.createElementNS(NS,'svg');s.setAttribute('class','ri ri-'+id);s.setAttribute('role','img');s.setAttribute('aria-label',lab);s.setAttribute('viewBox','0 0 64 64');
+  const u=document.createElementNS(NS,'use');u.setAttribute('href','#ri-'+id);s.appendChild(u);return s}
+ // chaîne HTML (pour un texte dessiné hors du DOM converti plus tard, ou un usage explicite) : RESSOURCE_ICONES.html('🪙')
+ const html=e=>MAP[e]?`<svg class="ri ri-${MAP[e][0]}" role="img" aria-label="${MAP[e][2]}" viewBox="0 0 64 64"><use href="#ri-${MAP[e][0]}"/></svg>`:e;
+ function fix(n){const t=n.nodeValue,p=n.parentNode;if(!t||!HAS.test(t)||!p||SKIP.has(p.nodeName)||p.closest&&p.closest('svg,[data-no-ri]'))return;
+  const f=document.createDocumentFragment();let last=0;t.replace(ALL,(m,i)=>{if(i>last)f.appendChild(document.createTextNode(t.slice(last,i)));f.appendChild(icon(m));last=i+m.length;return m});
+  if(last<t.length)f.appendChild(document.createTextNode(t.slice(last)));p.replaceChild(f,n)}
+ function scan(root){if(root.nodeType===3)return fix(root);if(root.nodeType!==1||SKIP.has(root.nodeName)||root.closest&&root.closest('svg,[data-no-ri]'))return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),L=[];while(w.nextNode())if(HAS.test(w.currentNode.nodeValue))L.push(w.currentNode);L.forEach(fix)}
+ new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fix(m.target);else m.addedNodes.forEach(scan)}}).observe(document.body,{subtree:true,childList:true,characterData:true});
+ scan(document.body);
+ return{html,scan}})();
 </script>
 <script type="text/x-module" data-f="02-village.js">/* ===== Domaine : bâtiments, étiquettes, sélection =====
    Depuis la 2.5, le domaine est entièrement en 3D (51-domaine3d) : plus de peinture. Ce module crée, pour chaque bâtiment,
@@ -1091,8 +1197,71 @@ function trackPose(t,lane=0){const straight=TRACK.S,radius=TRACK.r,m=TRACK.m,tot
 function ribbonGeometry(inner,outer,y=.02,segments=320){const pos=[],uv=[],idx=[];for(let i=0;i<=segments;i++){const t=i/segments,a=trackPose(t,inner).p,b=trackPose(t,outer).p;pos.push(a.x,y,a.z,b.x,y,b.z);uv.push(0,t*34,1,t*34)}for(let i=0;i<segments;i++){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
 function makeLabel(text,w=256,h=110){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#071a2d';x.fillRect(5,5,w-10,h-10);x.strokeStyle='#e0b249';x.lineWidth=9;x.strokeRect(5,5,w-10,h-10);x.fillStyle='#fff7dc';x.font='700 50px Rajdhani,system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,w/2,h/2);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return tex}
 function createRoyalFinishArch(scene){const finish=trackPose(RACE_ORIGIN,0),group=new THREE.Group(),navy=new THREE.MeshStandardMaterial({color:0x071a2d,metalness:.35,roughness:.38}),gold=new THREE.MeshStandardMaterial({color:0xf0bf4d,metalness:.78,roughness:.2,emissive:0x6b3e00,emissiveIntensity:.2});for(const side of[-22,22]){const tower=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.65,12,12),navy);tower.position.set(side,6,0);tower.castShadow=true;group.add(tower);for(let y=2;y<11;y+=2.2){const ring=new THREE.Mesh(new THREE.TorusGeometry(1.35,.12,8,24),gold);ring.position.set(side,y,0);ring.rotation.x=Math.PI/2;group.add(ring)}}const curve=new THREE.QuadraticBezierCurve3(new THREE.Vector3(-22,11,0),new THREE.Vector3(0,20,0),new THREE.Vector3(22,11,0)),arch=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.72,10,false),gold);group.add(arch);const crown=new THREE.Mesh(new THREE.ConeGeometry(2.2,3.8,5),gold);crown.position.set(0,18.6,0);group.add(crown);const sign=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel('THE ROYAL RACE • ARRIVÉE',720,120),transparent:true,depthWrite:false}));sign.position.set(0,13.5,-.3);sign.scale.set(25,4.2,1);group.add(sign);for(const x of[-16,-8,0,8,16]){const lamp=new THREE.PointLight(0xffd477,.5,35);lamp.position.set(x,12.5,1);group.add(lamp);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.28,10,8),new THREE.MeshBasicMaterial({color:0xffe3a0}));bulb.position.copy(lamp.position);group.add(bulb)}const line=new THREE.Mesh(new THREE.BoxGeometry(43,.06,1.1),new THREE.MeshStandardMaterial({color:0xf6f4e8,roughness:.7}));line.position.y=.05;group.add(line);group.position.copy(finish.p);group.rotation.y=Math.atan2(finish.f.x,finish.f.z);scene.add(group);return group}
-function createPodium(scene){const group=new THREE.Group(),navy=new THREE.MeshStandardMaterial({color:0x102d4b,metalness:.28,roughness:.55}),gold=new THREE.MeshStandardMaterial({color:0xe2b447,metalness:.65,roughness:.28}),slots=[{x:-6,h:2.2,n:'2'},{x:0,h:3.3,n:'1'},{x:6,h:1.5,n:'3'}];for(const slot of slots){const block=new THREE.Mesh(new THREE.BoxGeometry(5.6,slot.h,9),navy);block.position.set(slot.x,slot.h/2,0);block.castShadow=block.receiveShadow=true;group.add(block);const trim=new THREE.Mesh(new THREE.BoxGeometry(5.85,.24,9.25),gold);trim.position.set(slot.x,slot.h+.12,0);group.add(trim);const number=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(slot.n,120,120),transparent:true}));number.position.set(slot.x,slot.h*.55,4.6);number.scale.set(1.7,1.7,1);group.add(number)}const carpet=new THREE.Mesh(new THREE.CylinderGeometry(15,15,.18,64),new THREE.MeshStandardMaterial({color:0x7d1f2c,roughness:.8}));carpet.position.y=.02;group.add(carpet);group.visible=false;scene.add(group);return group}
-function enhancePodium(group){const navy=new THREE.MeshStandardMaterial({color:0x071a2d,metalness:.35,roughness:.38}),gold=new THREE.MeshStandardMaterial({color:0xe9bb49,metalness:.72,roughness:.24}),back=new THREE.Mesh(new THREE.BoxGeometry(26,10,.65),navy);back.position.set(0,5,-4);group.add(back);for(const x of[-12.6,12.6]){const column=new THREE.Mesh(new THREE.CylinderGeometry(.45,.7,10,12),gold);column.position.set(x,5,-3.6);group.add(column)}const top=new THREE.Mesh(new THREE.BoxGeometry(27,.45,1.1),gold);top.position.set(0,10,-3.6);group.add(top);const title=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel('PODIUM ROYAL',520,110),transparent:true}));title.position.set(0,8.3,-3.2);title.scale.set(15,3.2,1);group.add(title);for(let i=0;i<4;i++){const stair=new THREE.Mesh(new THREE.BoxGeometry(20-i*2,.32+i*.04,1.15),i%2?gold:navy);stair.position.set(0,.18+i*.18,4.2-i*.85);group.add(stair)}for(const x of[-9,9]){const light=new THREE.SpotLight(0xffd77b,2.3,45,.42,.45,1.2);light.position.set(x,12,8);light.target.position.set(x*.35,3,0);group.add(light,light.target)}const confettiGeo=new THREE.BoxGeometry(.1,.32,.04),confetti=new THREE.InstancedMesh(confettiGeo,new THREE.MeshBasicMaterial({color:0xffffff}),150),colors=[0xf4c64e,0xffffff,0xb92c32,0x1769aa],m=new THREE.Matrix4();for(let i=0;i<150;i++){m.compose(new THREE.Vector3((Math.random()-.5)*25,2+Math.random()*10,(Math.random()-.5)*8),new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.random()*3,Math.random()*3,Math.random()*3)),new THREE.Vector3(1,1,1));confetti.setMatrixAt(i,m);confetti.setColorAt(i,new THREE.Color(colors[i%4]))}confetti.instanceMatrix.needsUpdate=true;if(confetti.instanceColor)confetti.instanceColor.needsUpdate=true;group.add(confetti)}
+// ===== Podium (2.8) : estrade ronde éclairée, trois marches de marbre aux couleurs des médailles, fond courbe aux néons, portique au nom
+// de la course, faisceaux de projecteurs, confettis qui tombent et guirlande de roses sur le vainqueur (podiumFX, appelé à chaque image) =====
+const PODIUM_SLOTS=[{x:0,h:3,n:1},{x:-7.6,h:2.2,n:2},{x:7.6,h:1.6,n:3}];
+function podiumCanvas(w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t}
+function podiumMedal(n){return podiumCanvas(256,256,(x)=>{const col=[['#fff6cf','#f1c14e','#8c5f0e'],['#ffffff','#cfd8e0','#6f7f8e'],['#ffe1c4','#d08b4f','#6d3b14']][n-1],g=x.createRadialGradient(96,84,8,128,128,128);
+ g.addColorStop(0,col[0]);g.addColorStop(.5,col[1]);g.addColorStop(1,col[2]);x.fillStyle=g;x.beginPath();x.arc(128,128,124,0,7);x.fill();x.lineWidth=9;x.strokeStyle='#ffffff8c';x.beginPath();x.arc(128,128,103,0,7);x.stroke();
+ x.font='400 150px "Russo One",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#ffffff66';x.fillText(n,131,145);x.fillStyle=n===2?'#2f3a46':'#4a2c06';x.fillText(n,128,140)})}
+function createPodium(scene){const group=new THREE.Group(),U=group.userData,std=o=>new THREE.MeshStandardMaterial(o);
+ const marble=std({color:0xeee8dc,roughness:.3,metalness:.04}),navy=std({color:0x0d1534,roughness:.55,metalness:.25}),gold=std({color:0xf0bf4d,metalness:.85,roughness:.22,emissive:0x6b3e00,emissiveIntensity:.25});
+ const medal=[0xf0bf4d,0xcfd8e0,0xc98a52].map(c=>std({color:c,metalness:.85,roughness:.25,emissive:c,emissiveIntensity:.08}));
+ // estrade : plateau sombre, flaque de lumière au centre (reçoit les ombres), liseré d'or et néon au sol
+ const pool=podiumCanvas(512,512,(x,w)=>{const g=x.createRadialGradient(w/2,w/2,0,w/2,w/2,w/2);g.addColorStop(0,'#5a4a7e');g.addColorStop(.42,'#2a2a5c');g.addColorStop(.8,'#121a3e');g.addColorStop(1,'#0c1433');x.fillStyle=g;x.fillRect(0,0,w,w);
+  x.strokeStyle='#ffffff10';x.lineWidth=2;for(let r=60;r<w/2;r+=46){x.beginPath();x.arc(w/2,w/2,r,0,7);x.stroke()}});
+ const base=new THREE.Mesh(new THREE.CylinderGeometry(15,15.5,.4,72),navy);base.position.y=.2;base.receiveShadow=true;group.add(base);
+ const top=new THREE.Mesh(new THREE.CircleGeometry(14.8,72),std({map:pool,emissiveMap:pool,emissive:0xffffff,emissiveIntensity:.35,roughness:.5,metalness:.1}));top.rotation.x=-Math.PI/2;top.position.y=.41;top.receiveShadow=true;group.add(top);
+ const rim=new THREE.Mesh(new THREE.TorusGeometry(15.05,.13,8,120),gold);rim.rotation.x=Math.PI/2;rim.position.y=.4;group.add(rim);
+ const neon=new THREE.Mesh(new THREE.TorusGeometry(15.55,.07,6,120),new THREE.MeshBasicMaterial({color:0x9b7bff}));neon.rotation.x=Math.PI/2;neon.position.y=.06;group.add(neon);
+ // marches : marbre aux arêtes adoucies, bandeau et médaille aux couleurs du rang
+ for(const s of PODIUM_SLOTS){const w=6.6,d=7.2,h=s.h-.12,sh=new THREE.Shape();sh.moveTo(-w/2,0);sh.lineTo(w/2,0);sh.lineTo(w/2,h-.3);sh.quadraticCurveTo(w/2,h,w/2-.3,h);sh.lineTo(-w/2+.3,h);sh.quadraticCurveTo(-w/2,h,-w/2,h-.3);sh.closePath();
+  const g=new THREE.ExtrudeGeometry(sh,{depth:d,bevelEnabled:true,bevelThickness:.12,bevelSize:.1,bevelSegments:3,curveSegments:6});g.translate(0,0,-d/2);const m=new THREE.Mesh(g,marble);m.position.set(s.x,.4,0);m.castShadow=m.receiveShadow=true;group.add(m);
+  const band=new THREE.Mesh(new THREE.BoxGeometry(w+.22,.24,.1),medal[s.n-1]);band.position.set(s.x,.4+h-.34,d/2+.14);group.add(band);
+  const disc=new THREE.Mesh(new THREE.CircleGeometry(.66,48),std({map:podiumMedal(s.n),metalness:.55,roughness:.3}));disc.position.set(s.x,.4+Math.max(.8,(h-.34)*.5),d/2+.13);group.add(disc);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.68,.05,8,48),medal[s.n-1]);ring.position.copy(disc.position);group.add(ring)}
+ // fond courbe : dégradé nuit, rayons, néons haut et bas, colonnes de lumière
+ const back=podiumCanvas(1024,512,(x,w,h)=>{const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#1d1450');g.addColorStop(.6,'#101a46');g.addColorStop(1,'#0a1030');x.fillStyle=g;x.fillRect(0,0,w,h);
+  const r=x.createRadialGradient(w/2,h*.62,10,w/2,h*.62,w*.42);r.addColorStop(0,'#f6c96a55');r.addColorStop(1,'#f6c96a00');x.fillStyle=r;x.fillRect(0,0,w,h);
+  x.globalAlpha=.07;x.fillStyle='#ffffff';for(let i=-12;i<=12;i++){x.beginPath();x.moveTo(w/2,h*.95);x.lineTo(w/2+i*90-22,-10);x.lineTo(w/2+i*90+22,-10);x.fill()}x.globalAlpha=1;
+  x.fillStyle='#f0bf4d';x.fillRect(0,h-26,w,5)});
+ const A0=Math.PI-.86,AL=1.72,R=19,cz=10;
+ const wall=new THREE.Mesh(new THREE.CylinderGeometry(R,R,10.5,72,1,true,A0,AL),std({map:back,emissiveMap:back,emissive:0xffffff,emissiveIntensity:.5,roughness:.75,side:THREE.DoubleSide}));wall.position.set(0,5.25,cz);wall.receiveShadow=true;group.add(wall);
+ for(const[y,c]of[[.55,0x46d8ff],[10.45,0x9b7bff]]){const n=new THREE.Mesh(new THREE.CylinderGeometry(R-.08,R-.08,.16,72,1,true,A0,AL),new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide}));n.position.set(0,y,cz);group.add(n)}
+ for(let i=0;i<8;i++){const a=A0+.1+i*(AL-.2)/7,b=new THREE.Mesh(new THREE.BoxGeometry(.16,9.4,.16),new THREE.MeshBasicMaterial({color:i%2?0x46d8ff:0xffd98a}));b.position.set(Math.sin(a)*(R-.15),5.3,cz+Math.cos(a)*(R-.15));group.add(b)}
+ // portique : deux pylônes d'or, bandeau au nom de la course (podiumTitle)
+ for(const s of[-1,1]){const py=new THREE.Mesh(new THREE.CylinderGeometry(.32,.42,13.6,16),gold);py.position.set(s*10.2,6.8,-3.2);py.castShadow=true;group.add(py);const cap=new THREE.Mesh(new THREE.SphereGeometry(.62,20,14),gold);cap.position.set(s*10.2,13.8,-3.2);group.add(cap)}
+ const frame=new THREE.Mesh(new THREE.BoxGeometry(19.6,2.9,.36),gold);frame.position.set(0,12.3,-3.2);group.add(frame);
+ U.banner=std({color:0xffffff,roughness:.5,emissive:0xffffff,emissiveIntensity:.55});const banner=new THREE.Mesh(new THREE.PlaneGeometry(19,2.5),U.banner);banner.position.set(0,12.3,-2.99);group.add(banner);
+ // projecteurs (un par marche ; pas en qualité basse, où seuls les faisceaux restent : moins de shaders à recompiler) et leurs faisceaux visibles
+ const fade=podiumCanvas(4,128,(x,w,h)=>{const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#fff');g.addColorStop(1,'#000');x.fillStyle=g;x.fillRect(0,0,w,h)});U.beams=[];
+ for(const s of PODIUM_SLOTS){const from=new THREE.Vector3(s.x*1.15,18,8),to=new THREE.Vector3(s.x,s.h,0),sp=new THREE.SpotLight(s.n===1?0xffe2a8:0xdfe6ff,s.n===1?60:38,48,.36,.65,1);sp.position.copy(from);sp.target.position.copy(to);if(settings.level()!=='basse')group.add(sp,sp.target);
+  const L=from.distanceTo(to),cone=new THREE.Mesh(new THREE.ConeGeometry(Math.tan(.36)*L*.8,L,40,1,true),new THREE.MeshBasicMaterial({color:s.n===1?0xffdc8a:0xc9d8ff,alphaMap:fade,transparent:true,opacity:.11,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  cone.position.copy(from).add(to).multiplyScalar(.5);cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),from.clone().sub(to).normalize());group.add(cone);U.beams.push(cone)}
+ // confettis : positions, vitesses et rotations propres à chaque pièce (animés dans podiumFX)
+ const N=260,conf=new THREE.InstancedMesh(new THREE.PlaneGeometry(.22,.36),std({side:THREE.DoubleSide,roughness:.45,metalness:.35}),N),pal=[0xf4c64e,0xffffff,0xd8344a,0x3d7bd9,0x9b7bff,0x46d8ff,0xf4c64e];
+ U.conf={mesh:conf,p:new Float32Array(N*3),v:new Float32Array(N*4),N};let sd=7;const r=()=>(sd=(sd*16807)%2147483647)/2147483647;
+ for(let i=0;i<N;i++){U.conf.p.set([(r()-.5)*28,r()*20,-6+r()*14],i*3);U.conf.v.set([1.1+r()*1.5,r()*6.3,1+r()*3,r()*6.3],i*4);conf.setColorAt(i,new THREE.Color(pal[i%pal.length]))}
+ conf.instanceColor.needsUpdate=true;conf.frustumCulled=false;group.add(conf);
+ group.visible=false;scene.add(group);return group}
+// bandeau du portique : nom de la course et hippodrome (textes du programme, jamais d'un joueur)
+function podiumTitle(group,race=RACE){const U=group.userData;if(!U.banner)return;const key=race.n+'|'+hippoOf(race);if(U.bannerKey===key)return;U.bannerKey=key;
+ const t=podiumCanvas(1536,202,(x,w,h)=>{const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#16205a');g.addColorStop(1,'#0a1236');x.fillStyle=g;x.fillRect(0,0,w,h);x.strokeStyle='#f0bf4d';x.lineWidth=6;x.strokeRect(10,10,w-20,h-20);
+  x.textAlign='center';x.textBaseline='middle';const gg=x.createLinearGradient(0,30,0,120);gg.addColorStop(0,'#fff6cf');gg.addColorStop(1,'#f0bf4d');x.fillStyle=gg;let f=78;x.font=`400 ${f}px "Russo One",sans-serif`;const T=String(race.n||'').toUpperCase();
+  while(f>40&&x.measureText(T).width>w-120){f-=4;x.font=`400 ${f}px "Russo One",sans-serif`}x.fillText(T,w/2,80);
+  x.fillStyle='#bcd2ff';x.font='700 40px Rajdhani,sans-serif';const H=HIPPOS[hippoOf(race)];x.fillText(`${H?H.n:''} · ${fmt(race.dist||0)} m · podium officiel`.toUpperCase(),w/2,154)});
+ U.banner.map?.dispose();U.banner.map=t;U.banner.emissiveMap=t;U.banner.needsUpdate=true}
+// guirlande de roses posée au garrot du vainqueur (dans le repère du cheval, accrochée à l'os du corps)
+let PODIUM_GARLAND=null;
+function podiumGarland(){if(PODIUM_GARLAND)return PODIUM_GARLAND;const g=new THREE.Group(),N=64,rose=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.062,1),new THREE.MeshStandardMaterial({roughness:.55}),N),leaf=new THREE.InstancedMesh(new THREE.SphereGeometry(.05,8,6).scale(1.6,.5,1),new THREE.MeshStandardMaterial({color:0x2f7a2e,roughness:.6}),N),M=new THREE.Matrix4(),q=new THREE.Quaternion(),c=new THREE.Vector3(.6,1.43,0),up=new THREE.Vector3(-.5,.866,0);
+ for(let i=0;i<N;i++){const a=i/N*Math.PI*2,p=c.clone().addScaledVector(up,Math.cos(a)*.4).add(new THREE.Vector3(0,0,Math.sin(a)*.315)),s=.85+((i*37)%10)/22;q.setFromEuler(new THREE.Euler(a,i,a*.5));M.compose(p,q,new THREE.Vector3(s,s,s));rose.setMatrixAt(i,M);rose.setColorAt(i,new THREE.Color(i%5===2?0xfff3f0:i%3?0xc8102e:0xe2334a));
+  M.compose(p.clone().multiplyScalar(1).add(new THREE.Vector3(0,0,Math.sin(a)*.03)),q,new THREE.Vector3(1,1,1));leaf.setMatrixAt(i,M)}
+ rose.castShadow=true;g.add(leaf,rose);g.position.set(0,-1.3,0);return PODIUM_GARLAND=g}
+// chaque image du podium : confettis (chute, balancement, vrille), faisceaux qui respirent
+function podiumFX(group,dt,now){const U=group.userData,C=U.conf;if(!C)return;const still=REDUCE_MOTION.matches,M=new THREE.Matrix4(),Q=new THREE.Quaternion(),E=new THREE.Euler(),P=new THREE.Vector3(),S=new THREE.Vector3(1,1,1),t=now*.001;
+ for(let i=0;i<C.N;i++){const k=i*3,v=i*4;if(!still){C.p[k+1]-=C.v[v]*dt;C.p[k]+=Math.sin(t*1.3+C.v[v+1])*.5*dt;if(C.p[k+1]<.45){C.p[k+1]=15+(i%7)*.8;C.p[k]=((i*7919)%2800)/100-14}}
+  E.set(t*C.v[v+2]+C.v[v+1],t*C.v[v+2]*.7+C.v[v+3],C.v[v+3]);Q.setFromEuler(E);P.set(C.p[k],C.p[k+1],C.p[k+2]);M.compose(P,Q,S);C.mesh.setMatrixAt(i,M)}
+ C.mesh.instanceMatrix.needsUpdate=true;U.beams.forEach((b,i)=>b.material.opacity=.09+.03*Math.sin(t*1.7+i*2))}
 function createStartingStalls(scene){const root=new THREE.Group(),steel=new THREE.MeshStandardMaterial({color:0xd7dddd,metalness:.78,roughness:.25}),navy=new THREE.MeshStandardMaterial({color:0x102d4b,metalness:.3,roughness:.42}),doors=[],laneValues=[12,28,44,56,72,88];for(let i=0;i<6;i++){const p=trackPose(RACE_ORIGIN,(laneValues[i]-50)*.38),stall=new THREE.Group();stall.position.copy(p.p);stall.rotation.y=Math.atan2(p.f.x,p.f.z);for(const x of[-2.65,2.65])for(const z of[-3.5,0,3.5]){const post=new THREE.Mesh(new THREE.BoxGeometry(.25,8.4,.25),steel);post.position.set(x,4.2,z);stall.add(post)}for(const x of[-2.65,2.65])for(const y of[1.1,2.5,4,5.5,7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,7.2),steel);rail.position.set(x,y,0);stall.add(rail)}const roof=new THREE.Mesh(new THREE.BoxGeometry(5.7,.42,7.6),navy);roof.position.y=8.45;stall.add(roof);const number=new THREE.Sprite(new THREE.SpriteMaterial({map:makeLabel(String(i+1),120,120),transparent:true}));number.position.set(0,7.35,3.75);number.scale.set(1.4,1.4,1);stall.add(number);const gate=new THREE.Group();gate.position.set(0,0,3.58);for(let x=-2.35;x<=2.36;x+=.67){const bar=new THREE.Mesh(new THREE.BoxGeometry(.14,6.8,.14),steel);bar.position.set(x,3.4,0);gate.add(bar)}for(const y of[.2,3.4,6.7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(5.1,.18,.18),steel);rail.position.set(0,y,0);gate.add(rail)}stall.add(gate);doors.push(gate);root.add(stall)}root.userData.doors=doors;scene.add(root);return root}
 // introduction commune : survol, présentation, stalles, 3-2-1, puis les stalles s'ouvrent pour tous à l'heure prévue (RACE_GO_MS)
 function renderRaceIntro(q,now){const elapsed=now-q.introStart,overlay=$('#startSequence'),count=$('#startCount'),hint=$('#startHint');overlay.classList.add('show');overlay.classList.remove('waiting');const par=elapsed>=2200&&elapsed<4200&&raceFX.parade(q,now,(elapsed-2200)/2000);overlay.classList.toggle('parade',!!par);if(par){count.textContent=HN();count.style.fontSize='clamp(30px,6vw,64px)';hint.textContent='AU ROND DE PRÉSENTATION'}else if(elapsed<4200){const t=RACE_ORIGIN+.06+Math.min(1,elapsed/2200)*.82,p=trackPose(t,-105),look=trackPose(t+.075,0).p;q.camera.position.set(p.p.x,48+Math.sin(elapsed*.0015)*8,p.p.z);q.camera.lookAt(look.x,0,look.z);count.textContent='THE ROYAL RACE';count.style.fontSize='clamp(34px,7vw,82px)';hint.textContent='SURVOL DE L’HIPPODROME'}else{const player=trackPose(RACE_ORIGIN,(playerLane-50)*.38),desired=player.p.clone().addScaledVector(player.f,-30);desired.y=10.5,q.camera.position.lerp(desired,.055);const aim=player.p.clone().addScaledVector(player.f,12);aim.y=3;q.camera.lookAt(aim);count.style.fontSize='';const c=elapsed<5200?'':elapsed<6200?'3':elapsed<7200?'2':elapsed<8200?'1':'GO';count.textContent=c||'EN STALLES';hint.textContent=elapsed<5200?`MISE EN PLACE · STALLE N°${RS.stall||1}`:'TOUT LE MONDE PART ENSEMBLE';overlay.classList.toggle('count',elapsed>=5200);if(!q.inStalls){q.inStalls=1;$('#raceComment').textContent='Entrée dans les stalles : départ commun au GO'}if(elapsed>=RACE_GO_MS)openGates()}raceFX.render(q);return true}
@@ -1392,7 +1561,7 @@ const HORSE3D = (() => {
     const N = [E([1.37, 1.6, .04], [.016, .026, .014]), E([1.37, 1.6, -.04], [.016, .026, .014]), E([1.35, 1.54, 0], [.03, .006, .04], 0, -.7)];
     return { prims: P, negs: N, k: .07, kn: .012, min: [-1.12, .06, -.42], max: [1.46, 2.12, .42], h, smooth: 1 };
   }
-  // Jockey en position de course (accroupi sur les étriers), mains aux rênes. Régions :
+  // Jockey en position de course (accroupi sur les étriers, jambes contre les flancs), mains aux rênes. Régions :
   // 0 casaque (motif), 1 manches, 2 culotte blanche, 3 bottes, 4 peau, 7 gants, 8 revers de botte,
   // 10 bras gauche (manche), 11 bras droit (manche), 12 main gauche, 13 main droite — les bras sont pondérés sur leurs os.
   function JOCKEY_SPEC(h) {
@@ -1407,10 +1576,11 @@ const HORSE3D = (() => {
     for (const [s, arm, hand] of [[1, 10, 12], [-1, 11, 13]]) P.push(
       // bras : épaule -> coude -> poignet, gant
       C([.26, 2.05, .16 * s], [.43, 1.94, .14 * s], .052, .043, arm), C([.43, 1.94, .14 * s], [.61, 1.875, .08 * s], .043, .034, arm), E([.645, 1.865, .07 * s], [.042, .036, .036], hand),
-      // cuisse, genou, jambe (botte), pied dans l'étrier
-      C([-.08, 1.95, .12 * s], [.18, 1.85, .2 * s], .08, .064, 2), E([.19, 1.84, .21 * s], [.06, .058, .052], 2),
-      C([.18, 1.83, .21 * s], [.12, 1.72, .235 * s], .058, .052, 8), C([.12, 1.72, .235 * s], [.05, 1.62, .25 * s], .052, .042, 3), C([.04, 1.6, .255 * s], [.16, 1.575, .255 * s], .036, .032, 3));
-    return { prims: P, negs: [], k: .035, kn: .01, min: [-.32, 1.5, -.34], max: [.74, 2.36, .34], h, smooth: 1 };
+      // 2.8 : cuisse le long du garrot, genou calé devant la selle, jambe qui descend contre le flanc, pied dans l'étrier (sur le quartier)
+      C([-.08, 1.94, .115 * s], [.19, 1.775, .225 * s], .08, .063, 2), E([.205, 1.765, .232 * s], [.062, .058, .054], 2),
+      C([.2, 1.75, .24 * s], [.172, 1.69, .26 * s], .057, .053, 2), C([.172, 1.69, .26 * s], [.158, 1.655, .27 * s], .054, .051, 8), C([.158, 1.655, .27 * s], [.075, 1.49, .318 * s], .05, .041, 3),
+      E([.06, 1.475, .322 * s], [.045, .034, .036], 3), C([.06, 1.462, .322 * s], [.185, 1.448, .322 * s], .034, .028, 3));
+    return { prims: P, negs: [], k: .035, kn: .01, min: [-.32, 1.38, -.42], max: [.74, 2.36, .42], h, smooth: 1 };
   }
   // Pondérations de peau (4 os au plus par sommet) calculées d'après la région sculptée et la position au repos.
   // Os du cheval : 0 corps, 1 encolure, 2 tête, 3-5 queue, 6-8 antérieur gauche (bras, canon, paturon), 9-11 antérieur droit, 12-14 postérieur gauche, 15-17 postérieur droit.
@@ -1434,14 +1604,16 @@ const HORSE3D = (() => {
     }
     return { si, sw }
   }
-  // Os du jockey : 0 bassin, 1 buste, 2 tête, 3 bras gauche, 4 avant-bras gauche, 5 bras droit, 6 avant-bras droit.
+  // Os du jockey : 0 bassin, 1 buste, 2 tête, 3 bras gauche, 4 avant-bras gauche, 5 bras droit, 6 avant-bras droit, 7 jambes (2.8 : indépendantes
+  // du bassin, pieds dans les étriers pendant que le jockey s'assoit ou se relève).
   function JOCKEY_WEIGHTS(pos, reg) {
     const n = reg.length, si = new Uint16Array(n * 4), sw = new Float32Array(n * 4), ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t) };
     for (let v = 0; v < n; v++) {
       const x = pos[v * 3], y = pos[v * 3 + 1], r = reg[v], W = {}; const add = (b, w) => { if (w > 1e-4) W[b] = (W[b] || 0) + w };
       if (r >= 10) { const left = r === 10 || r === 12, up = left ? 3 : 5, t = ss(.39, .47, x), sh = ss(.2, .31, x); add(1, 1 - sh); add(up, sh * (1 - t)); add(up + 1, sh * t) }
       else if (r === 4 || r === 5 || r === 6) { const t = ss(.3, .38, x); add(1, 1 - t); add(2, t) }
-      else if (r === 2 || r === 3 || r === 8) add(0, 1);
+      else if (r === 3 || r === 8) add(7, 1);
+      else if (r === 2) { const t = ss(-.03, .11, x); add(0, 1 - t); add(7, t) }
       else { const t = ss(-.04, .1, x); add(0, 1 - t); add(1, t) }
       const L = Object.entries(W).sort((a, b) => b[1] - a[1]).slice(0, 4), s = L.reduce((a, e) => a + e[1], 0) || 1;
       L.forEach(([b, w], k) => { si[v * 4 + k] = +b; sw[v * 4 + k] = w / s })
@@ -1508,7 +1680,7 @@ const HORSE3D = (() => {
   for (const [x0, top, knee, z] of [[.48, 1.1, [.46, .575], .135], [.48, 1.1, [.46, .575], -.135], [-.7, 1.05, [-.87, .62], .145], [-.7, 1.05, [-.87, .62], -.145]]) {
     const b = HB.length; HB.push([x0, top, z, 0], [knee[0], knee[1], z, b], [knee[0] + (x0 > 0 ? .002 : .01), .225, z, b + 1])
   }
-  const JB = [[-.08, 1.9, 0, -1], [.1, 1.98, 0, 0], [.36, 2.12, 0, 1], [.26, 2.05, .16, 1], [.43, 1.94, .14, 3], [.26, 2.05, -.16, 1], [.43, 1.94, -.14, 5]];
+  const JB = [[-.08, 1.9, 0, -1], [.1, 1.98, 0, 0], [.36, 2.12, 0, 1], [.26, 2.05, .16, 1], [.43, 1.94, .14, 3], [.26, 2.05, -.16, 1], [.43, 1.94, -.14, 5], [.05, 1.86, 0, -1]];
   function bones(list) { const B = list.map(([x, y, z]) => { const b = new THREE.Bone(); b.position.set(x, y, z); return b }); list.forEach(([, , , p], i) => { if (p >= 0) { B[p].add(B[i]); B[i].position.sub(V(list[p][0], list[p][1], list[p][2])) } }); return B }
   // ---------- crins : cartes texturées (crinière couchée à droite, toupet, queue en gerbe) ----------
   const hairTex = {};
@@ -1590,9 +1762,11 @@ const HORSE3D = (() => {
     // pièces rigides regroupées par os et par matière (un seul appel de dessin chacune), positions relatives à l'os au repos
     const T = (g, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => g.clone().applyMatrix4(new THREE.Matrix4().compose(V(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), V(sx, sy, sz)));
     const both = f => [f(1), f(-1)], HX = .97, HY = 1.95, JX = .36, JY = 2.12;
+    // lanière plate de a à b (face large vers l'extérieur)
+    const leatherStrap = (a, b) => { const d = b.clone().sub(a), L = d.length(); return new THREE.BoxGeometry(.026, 1, .006).applyMatrix4(new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(.5), new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), d.divideScalar(L)), V(1, L, 1))) };
     const nose = new THREE.TorusGeometry(.086, .012, 6, 22), brow = new THREE.TorusGeometry(.1, .011, 6, 22), cheek = new THREE.CylinderGeometry(.008, .008, 1, 5), bit = new THREE.TorusGeometry(.026, .006, 6, 14), blink = new THREE.SphereGeometry(.05, 12, 8, 0, Math.PI * 2, 0, Math.PI * .5);
     const helmet = new THREE.SphereGeometry(1, 28, 14, 0, Math.PI * 2, 0, Math.PI * .58).scale(.112, .1, .104), peak = new THREE.CylinderGeometry(1, 1, 1, 16, 1, false, 0, Math.PI).scale(.075, .007, .095), pom = new THREE.SphereGeometry(.018, 10, 8);
-    const lens = new THREE.SphereGeometry(1, 12, 8).scale(.012, .02, .026), band = new THREE.TorusGeometry(1, .08, 5, 26).rotateX(Math.PI / 2).scale(.084, .084, .078), iron = new THREE.TorusGeometry(.035, .008, 6, 12), strap = new THREE.CylinderGeometry(.007, .007, 1, 5);
+    const lens = new THREE.SphereGeometry(1, 12, 8).scale(.012, .02, .026), band = new THREE.TorusGeometry(1, .08, 5, 26).rotateX(Math.PI / 2).scale(.084, .084, .078), iron = new THREE.TorusGeometry(.036, .008, 6, 14);
     const eye = new THREE.SphereGeometry(.027, 14, 10), earA = s => T(ear, 1.0 - HX, 2.06 - HY, .06 * s, s * .35, s * (Math.PI * .5 - .25), -.25);
     return PARTS = { hoof,
       head: {
@@ -1602,10 +1776,14 @@ const HORSE3D = (() => {
         blink: mergeG(both(s => T(blink, 1.08 - HX, 1.93 - HY, .1 * s, s * -Math.PI / 2))) },
       cap: mergeG([T(helmet, .418 - JX, 2.19 - JY, 0, 0, 0, .18), T(peak, .505 - JX, 2.186 - JY, 0, 0, 0, -.1), T(pom, .4 - JX, 2.29 - JY, 0)]),
       glass: mergeG([...both(s => T(lens, .508 - JX, 2.168 - JY, .031 * s)), T(band, .43 - JX, 2.168 - JY, 0)]),
-      irons: mergeG(both(s => T(iron, .1, 1.56, .26 * s, 0, Math.PI / 2))), straps: mergeG(both(s => T(strap, .03, 1.625, .255 * s, 0, 0, .35, 1, .13, 1))),
-      cloth: tube([[V(-.34, 1.36), .33, .345], [V(-.1, 1.32), .337, .372], [V(.16, 1.32), .327, .377]], 30, [-.28, Math.PI + .28]),
-      saddle: tube([[V(-.17, 1.68), .14, .03], [V(0, 1.668), .15, .035], [V(.13, 1.695), .12, .03]], 12),
-      girth: new THREE.TorusGeometry(1, .05, 6, 44).rotateY(Math.PI / 2).scale(1, .335, .292),
+      // 2.8 : étriers sous le pied du jockey, contre le flanc ; étrivières de la selle à l'étrier (par-dessus le quartier)
+      irons: mergeG(both(s => T(iron, .12, 1.45, .322 * s, 0, Math.PI / 2))), straps: mergeG(both(s => leatherStrap(V(.07, 1.705, .2 * s), V(.12, 1.486, .322 * s)))),
+      // tapis (numéro) posé sur le dos et tombant sur les flancs — l'arc du tube passe par le haut (« up » du tube = -y)
+      cloth: tube([[V(-.36, 1.32), .305, .36], [V(-.1, 1.31), .31, .372], [V(.17, 1.31), .3, .366]], 34, [-Math.PI - .42, .42]),
+      // selle de course : siège plat sur le tapis, quartiers de cuir sous les genoux
+      saddle: tube([[V(-.22, 1.712), .15, .028], [V(-.05, 1.708), .17, .036], [V(.1, 1.714), .16, .032], [V(.17, 1.73), .1, .026]], 14),
+      flaps: tube([[V(-.08, 1.33), .324, .39], [V(.07, 1.33), .324, .39], [V(.2, 1.33), .312, .384]], 22, [-Math.PI + .42, -.42]),
+      girth: new THREE.TorusGeometry(1, .036, 6, 44).rotateY(Math.PI / 2).scale(1, .335, .292),
       rein: new THREE.CylinderGeometry(.007, .007, 1, 5).translate(0, .5, 0).rotateZ(-Math.PI / 2),
       whip: new THREE.CylinderGeometry(.005, .009, .62, 5).translate(0, -.31, 0) }
   }
@@ -1614,7 +1792,7 @@ const HORSE3D = (() => {
   // pelage : robe, extrémités sombres, balzanes (hauteur par jambe), liste / étoile, pommelures, bout du nez, poil fin, occlusion
   function coatMat(col, dark, o) {
     // robe lustrée d'un pur-sang : vernis léger (clearcoat) qui prend les reflets du ciel, reflet de poil (sheen) et relief musculaire (bosselage procédural)
-    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .42, sheen: .8, sheenRoughness: .38, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .32, clearcoatRoughness: .36, envMapIntensity: 1.15 });
+    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .42, sheen: .6, sheenRoughness: .42, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .3, clearcoatRoughness: .44, envMapIntensity: 1.15 });
     m.onBeforeCompile = s => {
       Object.assign(s.uniforms, { uDark: { value: dark }, uPts: { value: o.points ? 1 : 0 }, uDap: { value: o.dapple ? 1 : 0 }, uSocks: { value: new THREE.Vector4(...o.socks) }, uBlaze: { value: o.blaze } });
       s.vertexShader = 'attribute float ao;attribute float reg;varying float vAo;varying float vReg;varying vec3 vRest;varying vec3 vRestN;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvAo=ao;vReg=reg;vRest=position;vRestN=normal;');
@@ -1631,7 +1809,7 @@ const HORSE3D = (() => {
        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.93,.91,.87),max(sock,bl));
        diffuseColor.rgb*=pow(vAo,1.25);}`).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
       {vec3 P=vRest;float lg=mix(.3,1.,smoothstep(.85,1.15,P.y));
-       float hB=(n3(P*vec3(6.,7.5,6.))*.05+n3(P*17.)*.01)*lg;vec2 dH=vec2(dFdx(hB),dFdy(hB));
+       float hB=(n3(P*vec3(3.4,4.2,3.4))*.034+n3(P*11.)*.0035)*lg;vec2 dH=vec2(dFdx(hB),dFdy(hB));
        vec3 sX=dFdx(-vViewPosition),sY=dFdy(-vViewPosition),R1=cross(sY,normal),R2=cross(normal,sX);float fD=dot(sX,R1);
        normal=normalize(abs(fD)*normal-sign(fD)*(dH.x*R1+dH.y*R2));}`)
     }; return m
@@ -1659,8 +1837,11 @@ const HORSE3D = (() => {
   function silkTexture(liv) { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'), img = x.createImageData(256, 256), m = hexRGB(liv.main), s = hexRGB(liv.second), pat = LIVERY.pattern;
     for (let j = 0; j < 256; j++) for (let i = 0; i < 256; i++) { const u = i / 256, v = j / 256, alt = pat(liv.pattern, u, v), c2 = alt ? s : m, k = ((255 - j) * 256 + i) * 4, fold = .93 + .07 * Math.sin(u * 40 + v * 9); img.data[k] = c2[0] * fold; img.data[k + 1] = c2[1] * fold; img.data[k + 2] = c2[2] * fold; img.data[k + 3] = 255 }
     x.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t }
-  function clothTexture(liv, num) { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d'); x.fillStyle = liv.main; x.fillRect(0, 0, 512, 128); x.fillStyle = liv.second; x.fillRect(0, 0, 512, 10); x.fillRect(0, 118, 512, 10);
-    x.fillStyle = '#fff'; x.font = '64px "Russo One",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; for (const cx of [128, 384]) { x.save(); x.translate(cx, 64); x.scale(cx < 256 ? 1 : -1, 1); x.fillText(String(num || 1), 0, 4); x.restore() }
+  function clothTexture(liv, num) { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d'); x.fillStyle = liv.main; x.fillRect(0, 0, 512, 128); x.fillStyle = liv.second; x.fillRect(0, 0, 512, 9); x.fillRect(0, 119, 512, 9); x.fillRect(0, 0, 12, 128); x.fillRect(500, 0, 12, 128);
+    // u (largeur) fait le tour du dos (0 = bas du flanc droit, 0,5 = dos, 1 = bas du flanc gauche), v (hauteur) suit le cheval de l'arrière à l'avant :
+    // chaque numéro est tourné d'un quart de tour pour se lire droit sur son flanc
+    x.font = '74px "Russo One",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+    for (const [cx, a] of [[80, Math.PI / 2], [432, -Math.PI / 2]]) { x.save(); x.translate(cx, 66); x.rotate(a); x.lineWidth = 7; x.strokeStyle = 'rgba(0,0,0,.35)'; x.strokeText(String(num || 1), 0, 3); x.fillStyle = '#fff'; x.fillText(String(num || 1), 0, 3); x.restore() }
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t }
   function coatColor(liv) { const i = Math.max(0, LIVERY.COATS.findIndex(c => c.id === liv.coat)), l = LIVERY.coatLut(i); return new THREE.Color().setRGB(l[0] / 255, l[1] / 255, l[2] / 255, THREE.SRGBColorSpace) }
   // balzanes et liste : tirées du nom (le même cheval garde ses marques partout)
@@ -1685,11 +1866,11 @@ const HORSE3D = (() => {
     const hair = new THREE.MeshStandardMaterial({ color: HAIR[liv.coat] || 0x120c09, map: hairTexture(), alphaTest: .42, side: THREE.DoubleSide, roughness: .55 });
     const tailM = new THREE.MeshStandardMaterial({ color: HAIR[liv.coat] || 0x120c09, map: hairTexture(1), roughness: .6 });
     const hoof = new THREE.MeshStandardMaterial({ color: 0x2b2420, roughness: .42 }), leather = new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: .45 }), steel = new THREE.MeshStandardMaterial({ color: 0xc9ccd0, roughness: .25, metalness: .9 });
-    const glass = new THREE.MeshStandardMaterial({ color: 0x1c2228, roughness: .08, metalness: .6 });
+    const glass = new THREE.MeshStandardMaterial({ color: 0x1c2228, roughness: .08, metalness: .6 }), flapM = new THREE.MeshStandardMaterial({ color: 0x2e1d12, roughness: .5, side: THREE.DoubleSide });
     const eye = new THREE.MeshPhysicalMaterial({ color: 0x0a0706, roughness: .04, clearcoat: 1 }), earIn = new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: .8, side: THREE.DoubleSide });
     const silkTex = silkTexture(liv), clothTex = clothTexture(liv, opt.number), cloth = new THREE.MeshStandardMaterial({ map: clothTex, roughness: .85, side: THREE.DoubleSide }), capM = new THREE.MeshStandardMaterial({ color: liv.cap, roughness: .35 });
     const lin = h => new THREE.Color(h), jk = jockeyMat(silkTex, [lin(liv.main), lin(liv.pattern === 'manches' ? liv.second : liv.main), lin(0xf1efe8), lin(0x141312), lin(0xdfa487), lin(liv.cap), lin(0x1a1f24), lin(0xf4f2ec), lin(0x8a5a32)]);
-    u.mats.push(coat, hair, tailM, glass, hoof, leather, steel, eye, earIn, cloth, capM, jk); u.texs.push(silkTex, clothTex);
+    u.mats.push(coat, hair, tailM, glass, flapM, hoof, leather, steel, eye, earIn, cloth, capM, jk); u.texs.push(silkTex, clothTex);
     // cheval : corps sculpté + crins, un seul squelette
     const B = bones(HB), body = new THREE.SkinnedMesh(D.H, coat); body.castShadow = true; body.add(B[0]); root.add(body);
     root.updateMatrixWorld(true); const sk = new THREE.Skeleton(B); body.bind(sk);
@@ -1699,9 +1880,9 @@ const HORSE3D = (() => {
     onHead(P.head.eye, eye); onHead(P.head.ear, coat).castShadow = true; onHead(P.head.earIn, earIn);
     const u2 = { B, body, reins: [] }; if (opt.free) { Object.assign(u, u2); return }
     onHead(P.head.leather, leather); onHead(P.head.steel, steel); if (opt.blinkers) onHead(P.head.blink, capM);
-    at(0, P.cloth, cloth, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.saddle, leather, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.girth, leather, .24, 1.29, 0);
+    at(0, P.cloth, cloth, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.saddle, leather, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.flaps, flapM, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.girth, leather, .24, 1.29, 0);
     // jockey : son propre squelette, accroché au corps du cheval
-    const jg = new THREE.Group(); jg.position.set(0, -1.3, 0); B[0].add(jg); const JB_ = bones(JB), jm = new THREE.SkinnedMesh(D.J, jk); jm.castShadow = true; jm.add(JB_[0]); jg.add(jm); root.updateMatrixWorld(true); jm.bind(new THREE.Skeleton(JB_));
+    const jg = new THREE.Group(); jg.position.set(0, -1.3, 0); B[0].add(jg); const JB_ = bones(JB), jm = new THREE.SkinnedMesh(D.J, jk); jm.castShadow = true; jm.add(JB_[0], JB_[7]); jg.add(jm); root.updateMatrixWorld(true); jm.bind(new THREE.Skeleton(JB_));
     jg.add(new THREE.Mesh(P.irons, steel), new THREE.Mesh(P.straps, leather));
     // casque (toque aux couleurs), visière, lunettes : pièces rigides sur l'os de la tête
     { const cap = new THREE.Mesh(P.cap, capM); cap.castShadow = true; JB_[2].add(cap, new THREE.Mesh(P.glass, glass)) }
@@ -1745,8 +1926,12 @@ const HORSE3D = (() => {
     // jockey : amortit le galop, pousse au sprint (bras qui accompagnent l'encolure, cravache)
     const bob = B[0].position.y - 1.3; u.jg.position.y = -1.3 - bob * .75; u.jg.position.x = Math.sin(p * TAU * 2 + .8) * .012 * run; u.jg.rotation.z = -B[0].rotation.z * .85;
     const push = Math.sin(p * TAU + 2.6) * (.08 + drive * .22) * run;
-    JB_[1].rotation.z = -push * .25 - drive * .05 - jup * .22; JB_[2].rotation.z = push * .2 + jup * .12; u.jg.position.y += jup * .05;
-    for (const [sh, el] of [[3, 4], [5, 6]]) { JB_[sh].rotation.z = -push * 1.1; JB_[el].rotation.z = push * .8 }
+    // 2.8 : à l'arrêt et au pas, le jockey se redresse et s'assoit sur la selle (buste relevé, regard devant, mains basses sur le garrot) ;
+    // il reprend la position accroupie de course dès le trot
+    const sit = Math.max(0, Math.min(1, 1 - run * 2.5)), br = Math.sin(p * TAU) * .012 * sit;
+    JB_[0].rotation.z = sit * .3; JB_[0].position.set(-.08 - sit * .035, 1.9 - sit * .065, 0);
+    JB_[1].rotation.z = -push * .25 - drive * .05 - jup * .22 + sit * .2 + br; JB_[2].rotation.z = push * .2 + jup * .12 - sit * .42 - br; u.jg.position.y += jup * .05;
+    for (const [sh, el] of [[3, 4], [5, 6]]) { JB_[sh].rotation.z = -push * 1.1 - sit * .78; JB_[el].rotation.z = push * .8 + sit * .42 }
     u.whip.visible = drive > .5; JB_[6].rotation.x = drive > .5 ? Math.sin(p * TAU * 2) * .25 : 0;
     // rênes : du mors aux mains
     root.updateMatrixWorld(true);
@@ -1759,6 +1944,77 @@ const HORSE3D = (() => {
 })();
 // maillages calculés d'avance, pendant que le joueur est au domaine (niveau course, puis gros plan sur les appareils puissants)
 if (window.THREE) hooks.on('ready', () => setTimeout(() => { try { HORSE3D.ready(1).then(() => { if (settings.level() === 'haute') HORSE3D.ready(0) }) } catch (e) { } }, 2500));
+</script>
+<script type="text/x-module" data-f="08-portrait3d.js">/* ===== Portraits et atelier en 3D (2.8) : le vrai cheval de course, partout =====
+   Un petit rendu WebGL hors écran dessine le modèle de la course (08-horse3d : même robe, mêmes balzanes, même casaque et même toque)
+   dans un studio éclairé : 1) les vignettes des chevaux (écurie, courses, haras, ventes, Légendes, tournoi) via draw(canvas, livrée),
+   gardées en cache ; 2) la scène de l'atelier (stage) : plateau tournant, glisser pour tourner, vues trois-quarts / profil / galop /
+   casaque. Sans WebGL, ou si le modèle n'est pas prêt, l'image peinte (LIVERY.portrait) reste en place : rien ne casse. */
+const PORTRAIT3D=(()=>{
+ let R=null,S=null,cam=null,rig=null,disc=null,shadow=null,failed=false,horse=null,hKey='';
+ const cache=new Map(),queue=[],V=new THREE.Vector3();
+ const keyOf=l=>[l.coat,l.main,l.second,l.pattern,l.cap,l.name||''].join('|');
+ function init(){if(R||failed)return R;try{R=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:'low-power'})}catch(e){failed=true;return null}
+  R.outputColorSpace=THREE.SRGBColorSpace;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.12;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.setClearColor(0,0);
+  R.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();failed=true;R=null});
+  S=new THREE.Scene();cam=new THREE.PerspectiveCamera(28,1,.05,60);
+  // éclairage de studio : clé chaude devant à gauche, contre-jour froid qui détache la silhouette, ciel doux ; reflets du ciel (skyEnv)
+  S.add(new THREE.HemisphereLight(0xe8f0ff,0x3a3020,1.05));const key=new THREE.DirectionalLight(0xfff0dc,2.6);key.position.set(3.2,5.5,4.5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);
+  Object.assign(key.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:.5,far:20});key.shadow.bias=-.0006;key.shadow.normalBias=.02;S.add(key,key.target);
+  const rim=new THREE.DirectionalLight(0x9fc4ff,1.7);rim.position.set(-4,3.5,-4.5);S.add(rim);const fill=new THREE.DirectionalLight(0xffe2c4,.45);fill.position.set(-3,1.5,3);S.add(fill);
+  try{S.environment=raceFX.skyEnv(R,{zen:[.12,.2,.38],hor:[.62,.66,.72],gnd:[.3,.26,.2],sun:[3.2,5.5,4.5],sunC:[1,.94,.84],sunK:.9,k:.75})}catch(e){}
+  // ombre portée sur un sol invisible + halo de contact (le cheval ne flotte pas)
+  const sm=new THREE.Mesh(new THREE.PlaneGeometry(12,12).rotateX(-Math.PI/2),new THREE.ShadowMaterial({opacity:.32}));sm.receiveShadow=true;S.add(sm);
+  const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(0,0,0,.55)');g.addColorStop(.6,'rgba(0,0,0,.2)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);
+  rig=new THREE.Group();S.add(rig);
+  // plateau tournant de l'atelier : disque sombre et liseré néon, comme le podium (masqué pour les vignettes)
+  disc=new THREE.Group();const dm=new THREE.Mesh(new THREE.CylinderGeometry(1.72,1.8,.14,72),new THREE.MeshStandardMaterial({color:0x0b0f2c,roughness:.8,metalness:.1,envMapIntensity:.25}));dm.position.y=-.07;dm.receiveShadow=true;
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.74,.03,8,96).rotateX(Math.PI/2),new THREE.MeshBasicMaterial({color:0x9b7bff,toneMapped:false}));ring.position.y=.002;
+  const ring2=new THREE.Mesh(new THREE.TorusGeometry(1.8,.018,6,96).rotateX(Math.PI/2),new THREE.MeshBasicMaterial({color:0x46d8ff,toneMapped:false}));ring2.position.y=-.12;disc.add(dm,ring,ring2);rig.add(disc);shadow=new THREE.Mesh(new THREE.PlaneGeometry(3.4,1.3).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));shadow.position.y=.005;rig.add(shadow);return R}
+ // le cheval affiché (un seul à la fois) : reconstruit quand la livrée change, l'ancien est libéré
+ function setHorse(liv){const k=keyOf(liv);if(horse&&hKey===k)return horse;if(horse){rig.remove(horse);HORSE3D.dispose(horse)}horse=HORSE3D.build(liv,{lod:0,number:1});hKey=k;
+  rig.add(horse);return horse}
+ // une fois le maillage arrivé : ombres portées ET reçues (l'ombre du jockey se pose sur le dos et le flanc du cheval)
+ function shade(m){const u=m.userData;if(u.pending||u.shaded)return;u.shaded=1;m.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.frustumCulled=false}})}
+ // cadrages : yaw = angle de la caméra autour du cheval (0 = de face), cible, demi-largeur et demi-hauteur à faire tenir à l'image
+ // (modèle : 2,83 de long, 2,31 de haut avec le jockey) ; la distance se calcule pour le format du cadre, sans jamais rogner,
+ // sauf crop (vignettes) : cadrée sur la hauteur, en buste, la queue peut sortir d'un cadre étroit
+ const FRAMES={portrait:{yaw:.72,ty:1.12,tx:0,hw:1.55,hh:1.28,el:.12},profil:{yaw:1.5708,ty:1.1,tx:0,hw:1.55,hh:1.25,el:.06},galop:{yaw:1.5708,ty:1.12,tx:0,hw:1.6,hh:1.3,el:.08},
+  casaque:{yaw:.85,ty:1.88,tx:.25,hw:.82,hh:.62,el:.1},vignette:{yaw:.55,ty:1.62,tx:.36,hw:.72,hh:.8,el:.1,crop:1}};
+ // ins : marges de l'interface posée sur l'image (en fraction de la hauteur, haut / bas) : le cheval se cadre dans la partie libre
+ function place(view,yawOff=0,aspect=1,ins=[0,0]){const F=FRAMES[view]||FRAMES.portrait,a=F.yaw+yawOff,free=1-ins[0]-ins[1],tv=Math.tan(cam.fov*Math.PI/360),d=Math.max(F.hh/(tv*free),F.crop?0:F.hw/(tv*aspect))*1.06+F.hw*.4;
+  cam.aspect=aspect;const H=1000,Wd=H*aspect;if(ins[0]||ins[1])cam.setViewOffset(Wd,H,0,(ins[1]-ins[0])/2*H,Wd,H);else cam.clearViewOffset();cam.updateProjectionMatrix();V.set(F.tx,F.ty,0);cam.position.set(V.x+Math.cos(a)*d*Math.cos(F.el),V.y+Math.sin(F.el)*d,V.z+Math.sin(a)*d*Math.cos(F.el));cam.lookAt(V)}
+ // ---------- vignettes ----------
+ function pump(){if(stage.on||!queue.length)return;const job=queue.shift();if(!job.cv.isConnected)return setTimeout(pump,0);
+  HORSE3D.ready(0).then(()=>{if(stage.on){queue.unshift(job);return}if(!init())return;const k=job.key;if(!cache.has(k)){const W=job.W,H=job.H;R.setPixelRatio(1);R.setSize(W,H,false);
+    const m=setHorse(job.liv);if(m.userData.pending){queue.unshift(job);return setTimeout(pump,120)}shade(m);HORSE3D.pose(m,.18,0);m.position.set(0,0,0);m.rotation.set(0,0,0);rig.rotation.y=0;shadow.visible=true;disc.visible=false;place('vignette',0,W/H);R.render(S,cam);
+    const out=document.createElement('canvas');out.width=W;out.height=H;out.getContext('2d').drawImage(R.domElement,0,0,W,H);cache.set(k,out);if(cache.size>48)cache.delete(cache.keys().next().value)}
+   paint(job.cv,cache.get(k));requestAnimationFrame(()=>setTimeout(pump,0))}).catch(()=>{failed=true})}
+ function paint(cv,img){const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);x.drawImage(img,0,0,cv.width,cv.height);cv.classList.add('p3d')}
+ // dessine la livrée en 3D dans le canevas (rendu à 2× pour la netteté) ; rend false si la 3D est indisponible (l'appelant garde son image)
+ function draw(cv,liv){if(failed||!window.THREE||!liv)return false;const W=Math.min(512,cv.width*2),H=Math.min(640,cv.height*2),k=keyOf(liv)+'|'+W+'x'+H,c=cache.get(k);if(c){paint(cv,c);return true}
+  for(let i=queue.length-1;i>=0;i--)if(queue[i].cv===cv)queue.splice(i,1);queue.push({cv,liv,key:k,W,H});if(queue.length===1)setTimeout(pump,0);return true}
+ // ---------- atelier : scène animée ----------
+ const stage={on:false,el:null,view:'portrait',yaw:0,vel:0,drag:null,liv:null,raf:0,t0:0,
+  start(host,liv){if(!init())return false;this.el=host;host.prepend(R.domElement);R.domElement.className='studio3d';R.domElement.setAttribute('aria-label','Aperçu 3D du cheval et de la casaque');this.on=true;this.yaw=0;this.vel=.0;this.set(liv);this.t0=performance.now();
+   const cv=R.domElement;if(!cv.__bound){cv.__bound=1;cv.addEventListener('pointerdown',e=>{this.drag={x:e.clientX,y:this.yaw};cv.setPointerCapture(e.pointerId);this.vel=0});
+    cv.addEventListener('pointermove',e=>{if(!this.drag)return;const dx=e.clientX-this.drag.x;this.yaw=this.drag.y-dx*.012;if(Math.abs(dx)>12&&this.el)this.el.classList.add('turned')});cv.addEventListener('pointerup',e=>{if(this.drag){this.vel=0;this.drag=null;this.idleAt=performance.now()}});
+    cv.addEventListener('pointercancel',()=>{this.drag=null})}
+   cancelAnimationFrame(this.raf);const loop=now=>{if(!this.on)return;this.raf=requestAnimationFrame(loop);this.frame(now)};this.raf=requestAnimationFrame(loop);return true},
+  set(liv){this.liv=liv;if(R)setHorse(liv)},
+  mode(v){this.view=v;this.yaw=0},
+  frame(now){const host=this.el;if(!host||!horse)return;const r=host.getBoundingClientRect(),W=Math.max(2,Math.round(r.width)),H=Math.max(2,Math.round(r.height)),pr=Math.min(2,devicePixelRatio||1);
+   if(R.getPixelRatio()!==pr)R.setPixelRatio(pr);const sz=R.getSize(V);if(sz.x!==W||sz.y!==H)R.setSize(W,H,false);
+   shade(horse);const u=horse.userData,t=(now-this.t0)/1000,gal=this.view==='galop',still=REDUCE_MOTION.matches;
+   // plateau tournant : lent, repris 2 s après qu'on a lâché le cheval ; au galop, de profil et sans rotation
+   if(!this.drag&&!gal&&!still&&now-(this.idleAt||0)>2000)this.yaw+=.0035;
+   if(!u.pending)HORSE3D.pose(horse,gal?(t*1.55)%1:(t*.12)%1,gal?1:0,gal?.25:0);
+   horse.position.y=0;rig.rotation.y=gal?0:-this.yaw;shadow.visible=true;shadow.scale.x=gal?1.1:1;disc.visible=true;this.frames=(this.frames||0)+1;
+   // parties de l'image couvertes par la plaque du nom (haut) et le choix des vues (bas)
+   const pl=host.querySelector('.studio-plate'),hn=host.querySelector('.studio-hint'),vw=hn&&hn.offsetParent&&getComputedStyle(hn).top==='auto'?hn:host.querySelector('.studio-view'),top=pl?(pl.getBoundingClientRect().bottom-r.top+6)/H:0,bot=vw?(r.bottom-vw.getBoundingClientRect().top+8)/H:0;
+   place(this.view,0,W/H,[Math.min(.3,Math.max(0,top)),Math.min(.3,Math.max(0,bot))]);R.render(S,cam);host.classList.toggle('loading',!!u.pending)},
+  stop(){this.on=false;cancelAnimationFrame(this.raf);if(R&&R.domElement.parentNode)R.domElement.remove();this.el=null;setTimeout(pump,50)}};
+ return{draw,stage,get ready(){return !failed},get cacheSize(){return cache.size}}})();
 </script>
 <script type="text/x-module" data-f="09-race-fx.js">/* ===== Course — réalisme : ciel et nuages, gazon, monde 3D (09-race-world), chevaux 3D articulés, ombres qui suivent la caméra, mottes, post-traitement ===== */
 let racePlayer=null;
@@ -1877,9 +2133,11 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
  function hurdles(q){if(fx.hurdles){q.scene.remove(fx.hurdles);fx.hurdles=null}fx.hp=null;const n=RACE.haies|0;if(!n)return;const g=new THREE.Group(),mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.9});fx.hp=haies.posOf(n);
   for(const hp of fx.hp){const p=trackPose(RACE_ORIGIN+hp/100,0),m=new THREE.Mesh(hurdleGeo(),mat);m.position.copy(p.p);m.rotation.y=Math.atan2(p.f.x,p.f.z);m.castShadow=m.receiveShadow=true;g.add(m)}q.scene.add(g);fx.hurdles=g}
  // podium : les trois premiers, en 3D, de trois quarts sur leur marche (rend faux tant que le maillage n'est pas prêt : l'image peinte prend le relais)
- function podium(q,i,slot,now){if(!fx)return false;fx.horseShadows[i].visible=false;const m=fx.h3d&&fx.h3d[i];if(!m)return false;if(!slot||m.userData.pending){m.visible=false;return false}
-  const u=m.userData;HORSE3D.setLod(m,0);m.visible=true;if(u.op!==1){u.op=1;u.mats.forEach(x=>{x.opacity=1})}const S=slot.x?2.9:3.2;m.scale.setScalar(S);
-  m.position.set(slot.x,slot.h,.4);m.rotation.y=-Math.PI/2+(slot.x<0?.42:slot.x>0?-.42:.2);HORSE3D.pose(m,(now*.0004+i*.3)%1,.05,0);return true}
+ function podium(q,i,slot,now,win){if(!fx)return false;fx.horseShadows[i].visible=false;const m=fx.h3d&&fx.h3d[i];if(!m)return false;if(!slot||m.userData.pending){m.visible=false;return false}
+  const u=m.userData;HORSE3D.setLod(m,0);m.visible=true;if(u.op!==1){u.op=1;u.mats.forEach(x=>{x.opacity=1})}m.scale.setScalar(win?2.7:2.45);
+  // 2.8 : de trois quarts, tournés vers le vainqueur ; le vainqueur porte la guirlande de roses
+  m.position.set(slot.x,slot.h+.38,.5);m.rotation.y=-Math.PI/2+(slot.x<0?.8:slot.x>0?-.8:.48);HORSE3D.pose(m,(now*.0004+i*.3)%1,.05,0);
+  if(win&&u.B){const g=podiumGarland();if(g.parent!==u.B[0])u.B[0].add(g)}return true}
  function render(q){const r=q.renderer;if(!fx)return r.render(q.scene,q.camera);const now=performance.now(),dt=Math.min(.05,(now-fx.last)/1000);fx.last=now;
   r.getDrawingBufferSize(fx.size);const P=fx.post;if(!P.rt){P.rt=new THREE.WebGLRenderTarget(fx.size.x,fx.size.y,{type:THREE.HalfFloatType,samples:r.capabilities.isWebGL2?4:0});P.mat.uniforms.tDiffuse.value=P.rt.texture}
   if(P.rt.width!==fx.size.x||P.rt.height!==fx.size.y)P.rt.setSize(fx.size.x,fx.size.y);P.mat.uniforms.uBloom.value=fx.bloom=({haute:.55,moyenne:.4,basse:0})[settings.level()]??.4;
@@ -2016,9 +2274,18 @@ const raceWorld = (() => {
        {float n=ln(vLeaf*.9)*.6+ln(vLeaf*2.7)*.4;diffuseColor.rgb*=mix(.62,1.18,n);diffuseColor.rgb*=mix(.8,1.08,smoothstep(0.,22.,vLeaf.y));}`)
     }; return m
   }
+  // 2.8 : la saison du domaine (31-heure) colore aussi les hippodromes : chênes roux et peupliers dorés à l'automne, branches nues l'hiver
+  // (mêmes teintes que les arbres du domaine) ; conifères toujours verts. Ordre : chêne, peuplier, pin, pin parasol, sapin
+  const season = () => typeof heure !== 'undefined' && heure.season ? heure.season() : 'ete';
+  function seasonGreens() {
+    const s = season(), G = [[0x4f7a2e, 0x3f6a28, 0x6a8f3a, 0x587f30], [0x5d8a35, 0x4c7a2c, 0x6f9440], [0x2f5230, 0x3a5e36, 0x28482a], [0x4f6b34, 0x5a7a3a, 0x46642f], [0x1f3d2a, 0x264a30, 0x1a3524]];
+    if (s === 'automne') { G[0] = [0xc2702a, 0xd9a03a, 0x9c4a22, 0x7f8a30, 0xb85a28]; G[1] = [0xd9b040, 0xc89a30, 0xe0b848] }
+    if (s === 'hiver') { G[0] = [0x8a8f86, 0x9a9690, 0x7e8279]; G[1] = [0x8c9088, 0x969a92]; G[2] = [0x3e5a44, 0x4a664e]; G[4] = [0x2e4a38, 0x3a5644] }
+    return G
+  }
   function forest(scene, list, q) {
     const G = treeGeos(), bark = new THREE.MeshStandardMaterial({ color: 0x5b4633, roughness: 1 }), leaf = leafMat(), c = new THREE.Color(), r = rng(77);
-    const GREENS = [[0x4f7a2e, 0x3f6a28, 0x6a8f3a, 0x587f30], [0x5d8a35, 0x4c7a2c, 0x6f9440], [0x2f5230, 0x3a5e36, 0x28482a], [0x4f6b34, 0x5a7a3a, 0x46642f], [0x1f3d2a, 0x264a30, 0x1a3524]];
+    const GREENS = seasonGreens();
     for (let k = 0; k < G.length; k++) {
       const L = list.filter(t => t[3] === k); if (!L.length) continue;
       const cr = new THREE.InstancedMesh(G[k].crown, leaf, L.length), tr = new THREE.InstancedMesh(G[k].trunk, bark, L.length);
@@ -2067,6 +2334,14 @@ const raceWorld = (() => {
     tower(-80, 44, 6, 34); tower(80, 44, 6, 34);
     const m = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .85 })); m.position.set(x, y0, z); m.rotation.y = Math.atan2(x, z) + Math.PI; scene.add(m);
     const flag = flagMesh(0x10284a, 0xd4a73a, 9, 6); flag.position.set(0, 72 + 30 + 2, -6); m.add(flag)
+  }
+  // 2.8 : à l'Hippodrome Royal, « face au château », c'est le haras du domaine (le même modèle, au niveau construit par le joueur) qui domine
+  // la colline, sur un soubassement de pierre ; ses fenêtres s'allument avec les projecteurs (night)
+  let palaceG = null;
+  function palace(scene, x, z) {
+    const g = typeof domaine3d !== 'undefined' && domaine3d.model && domaine3d.model('haras'); if (!g) return false;
+    const y0 = hillH(x, z), base = new THREE.Mesh(merge([{ g: box(84, 24, 44), m: M4(0, -10, 0), c: 0xc6b89c }, { g: box(30, 1.6, 22), m: M4(0, 1.2, 20), c: 0xd8ccb0 }]), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 }));
+    g.add(base); g.scale.setScalar(2.3); g.position.set(x, y0 + 1, z); g.rotation.y = Math.atan2(x, z) + Math.PI; scene.add(g); palaceG = g; return true
   }
   // ---------- drapeaux au vent ----------
   function flagMesh(c1, c2, w = 7, h = 4.5) {
@@ -2184,6 +2459,7 @@ const raceWorld = (() => {
   }
   // ---------- montage ----------
   function build(scene, q, id = 'royal', dir = 1) {
+    palaceG = null;
     const T = THEMES[id] || THEMES.royal, C = PAL[id] || PAL.royal, Q = q || { shadow: 1 }, dens = !Q.shadow ? .45 : Q.shadow < 2048 ? .75 : 1, r = rng(1234);
     const R = TRACK.r, S2 = TRACK.S / 2, XF = S2 - 32, sx0 = XF + Math.min(...T.stands.map(a => a[0])), sx1 = XF + Math.max(...T.stands.map(a => a[1]));
     W = { dens, id }; const parts = [], crowd = { list: [], occ: dens >= 1 ? .86 : dens >= .75 ? .7 : .38 };
@@ -2201,7 +2477,7 @@ const raceWorld = (() => {
     const hedge = [], flowers = []; for (let t = 0; t < 1; t += .0028) { const p = trackPose(t, 27); if (p.p.z > R - 15 && p.p.x > sx0 - 10 && p.p.x < sx1 + 7) continue; hedge.push([p.p.x, p.p.z, Math.atan2(p.f.x, p.f.z)]) }
     for (let x = XF - 258; x < XF + 22; x += 9) flowers.push([x, R + 24]);
     const hm = new THREE.InstancedMesh(fluffy(new THREE.IcosahedronGeometry(2.2, 1).scale(1.5, .8, 1), 0, 0, 0, .6).translate(0, 1.4, 0), leafMat(), hedge.length);
-    hedge.forEach(([x, z, a], i) => { hm.setMatrixAt(i, M4(x, 0, z, a, .9 + r() * .3)); hm.setColorAt(i, new THREE.Color(0x3f6a2a).multiplyScalar(.85 + r() * .3)) }); hm.instanceMatrix.needsUpdate = true; hm.instanceColor.needsUpdate = true; hm.receiveShadow = true; scene.add(hm);
+    hedge.forEach(([x, z, a], i) => { hm.setMatrixAt(i, M4(x, 0, z, a, .9 + r() * .3)); hm.setColorAt(i, new THREE.Color(season() === 'hiver' ? 0x5d7a5a : 0x3f6a2a).multiplyScalar(.85 + r() * .3)) }); hm.instanceMatrix.needsUpdate = true; hm.instanceColor.needsUpdate = true; hm.receiveShadow = true; scene.add(hm);
     // jardinières : bac de pierre et massif fleuri (taches de couleur semées par le shader)
     const pg = merge([{ g: box(5, 1.1, 1.8).translate(0, .55, 0), c: 0xe9e2d2 }, { g: fluffy(new THREE.IcosahedronGeometry(1, 1).scale(2.4, .6, .85), 0, 0, 0, .6).translate(0, 1.25, 0), c: 0x3d6a2c, fl: 1 }], ['fl']);
     const pm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 }), FLC = [[.75, .08, .12], [.95, .78, .2], [.95, .93, .9], [.55, .2, .7]];
@@ -2228,7 +2504,7 @@ const raceWorld = (() => {
     forest(scene, trees, Q);
     lakes.forEach(([x, z, rx, rz]) => id === 'cimes' ? pond(scene, x, z, rx, rz, 0x2f7f93, 0x8a8a7e) : pond(scene, x, z, rx, rz));
     if (id === 'capitale') city(scene, dens); else hills(scene, T.relief);
-    if (id === 'royal') castle(scene, -160, -900);
+    if (id === 'royal') palace(scene, -160, -900) || castle(scene, -160, -900);
     W.screen = screen(scene, dir < 0); floodlights(scene);
     return W
   }
@@ -2246,7 +2522,7 @@ const raceWorld = (() => {
     const g = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6, metalness: .3 })); g.castShadow = true; scene.add(g)
   }
   function haloTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.2, 'rgba(255,240,210,.5)'); g.addColorStop(1, 'rgba(255,230,190,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c) }
-  function night(v) { LAMP.emissiveIntensity = v * 2.4; if (halo) halo.opacity = v * .9; U.uNight.value = v }
+  function night(v) { LAMP.emissiveIntensity = v * 2.4; if (halo) halo.opacity = v * .9; U.uNight.value = v; if (palaceG && palaceG.userData.night) palaceG.userData.night(v) }
   function update(q, now) {
     U.uTime.value = now * .001; if (!W) return;
     const src = (typeof progress !== 'undefined' && progress.length) ? progress : [0], lead = Math.max(...src), running = q.startPhase === 'running';
@@ -2327,7 +2603,7 @@ const haies = (() => {
 })();
 </script>
 <script type="text/x-module" data-f="10-race.js">function initThreeRace(){if(threeRace||!window.THREE)return false;const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xc4d6de,380,2100);const camera=new THREE.PerspectiveCamera(64,1,.08,2400),renderer=new THREE.WebGLRenderer({canvas:race3d,antialias:true,powerPreference:'high-performance',precision:'highp'});renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;const hemi=new THREE.HemisphereLight(0xdcebff,0x3a4a26,1.3);scene.add(hemi);const sun=new THREE.DirectionalLight(0xfff0d2,3.3);sun.position.set(-260,360,180);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-500;sun.shadow.camera.right=500;sun.shadow.camera.top=500;sun.shadow.camera.bottom=-500;sun.shadow.camera.far=1100;scene.add(sun);
- const podium=createPodium(scene);enhancePodium(podium);const stalls=null,markers=[],loader=new THREE.TextureLoader(),horses=[],horseTextures=[],podiumTextures=[],silks=[];for(let i=0;i<6;i++){const configure=loaded=>{loaded.anisotropy=renderer.capabilities.getMaxAnisotropy();loaded.minFilter=THREE.LinearMipmapLinearFilter;loaded.magFilter=THREE.LinearFilter;loaded.needsUpdate=true},raceTex=new THREE.Texture(),frontTex=new THREE.Texture();const mat=new THREE.SpriteMaterial({map:raceTex,transparent:true,alphaTest:.025,color:0xffffff,depthWrite:false}),sprite=new THREE.Sprite(mat);sprite.scale.set(i?7.2:7.9,i?10.2:11.2,1);sprite.frustumCulled=false;scene.add(sprite);horses.push(sprite);horseTextures.push(raceTex);podiumTextures.push(frontTex);const kit=new THREE.Object3D();kit.visible=false;scene.add(kit);silks.push(kit)}threeRace={sun,hemi,scene,camera,renderer,horses,horseTextures,podiumTextures,silks,podium,stalls,startPhase:'idle',introStart:0,goTime:0,falseStartPenalty:0,podiumActive:false,podiumOrder:[],lastW:0,lastH:0,camPos:null,camTarget:null,markers};raceFX.build(threeRace);raceVenue(threeRace);$('#raceScreen').classList.add('webgl-active');return true}
+ const podium=createPodium(scene);const stalls=null,markers=[],loader=new THREE.TextureLoader(),horses=[],horseTextures=[],podiumTextures=[],silks=[];for(let i=0;i<6;i++){const configure=loaded=>{loaded.anisotropy=renderer.capabilities.getMaxAnisotropy();loaded.minFilter=THREE.LinearMipmapLinearFilter;loaded.magFilter=THREE.LinearFilter;loaded.needsUpdate=true},raceTex=new THREE.Texture(),frontTex=new THREE.Texture();const mat=new THREE.SpriteMaterial({map:raceTex,transparent:true,alphaTest:.025,color:0xffffff,depthWrite:false}),sprite=new THREE.Sprite(mat);sprite.scale.set(i?7.2:7.9,i?10.2:11.2,1);sprite.frustumCulled=false;scene.add(sprite);horses.push(sprite);horseTextures.push(raceTex);podiumTextures.push(frontTex);const kit=new THREE.Object3D();kit.visible=false;scene.add(kit);silks.push(kit)}threeRace={sun,hemi,scene,camera,renderer,horses,horseTextures,podiumTextures,silks,podium,stalls,startPhase:'idle',introStart:0,goTime:0,falseStartPenalty:0,podiumActive:false,podiumOrder:[],lastW:0,lastH:0,camPos:null,camTarget:null,markers};raceFX.build(threeRace);raceVenue(threeRace);$('#raceScreen').classList.add('webgl-active');return true}
 /* 2.7 : l'hippodrome — gazon et piste, lices, poteaux, arrivée, stalles, décor (09-race-world) — forme un groupe (q.venue), reconstruit
    seulement quand la course change d'hippodrome ; l'ancien est entièrement libéré (géométries, matériaux, textures). Construit dans le sens
    de référence (TRACK.m = 1), puis retourné en bloc pour un hippodrome à main droite : les chevaux, eux, suivent trackPose (TRACK.m = -1). */
@@ -2345,8 +2621,15 @@ function venueBuild(q){if(!q||q.headless)return;const id=hippoOf();if(q.venue&&q
   q.stalls=createStartingStalls(v);q.markers=markers;raceFX.world(q,v)}
  finally{TRACK.m=TRACK.dir}
  if(TRACK.dir<0)v.scale.x=-1;q.scene.add(v);q.venue=v;q.venueId=id;$('#raceScreen').dataset.hippo=id}
-function renderPodiumScene(q,now){const slots=[{x:0,h:3.3},{x:-6,h:2.2},{x:6,h:1.5}];q.podium.visible=true;for(let i=0;i<q.horses.length;i++){const slotIndex=q.podiumOrder.indexOf(i),visible=slotIndex>=0;q.horses[i].visible=visible;q.silks[i].visible=false;if(visible){const slot=slots[slotIndex],bounce=Math.sin(now*.003+i)*.025;q.horses[i].material.map=q.podiumTextures[i];if(raceFX.podium(q,i,slot,now))q.horses[i].visible=false;q.horses[i].position.set(slot.x,slot.h+4.3+bounce,0);q.horses[i].scale.set(4.3,8.6,1)}else raceFX.podium(q,i)}const desired=new THREE.Vector3(0,11.5,29),target=new THREE.Vector3(0,5,0);if(!q.camPos){q.camPos=desired.clone();q.camTarget=target.clone()}q.camPos.lerp(desired,.045);q.camTarget.lerp(target,.055);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);q.podium.rotation.y=Math.sin(now*.00035)*.025;raceFX.render(q);return true}
-function renderThreeRace(now,w,h){const q=threeRace;if(!q||w<2||h<2)return false;if(w!==q.lastW||h!==q.lastH){q.lastW=w;q.lastH=h;q.renderer.setSize(w,h,false);q.camera.aspect=w/h;q.camera.updateProjectionMatrix()}if(q.podiumActive)return renderPodiumScene(q,now);const source=visualProgress.length?visualProgress:progress;for(let i=0;i<q.horses.length;i++){const lane=((visualLane[i]??laneOf(i))-50)*.38,p=trackPose(RACE_ORIGIN+(source[i]||0)/100-(q.startPhase==='running'?0:.003),lane),speed=i?(rivalAI[i-1]?.speed||rivalBase[i-1]):autoSpeed;
+// podium (2.8) : marches PODIUM_SLOTS, chevaux de trois quarts tournés vers le centre, guirlande au vainqueur ; la caméra avance doucement
+// et se cadre dans la partie de l'écran que la carte du résultat laisse libre (portrait comme paysage)
+function renderPodiumScene(q,now){const P=q.podium,dt=Math.min(.05,Math.max(0,(now-(q.podiumLast||now))/1000));q.podiumLast=now;P.visible=true;podiumTitle(P);podiumFX(P,dt,now);
+ for(let i=0;i<q.horses.length;i++){const slotIndex=q.podiumOrder.indexOf(i),visible=slotIndex>=0;q.horses[i].visible=visible;q.silks[i].visible=false;if(visible){const slot=PODIUM_SLOTS[slotIndex],bounce=Math.sin(now*.003+i)*.025;q.horses[i].material.map=q.podiumTextures[i];if(raceFX.podium(q,i,slot,now,!slotIndex))q.horses[i].visible=false;q.horses[i].position.set(slot.x,slot.h+.38+3.5+bounce,0);q.horses[i].scale.set(3.5,7,1)}else raceFX.podium(q,i)}
+ const asp=(q.lastW||1)/(q.lastH||1),tv=Math.tan(q.camera.fov*Math.PI/360),card=$('#raceResult.show .result-card'),top=card?Math.min(1,Math.max(.42,card.getBoundingClientRect().top/innerHeight-.02)):1,
+  k=Math.min(1,(now-(q.podiumT0||now))/4200),e=1-Math.pow(1-k,3),d=Math.max((asp<1?11.6:15.2)/(tv*asp),8.3/(tv*top))*(1.16-.16*e),sw=REDUCE_MOTION.matches?0:Math.sin(now*.00017)*.1,
+  target=new THREE.Vector3(0,6.3-(1-top)*d*tv,0),desired=new THREE.Vector3(Math.sin(sw)*d,6.3+d*.2,Math.cos(sw)*d);
+ if(!q.camPos){q.camPos=desired.clone();q.camTarget=target.clone()}q.camPos.lerp(desired,.06);q.camTarget.lerp(target,.06);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
+function renderThreeRace(now,w,h){const q=threeRace;if(!q||w<2||h<2)return false;if(w!==q.lastW||h!==q.lastH){q.lastW=w;q.lastH=h;q.renderer.setSize(w,h,false);q.camera.aspect=w/h;q.camera.updateProjectionMatrix()}if(q.podiumActive)return renderPodiumScene(q,now);if(PODIUM_GARLAND&&PODIUM_GARLAND.parent)PODIUM_GARLAND.parent.remove(PODIUM_GARLAND);const source=visualProgress.length?visualProgress:progress;for(let i=0;i<q.horses.length;i++){const lane=((visualLane[i]??laneOf(i))-50)*.38,p=trackPose(RACE_ORIGIN+(source[i]||0)/100-(q.startPhase==='running'?0:.003),lane),speed=i?(rivalAI[i-1]?.speed||rivalBase[i-1]):autoSpeed;
   // cap du cheval : la piste + sa dérive latérale (vitesse latérale / vitesse d'avance, en unités de scène par seconde)
   p.lat=q.startPhase==='running'?(laneVel[i]||0)*.38/Math.max(6,speed*raceScaleNow()*207.7):0;raceFX.horse(q,i,p,speed,now)}if(q.startPhase!=='running')return renderRaceIntro(q,now);if(q.stalls.visible&&source[0]>1.8)q.stalls.visible=false;
  // ouverture des stalles : les portes basculent d'un coup (ressort), la caméra encaisse le départ
@@ -2354,7 +2637,8 @@ function renderThreeRace(now,w,h){const q=threeRace;if(!q||w<2||h<2)return false
  // caméra télé (replay) : au bord de la piste, elle suit le centre du peloton en travelling latéral
  if(q.tvView){const act=source.map(p=>Math.min(100.6,p||0)),mid=act.reduce((a,b)=>a+b,0)/act.length*.5+Math.max(...act)*.5,c=trackPose(RACE_ORIGIN+Math.min(100.4,mid)/100,0),desired=c.p.clone().addScaledVector(c.n,58).addScaledVector(c.f,-3);desired.y=15;const aim=c.p.clone().addScaledVector(c.f,-1);aim.y=2;
   if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}q.camPos.lerp(desired,.06);q.camTarget.lerp(aim,.09);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
- if(q.finishView){const finish=trackPose(RACE_ORIGIN,0),desired=finish.p.clone().addScaledVector(finish.n,58);desired.y=13;const aim=finish.p.clone().addScaledVector(finish.f,-3);aim.y=4;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}q.camPos.lerp(desired,.09);q.camTarget.lerp(aim,.1);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
+ if(q.finishView){const finish=trackPose(RACE_ORIGIN,0),desired=finish.p.clone().addScaledVector(finish.n,31);desired.y=11;// 2.8 : sur la pelouse, au-dessus du public, devant la tribune (à 58, la caméra était dans la tribune : écran uni)
+const aim=finish.p.clone().addScaledVector(finish.f,-3);aim.y=4;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}q.camPos.lerp(desired,.09);q.camTarget.lerp(aim,.1);q.camera.position.copy(q.camPos);q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
  const player=trackPose(RACE_ORIGIN+(source[0]||0)/100,((visualLane[0]??playerLane)-50)*.38),side=lookDir*8,desired=player.p.clone().addScaledVector(player.f,-26).addScaledVector(player.n,side);desired.y=10.5;const aim=player.p.clone().addScaledVector(player.f,62).addScaledVector(player.n,side*.65);aim.y=3.6;if(!q.camPos){q.camPos=desired.clone();q.camTarget=aim.clone()}{const k=Math.min(60,(now-(q.lastCam||now))/16.7);q.lastCam=now;q.camPos.lerp(desired,1-Math.pow(.85,k));q.camTarget.lerp(aim,1-Math.pow(.83,k))}q.camera.position.copy(q.camPos);if(sinceGo<900&&!REDUCE_MOTION.matches){const a=(1-sinceGo/900)*.45;q.camera.position.x+=Math.sin(now*.083)*a;q.camera.position.y+=Math.cos(now*.107)*a*.7}q.camera.lookAt(q.camTarget);raceFX.render(q);return true}
 /* affichage fluide : on montre la course un pas en retard, en interpolant entre les deux derniers états de la simulation
    (vitesse constante entre deux pas, sans à-coups), puis les couloirs passent par un ressort amorti : un changement de couloir
@@ -2368,14 +2652,14 @@ function renderScene(now=0){if(!$('#raceScreen').classList.contains('open'))retu
 // virages de l'hippodrome de la course (2.7) : place et force tirées du tracé ; l'Hippodrome Royal garde ses valeurs exactes (moteur 4)
 function courseTurn(p){const bell=(a,b,x)=>{if(x<=a||x>=b)return 0;return Math.sin((x-a)/(b-a)*Math.PI)},h=RACE&&RACE.hippo;
  if(!h||h==='royal'||!TRACKS[h])return bell(.015,.265,p)+bell(.515,.765,p);const T=TRACKS[h];return T.k*(bell(T.t1[0],T.t1[1],p)+bell(T.t2[0],T.t2[1],p))}
-function startRace(){if(!window.THREE)return toast('Le moteur 3D n’a pas pu se charger. Recharge la page.');const RH=stable.active();if(RH.injury)return toast(`${RH.name} est blessé`);if(RH.fatigue>=90)return toast(`${RH.name} est trop fatigué pour courir`);if(!currentField)buildField();if(state.feed<RACE.fee)return toast('Fourrage insuffisant');racePlayer=gear.apply(terrainPerf(stable.racePerf(RH.stats,RH,RACE.dist,RH.dist,state.strategy),RH.stats,RH.talent));playerFinal=false;resetRaceStats();$('#mapIdeal').style.opacity=1;$('#sprintBtn').dataset.st='';$('#sprintBtn').innerHTML='SPRINT<small>plus tard</small>';$('#sprintInfo').textContent='';state.feed-=RACE.fee;sync();raceSeed=currentField.seed;raceRng=seeded(raceSeed);raceHeader();$('#panel').classList.remove('open');$('#raceScreen').classList.add('open');initThreeRace();if(threeRace){raceVenue(threeRace);applyRaceQuality(threeRace);raceFX.liveries(threeRace);threeRace.markers.forEach(([f,s])=>{s.material.map?.dispose();s.material.map=makeLabel(String(Math.round(RACE.dist*(1-f)/100)*100));s.material.needsUpdate=true})}sound.music(false);sound.crowdStart();sound.crowdLevel(.1);resetRacers();if(threeRace){threeRace.camPos=null;threeRace.camTarget=null;threeRace.finishView=false;threeRace.podiumActive=false;threeRace.podium.visible=false;threeRace.stalls.visible=true;threeRace.stalls.userData.doors.forEach(d=>{d.rotation.x=0;d.position.set(0,0,3.58)});threeRace.startPhase='cinematic';threeRace.introStart=performance.now();threeRace.tipped=0;threeRace.inStalls=0;threeRace.gatesAt=0;threeRace.doorsDone=0;threeRace.horses.forEach((h,i)=>{h.visible=true;h.material.map=threeRace.horseTextures[i];h.material.needsUpdate=true});threeRace.silks.forEach(s=>s.visible=false)}$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('waiting');raceGoAt=performance.now()+RACE_GO_MS;clearTimeout(goTimer);goTimer=setTimeout(openGates,RACE_GO_MS);updateEnergy();$('#sprintBtn').disabled=true;$('#sprintBtn').classList.remove('active');lookDir=0;updateLane();cancelAnimationFrame(sceneFrame);lastScene=0;sceneFrame=requestAnimationFrame(renderScene);$('#raceComment').textContent='Présentation de l’hippodrome…';clearInterval(raceLoop);raceLoop=null;hooks.emit('race:start')}
+function startRace(){$('#raceScreen').classList.remove('podium');if(!window.THREE)return toast('Le moteur 3D n’a pas pu se charger. Recharge la page.');const RH=stable.active();if(RH.injury)return toast(`${RH.name} est blessé`);if(RH.fatigue>=90)return toast(`${RH.name} est trop fatigué pour courir`);if(!currentField)buildField();if(state.feed<RACE.fee)return toast('Fourrage insuffisant');racePlayer=gear.apply(terrainPerf(stable.racePerf(RH.stats,RH,RACE.dist,RH.dist,state.strategy),RH.stats,RH.talent));playerFinal=false;resetRaceStats();$('#mapIdeal').style.opacity=1;$('#sprintBtn').dataset.st='';$('#sprintBtn').innerHTML='SPRINT<small>plus tard</small>';$('#sprintInfo').textContent='';state.feed-=RACE.fee;sync();raceSeed=currentField.seed;raceRng=seeded(raceSeed);raceHeader();$('#panel').classList.remove('open');$('#raceScreen').classList.add('open');initThreeRace();if(threeRace){raceVenue(threeRace);applyRaceQuality(threeRace);raceFX.liveries(threeRace);threeRace.markers.forEach(([f,s])=>{s.material.map?.dispose();s.material.map=makeLabel(String(Math.round(RACE.dist*(1-f)/100)*100));s.material.needsUpdate=true})}sound.music(false);sound.crowdStart();sound.crowdLevel(.1);resetRacers();if(threeRace){threeRace.camPos=null;threeRace.camTarget=null;threeRace.finishView=false;threeRace.podiumActive=false;threeRace.podium.visible=false;threeRace.stalls.visible=true;threeRace.stalls.userData.doors.forEach(d=>{d.rotation.x=0;d.position.set(0,0,3.58)});threeRace.startPhase='cinematic';threeRace.introStart=performance.now();threeRace.tipped=0;threeRace.inStalls=0;threeRace.gatesAt=0;threeRace.doorsDone=0;threeRace.horses.forEach((h,i)=>{h.visible=true;h.material.map=threeRace.horseTextures[i];h.material.needsUpdate=true});threeRace.silks.forEach(s=>s.visible=false)}$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('waiting');raceGoAt=performance.now()+RACE_GO_MS;clearTimeout(goTimer);goTimer=setTimeout(openGates,RACE_GO_MS);updateEnergy();$('#sprintBtn').disabled=true;$('#sprintBtn').classList.remove('active');lookDir=0;updateLane();cancelAnimationFrame(sceneFrame);lastScene=0;sceneFrame=requestAnimationFrame(renderScene);$('#raceComment').textContent='Présentation de l’hippodrome…';clearInterval(raceLoop);raceLoop=null;hooks.emit('race:start')}
 function clampRace(value,min,max){return Math.max(min,Math.min(max,value))}
 // jauge d'endurance ; repère « réserve » (2.5) : sous 1,2 × la distance restante, retenir le cheval paie (mesuré au bot, voir PACE_IN)
 function updateEnergy(){const amount=Math.round(playerEnergy);$('#energyValue').textContent=amount+' %';$('#energyFill').style.width=amount+'%';$('#energyFill').style.filter=amount<25?'hue-rotate(-40deg) saturate(1.8)':'';
  const r=$('#energyReserve');if(r){const v=Math.min(100,1.2*(100-(progress[0]||0)));r.style.left=v+'%';r.classList.toggle('off',playerFinal);r.parentNode.classList.toggle('low',!playerFinal&&playerEnergy<v)}}
 function nearbyHorses(index){const own=progress[index],lane=index? rivalLanes[index-1]:playerLane;return progress.map((p,j)=>({p,j,l:j?rivalLanes[j-1]:playerLane,gap:p-own})).filter(x=>x.j!==index&&!raceFinished[x.j]&&x.gap>0&&x.gap<5).sort((a,b)=>a.gap-b.gap)}
 function drafting(index){const lane=index?rivalLanes[index-1]:playerLane;return nearbyHorses(index).find(h=>h.gap>.5&&Math.abs(h.l-lane)<12)}
-function markFinish(index){if(raceFinished[index]||progress[index]<100)return;raceFinished[index]=true;raceFinishTimes[index]=(raceTime-(progress[index]-100)/Math.max(.05,(index?rivalAI[index-1].speed:autoSpeed)*raceScaleNow()))*.2;{const prev=finishOrder.length?raceFinishTimes[finishOrder[finishOrder.length-1]]:0;if(raceFinishTimes[index]<=prev)raceFinishTimes[index]=prev+.01}finishOrder.push(index);if(index===0){RS.sprintLeft=playerFinal?playerEnergy:null;if(threeRace){threeRace.finishView=true;threeRace.camPos=null;threeRace.camTarget=null}$('#sprintBtn').disabled=true;$('#draft').classList.remove('show');$('#raceComment').textContent='Poteau franchi — caméra arrivée jusqu’au dernier cheval';$('#autoGallop b').textContent='Course terminée'}}
+function markFinish(index){if(raceFinished[index]||progress[index]<100)return;raceFinished[index]=true;raceFinishTimes[index]=(raceTime-(progress[index]-100)/Math.max(.05,(index?rivalAI[index-1].speed:autoSpeed)*raceScaleNow()))*.2;{const prev=finishOrder.length?raceFinishTimes[finishOrder[finishOrder.length-1]]:0;if(raceFinishTimes[index]<=prev)raceFinishTimes[index]=prev+.01}finishOrder.push(index);if(index===0){RS.sprintLeft=playerFinal?playerEnergy:null;if(typeof replays!=='undefined'&&replays.busy)return;if(threeRace){threeRace.finishView=true;threeRace.camPos=null;threeRace.camTarget=null}$('#sprintBtn').disabled=true;$('#draft').classList.remove('show');$('#raceComment').textContent='Poteau franchi — caméra arrivée jusqu’au dernier cheval';$('#autoGallop b').textContent='Course terminée'}}
 // jauge : position du cheval (rond) et couloir visé (trait cyan) — le cheval s'y rend s'il a la place
 function updateLane(){playerLane=Math.max(7,Math.min(93,playerLane));const dot=$('#laneDot'),X=v=>(TRACK.dir<0?100-v:v)+'%';dot.style.left=X(playerLane);let t=updateLane.t;if(!t){t=updateLane.t=document.createElement('b');t.className='lane-target';dot.before(t)}t.style.left=X(clampRace(playerTarget,7,93));t.style.opacity=Math.abs(playerTarget-playerLane)>1.5?.9:0}
 // ◀ ▶ : le joueur choisit un couloir ; son cheval s'y rend à l'allure latérale commune, sans traverser les chevaux qui l'entourent
@@ -2383,8 +2667,8 @@ function updateLane(){playerLane=Math.max(7,Math.min(93,playerLane));const dot=$
 function steerScreen(d){steer(d*(TRACK.dir<0?-1:1))}
 function steer(dir){hooks.emit('race:steer',dir);playerTarget=clampRace(Math.round(playerTarget)+dir*10,7,93);if(Math.abs(playerTarget-playerLane)>22)playerTarget=playerLane+Math.sign(playerTarget-playerLane)*22;updateLane();$('#raceComment').textContent=dir<0?'Tu te rapproches de la corde':'Tu prends l’extérieur'}
 function look(dir){lookDir=dir;$('#lookLabel').textContent=dir<0?'Regard à gauche':'Regard à droite';$('#lookLabel').classList.add('show');$('#lookLeft').classList.toggle('active',dir<0);$('#lookRight').classList.toggle('active',dir>0);setTimeout(()=>{lookDir=0;$('#lookLeft').classList.remove('active');$('#lookRight').classList.remove('active');$('#lookLabel').classList.remove('show')},800)}
-function leaveRace(){hooks.emit('race:leave',finishOrder.length===6);sound.crowdStop();sound.music(true);runRaceV2.said=0;runRaceV2.tipd=0;clearTimeout(goTimer);clearInterval(raceLoop);raceLoop=null;cancelAnimationFrame(sceneFrame);$('#raceScreen').classList.remove('open');$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('show','waiting');if(threeRace){threeRace.startPhase='idle';threeRace.finishView=false;threeRace.podiumActive=false}}
-function showPodium(){if(finishOrder.length<3)return;$('#finishBoard').classList.remove('show');if(threeRace){threeRace.finishView=false;threeRace.camPos=null;threeRace.camTarget=null;threeRace.podiumOrder=finishOrder.slice(0,3);threeRace.podiumActive=true;}$('#raceComment').textContent='Cérémonie du Podium Royal';setTimeout(()=>{if($('#raceScreen').classList.contains('open'))$('#raceResult').classList.add('show')},2400)}
+function leaveRace(){hooks.emit('race:leave',finishOrder.length===6);$('#raceScreen').classList.remove('podium');sound.crowdStop();sound.music(true);runRaceV2.said=0;runRaceV2.tipd=0;clearTimeout(goTimer);clearInterval(raceLoop);raceLoop=null;cancelAnimationFrame(sceneFrame);$('#raceScreen').classList.remove('open');$('#raceResult').classList.remove('show');$('#finishBoard').classList.remove('show');$('#startSequence').classList.remove('show','waiting');if(threeRace){threeRace.startPhase='idle';threeRace.finishView=false;threeRace.podiumActive=false}}
+function showPodium(){if(finishOrder.length<3)return;$('#finishBoard').classList.remove('show');if(threeRace){threeRace.finishView=false;threeRace.camPos=null;threeRace.camTarget=null;threeRace.podiumOrder=finishOrder.slice(0,3);threeRace.podiumActive=true;threeRace.podiumT0=performance.now();threeRace.podiumLast=0;$('#raceScreen').classList.add('podium')}$('#raceComment').textContent='Cérémonie du Podium Royal';setTimeout(()=>{if($('#raceScreen').classList.contains('open'))$('#raceResult').classList.add('show')},2400)}
 function raceScaleNow(){return .44*1600/RACE.dist}
 function terrainPerf(P,st,talent){const T=TERRAINS[RACE.terrain]||TERRAINS.bon,k=T.drain>1?(1.25-st.end*.005):1;const L=Math.pow(1600/RACE.dist,.55);const o={...P,talent,cruise:P.cruise*T.speed,drain:P.drain*(1+(T.drain-1)*k*1.6)*L,sprintDrain:P.sprintDrain*T.drain};if(talent==='finisseur')o.sprint*=1.06;if(talent==='increvable')o.drain*=RACE.terrain==='bon'?.92:.84;if(talent==='fusee')o.jump=(o.jump||1)*1.02;if(talent==='tacticien'){o.draft*=2.5;o.check=Math.min(1,(o.check||.97)+.012)}if(talent==='metronome'){o.noise*=.3;o.drain*=.93}return o}
 function raceHeader(){$('.race-head h2').textContent=RACE.n;$('.race-head small').textContent=`${HIPPOS[hippoOf()].n} • ${fmt(RACE.dist)} m • Terrain ${TERRAINS[RACE.terrain].n.toLowerCase()} • 6 partants`;$('#meters').textContent=fmt(RACE.dist);hooks.emit('race:header')}
@@ -2590,40 +2874,60 @@ document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 $('#returnDomain').onclick=leaveRace;$('#showPodium').onclick=showPodium;$('#moveLeft').onclick=()=>steerScreen(-1);$('#moveRight').onclick=()=>steerScreen(1);$('#lookLeft').onclick=()=>look(-1);$('#lookRight').onclick=()=>look(1);$('#sprintBtn').onclick=sprint;$('#paceUp').onclick=()=>setPace(playerPace+1);$('#paceDown').onclick=()=>setPace(playerPace-1);document.addEventListener('keydown',e=>{if(!$('#raceScreen').classList.contains('open'))return;if(e.key==='ArrowLeft')steerScreen(-1);if(e.key==='ArrowRight')steerScreen(1);if(e.key===' ')sprint();if(!(typeof haies!=='undefined'&&haies.active)){if(e.key==='ArrowUp'){e.preventDefault();setPace(playerPace+1)}if(e.key==='ArrowDown'){e.preventDefault();setPace(playerPace-1)}}{const k=e.key.toLowerCase();if(k==='z'||k==='w')setPace(playerPace+1);if(k==='s')setPace(playerPace-1)}if(e.key.toLowerCase()==='a')look(-1);if(e.key.toLowerCase()==='e')look(1)});
 /* ===== Atelier du champion ===== */
 const HN=()=>champion.get().name||'Mon champion';
-const studio=(()=>{const el=$('#studio'),cv=$('#studioCanvas'),ctx=cv.getContext('2d');let draft=null,view='portrait',anim=0,firstRun=false;
- const S=LIVERY;
- function sw(group,val){return S.COLORS.map(([n,c])=>`<button class="sw${c===val?' on':''}" style="background:${c}" data-k="${group}" data-v="${c}" aria-label="${n}" title="${n}"></button>`).join('')}
- function render(){const d=draft;$('#studioName').value=d.name;
+const studio=(()=>{const el=$('#studio'),cv=$('#studioCanvas'),ctx=cv.getContext('2d');let silks=null,horses={},cur=null,view='portrait',anim=0,firstRun=false,in3d=false;
+ const S=LIVERY,stageEl=$('.studio-stage');
+ // 2.8 : brouillon = couleurs de l'écurie (casaque, toque : communes à tous les chevaux) + nom et robe de chaque cheval modifié
+ const draft=()=>({...silks,...horses[cur]});
+ // 2.8 : après les teintes proposées, une couleur libre (sélecteur du système) : toute couleur #rrggbb est valable, liens de duel compris
+ const hexOk=v=>/^#[0-9a-f]{6}$/i.test(v||'');
+ function sw(group,val){const free=hexOk(val)&&!S.COLORS.some(([,c])=>c.toLowerCase()===val.toLowerCase());
+  return S.COLORS.map(([n,c])=>`<button class="sw${c===val?' on':''}" style="background:${c}" data-k="${group}" data-v="${c}" aria-label="${n}" title="${n}"></button>`).join('')+
+   `<label class="sw sw-free${free?' on':''}" title="Couleur libre"${free?` style="background:${val}"`:''}><input type="color" data-free="${group}" value="${hexOk(val)?val.toLowerCase():'#888888'}" aria-label="Couleur libre"></label>`}
+ function render(){const d=draft();$('#studioName').value=d.name;
+  const H=stable.data.horses;$('#studioHorses').innerHTML=H.length>1?H.map(h=>`<button role="tab" aria-selected="${h.id===cur}" class="${h.id===cur?'on':''}" data-horse="${h.id}">${S.silkSVG({...silks,coat:(horses[h.id]||h).coat},22)}<span>${escapeHTML((horses[h.id]||h).name)}</span></button>`).join(''):'';
   $('#studioCoats').innerHTML=S.COATS.map((c,i)=>`<button class="coat${c.id===d.coat?' on':''}" data-k="coat" data-v="${c.id}"><i style="background:${S.coatSwatch(i)}"></i>${c.name}</button>`).join('');
   $('#studioMain').innerHTML=sw('main',d.main);$('#studioSecond').innerHTML=sw('second',d.second);$('#studioCap').innerHTML=sw('cap',d.cap);
   $('#studioMotifs').innerHTML=S.PATTERNS.map(([id,n])=>S.LOCKS[id]&&!(career.data.unlocks||[]).includes(id)?`<button class="motif locked" disabled title="${S.LOCKS[id][1]}">${S.silkSVG({...d,pattern:id},40)}🔒 ${S.LOCKS[id][0]}</button>`:`<button class="motif${id===d.pattern?' on':''}" data-k="pattern" data-v="${id}">${S.silkSVG({...d,pattern:id},40)}${n}</button>`).join('');
-  $('#studioPlate').innerHTML=`${S.silkSVG(d,46)}<div><b>${escapeHTML(d.name||'Sans nom')}</b><small>${S.COATS.find(c=>c.id===d.coat).name.toUpperCase()} · PUR-SANG</small></div>`;draw(performance.now())}
+  $('#studioPlate').innerHTML=`${S.silkSVG(d,46)}<div><b>${escapeHTML(d.name||'Sans nom')}</b><small>${S.COATS.find(c=>c.id===d.coat).name.toUpperCase()} · PUR-SANG</small></div>`;
+  if(in3d)PORTRAIT3D.stage.set(d);else draw(performance.now())}
  function fit(){const r=cv.getBoundingClientRect(),k=Math.min(2,devicePixelRatio||1);cv.width=Math.max(1,r.width*k);cv.height=Math.max(1,r.height*k)}
- function draw(now){if(!el.classList.contains('open'))return;const W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);
+ // repli sans WebGL : l'image peinte d'avant la 2.8
+ function draw(now){if(!el.classList.contains('open')||in3d)return;const W=cv.width,H=cv.height,d=draft();ctx.clearRect(0,0,W,H);
   const shadow=y=>{ctx.save();ctx.fillStyle='rgba(0,0,0,.38)';ctx.filter='blur(6px)';ctx.beginPath();ctx.ellipse(W/2,y,W*.16,H*.022,0,0,7);ctx.fill();ctx.restore()};
-  if(view==='portrait'){const c=S.portrait(draft),s=Math.min(W*.92/c.width,H*.9/c.height);shadow(H*.95-c.height*s*.02);ctx.drawImage(c,(W-c.width*s)/2,H*.95-c.height*s,c.width*s,c.height*s)}
-  else{const g=S.gallop(draft,.5),fw=g.width/8,f=Math.floor(now/70)%8,s=Math.min(W*.8/fw,H*.9/g.height),bob=Math.abs(Math.sin(now/70/8*Math.PI*2))*H*.008;
+  if(view!=='galop'){const c=S.portrait(d),s=Math.min(W*.92/c.width,H*.9/c.height);shadow(H*.95-c.height*s*.02);ctx.drawImage(c,(W-c.width*s)/2,H*.95-c.height*s,c.width*s,c.height*s)}
+  else{const g=S.gallop(d,.5),fw=g.width/8,f=Math.floor(now/70)%8,s=Math.min(W*.8/fw,H*.9/g.height),bob=Math.abs(Math.sin(now/70/8*Math.PI*2))*H*.008;
    shadow(H*.95-g.height*s*.1);ctx.drawImage(g,f*fw,0,fw,g.height,(W-fw*s)/2,H*.95-g.height*s-bob,fw*s,g.height*s);anim=requestAnimationFrame(draw)}}
- el.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;draft[b.dataset.k]=b.dataset.v;cancelAnimationFrame(anim);render()});
- $('#studioName').addEventListener('input',e=>{draft.name=e.target.value.slice(0,18);$('#studioPlate b').textContent=draft.name||'Sans nom'});
- $$('.studio-view button').forEach(b=>b.onclick=()=>{view=b.dataset.view;$$('.studio-view button').forEach(x=>x.classList.toggle('on',x===b));cancelAnimationFrame(anim);draw(performance.now())});
- $('#studioRandom').onclick=()=>{const r=S.random(Date.now()%100000);draft={...r,name:draft.name};cancelAnimationFrame(anim);render()};
- $('#studioSave').onclick=()=>{draft.name=(draft.name||'').trim()||'Royal Thunder';champion.set(draft);close();if(firstRun)try{if(!domaine3d.on)splash.show()}catch(e){}toast(firstRun?`Bienvenue, ${draft.name} !`:'Couleurs enregistrées')};
+ el.addEventListener('click',e=>{const hb=e.target.closest('[data-horse]');if(hb){pick(hb.dataset.horse);return}const b=e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k,v=b.dataset.v;
+  if(k==='coat')horses[cur].coat=v;else silks[k]=v;cancelAnimationFrame(anim);render()});
+ // couleur libre : aperçu pendant qu'on glisse dans le sélecteur (sans tout redessiner, le sélecteur reste ouvert), tout se redessine à la fin
+ el.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.free;if(!k||!hexOk(e.target.value))return;silks[k]=e.target.value.toLowerCase();const l=e.target.parentNode;
+  l.parentNode.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x===l));l.style.background=silks[k];if(in3d)PORTRAIT3D.stage.set(draft())});
+ el.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.free)render()});
+ function pick(id){const h=stable.byId(id);if(!h)return;cur=id;horses[id]=horses[id]||{name:h.name,coat:h.coat};render()}
+ $('#studioName').addEventListener('input',e=>{horses[cur].name=e.target.value.slice(0,18);$('#studioPlate b').textContent=horses[cur].name||'Sans nom';const t=$(`#studioHorses [data-horse="${cur}"] span`);if(t)t.textContent=horses[cur].name;if(in3d)PORTRAIT3D.stage.set(draft())});
+ $$('.studio-view button').forEach(b=>b.onclick=()=>{view=b.dataset.view;$$('.studio-view button').forEach(x=>x.classList.toggle('on',x===b));cancelAnimationFrame(anim);if(in3d)PORTRAIT3D.stage.mode(view);else draw(performance.now())});
+ $('#studioRandom').onclick=()=>{const r=S.random(Date.now()%100000);silks={main:r.main,second:r.second,pattern:r.pattern,cap:r.cap};horses[cur].coat=r.coat;cancelAnimationFrame(anim);render()};
+ $('#studioSave').onclick=()=>{stable.silks={...silks};for(const[id,v]of Object.entries(horses)){const h=stable.byId(id);if(!h)continue;const n=(v.name||'').trim();if(n)h.name=n.slice(0,18);else if(!h.name)h.name='Royal Thunder';h.coat=v.coat}
+  stable.created=true;stable.save();champion.emit();const nm=champion.get().name;close();if(firstRun)try{if(!domaine3d.on)splash.show()}catch(e){}toast(firstRun?`Bienvenue, ${nm} !`:'Couleurs enregistrées')};
  $('#studioClose').onclick=()=>close();
- function open(first=false){firstRun=first;if(first)try{splash.hide()}catch(e){} // 2.6 : un nouveau joueur crée son champion tout de suite, le domaine 3D finit de se construire derrière
- draft={...champion.get()};$('#studioTitle').textContent=first?'Crée ton premier champion':'Mon champion';
-  $('#studioIntro').textContent=first?'Choisis la robe de ton cheval et les couleurs de ton écurie. Tu pourras les changer à tout moment.':'Robe, casaque et toque : tes couleurs apparaissent en course et sur le podium.';
-  $('#studioClose').hidden=first;el.classList.add('open');S.ready.then(()=>{fit();render()})}
- function close(){el.classList.remove('open');cancelAnimationFrame(anim)}
- addEventListener('resize',()=>{if(el.classList.contains('open')){fit();draw(performance.now())}});
- return{open,close}})();
+ function open(first=false,horseId){firstRun=first;if(first)try{splash.hide()}catch(e){} // 2.6 : un nouveau joueur crée son champion tout de suite, le domaine 3D finit de se construire derrière
+  const a=stable.active();silks={main:stable.silks.main,second:stable.silks.second,pattern:stable.silks.pattern,cap:stable.silks.cap};horses={};cur=null;pick(stable.byId(horseId)?horseId:a.id);
+  $('#studioTitle').textContent=first?'Crée ton premier champion':'Atelier de l’écurie';
+  $('#studioIntro').textContent=first?'Choisis la robe de ton cheval et les couleurs de ton écurie. Tu pourras les changer à tout moment.':'Nom et robe de chaque cheval, casaque et toque de l’écurie : c’est ce que tu vois en course, en 3D.';
+  $('#studioClose').hidden=first;el.classList.add('open');view='portrait';$$('.studio-view button').forEach(x=>x.classList.toggle('on',x.dataset.view==='portrait'));
+  // 2.8 : le vrai modèle de course, en 3D ; l'image peinte seulement si la 3D est indisponible
+  in3d=PORTRAIT3D.stage.start(stageEl,draft());stageEl.classList.toggle('is3d',in3d);if(in3d)PORTRAIT3D.stage.mode('portrait');
+  S.ready.then(()=>{fit();render()})}
+ function close(){el.classList.remove('open');cancelAnimationFrame(anim);if(in3d)PORTRAIT3D.stage.stop();in3d=false;stageEl.classList.remove('is3d')}
+ addEventListener('resize',()=>{if(el.classList.contains('open')&&!in3d){fit();draw(performance.now())}});
+ return{open,close,get in3d(){return in3d}}})();
 function refreshChampion(){const c=champion.get();$('.avatar').innerHTML=LIVERY.silkSVG(c,56);$('.profile-card b').textContent=c.name;raceNames[0]=c.name;
  $('#autoGallop span').textContent=c.name.toUpperCase();$('#resultText').textContent=`${c.name} remporte la course.`}
 champion.on(refreshChampion);refreshChampion();
 $('.avatar').setAttribute('role','button');$('.avatar').setAttribute('tabindex','0');$('.avatar').setAttribute('aria-label','Personnaliser mon champion');
 $('.avatar').addEventListener('click',()=>studio.open());$('.avatar').addEventListener('keydown',e=>{if(e.key==='Enter')studio.open()});
 function championTile(extra=''){const c=champion.get();return `<div class="champ-tile"><canvas class="champ-thumb" width="148" height="220"></canvas><div><strong>${escapeHTML(c.name)}</strong><small>Pur-sang · ${LIVERY.COATS.find(x=>x.id===c.coat).name} · Niveau 8</small>${extra}<button class="action green" data-studio>PERSONNALISER</button></div></div>`}
-function paintThumbs(){LIVERY.ready.then(()=>{const p=LIVERY.portrait(champion.get());$$('.champ-thumb').forEach(cv=>{const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const s=cv.width/p.width*1.35;x.drawImage(p,(cv.width-p.width*s)/2,-4,p.width*s,p.height*s)})})}
+function paintThumbs(){const c=champion.get();$$('.champ-thumb').forEach(cv=>PORTRAIT3D.draw(cv,c)||LIVERY.ready.then(()=>{const p=LIVERY.portrait(c);[cv].forEach(cv=>{const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const s=cv.width/p.width*1.35;x.drawImage(p,(cv.width-p.width*s)/2,-4,p.width*s,p.height*s)})}))}
 document.addEventListener('click',e=>{if(e.target.closest('[data-studio]')){$('#panel').classList.remove('open');studio.open()}});
 LIVERY.ready.then(()=>{if(!champion.exists())setTimeout(()=>studio.open(true),900)}).catch(()=>{});
 </script>
@@ -2632,7 +2936,8 @@ const stUI={horse:null,tab:'train',int:'normal',filter:null};
 const livOf=h=>({...stable.silks,name:h.name,coat:h.coat});
 const coatName=id=>LIVERY.COATS.find(c=>c.id===id).name;
 const distName=d=>(DISTS.find(x=>x[0]===d)||DISTS[1])[1];
-function drawPortrait(cv,h,zoom=1.25,dy=-4){LIVERY.ready.then(()=>{const p=LIVERY.portrait(livOf(h)),x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const s=cv.width/p.width*zoom;x.drawImage(p,(cv.width-p.width*s)/2,dy,p.width*s,p.height*s)})}
+// 2.8 : le vrai cheval de course en 3D (PORTRAIT3D) ; l'image peinte seulement sans WebGL
+function drawPortrait(cv,h,zoom=1.25,dy=-4){if(cv&&h&&PORTRAIT3D.draw(cv,livOf(h)))return;LIVERY.ready.then(()=>{const p=LIVERY.portrait(livOf(h)),x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const s=cv.width/p.width*zoom;x.drawImage(p,(cv.width-p.width*s)/2,dy,p.width*s,p.height*s)})}
 const condLabel=(k,v)=>k==='fatigue'?(v<25?'Frais':v<50?'Correct':v<75?'Fatigué':'Épuisé'):k==='form'?(v<40?'Méforme':v<60?'Moyenne':v<78?'Bonne':'Au sommet'):(v<40?'Maussade':v<65?'Calme':'Joyeux');
 const condColor=(k,v)=>k==='fatigue'?(v<50?'#55c756':v<75?'#eeb93d':'#e26b4a'):(v<40?'#e26b4a':v<60?'#eeb93d':'#55c756');
 const costTxt=c=>[c.gold?`🪙 ${fmt(c.gold)}`:'',c.feed?`🌾 ${fmt(c.feed)}`:''].filter(Boolean).join(' · ')||'Gratuit';
@@ -2672,7 +2977,7 @@ $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button,a'
  else if(t.dataset.release){if(!t.dataset.armed){t.dataset.armed=1;t.textContent='CONFIRMER : '+h.name+' quitte l’écurie';setTimeout(()=>{if(t.isConnected){delete t.dataset.armed;renderStable()}},4000);return}const g=stable.rating(h)*80;if(stable.removeHorse(h.id)){state.gold+=g;sync();stUI.horse=stable.data.active;renderStable();toast(`${h.name} part pour une nouvelle vie · +${fmt(g)} or`)}}
  else if(t.dataset.engage){stable.setActive(t.dataset.engage);champion.emit();renderStable();toast(`${h.name} est engagé pour la prochaine course`)}
  else if(t.hasAttribute('data-goraces')){openCourses()}
- else if(t.dataset.studioFor){stable.setActive(t.dataset.studioFor);stUI.horse=t.dataset.studioFor;champion.emit();$('#panel').classList.remove('open');studio.open()}});
+ else if(t.dataset.studioFor){stUI.horse=t.dataset.studioFor;$('#panel').classList.remove('open');studio.open(false,t.dataset.studioFor)}});
 /* ---------- engagement en course : partants, pronostic, tactique ---------- */
 /* avance des adversaires sur la note du cheval engagé (points de note) : réglée au bot pour qu'un bon joueur gagne 35 à 75 % à sa distance */
 const FIELD_EDGE=0;
@@ -2836,6 +3141,20 @@ apply();
 </script>
 <script type="text/x-module" data-f="17-meta.js">/* ===== Méta-jeu : coffres, séries de victoires, récompense quotidienne, adéquation cheval/course, barre d'accueil ===== */
 const CHESTS={bois:{n:'en bois',min:15,col:'#a8733f',ico:'🧰'},argent:{n:'d’argent',min:60,col:'#c9d3dc',ico:'🎁'},or:{n:'d’or',min:180,col:'#f3c64a',ico:'💰'},royal:{n:'royal',min:480,col:'#b98cff',ico:'👑'}};
+// 2.8 : un vrai coffre dessiné (bois cerclé de fer, argent, or, royal violet et couronne) au lieu d'un émoji, le même partout
+// (emplacements, ouverture, boutique, saison, tournoi, La Couronne) ; couvercle à part pour l'ouverture. Aplats seulement : aucun dégradé à
+// identifiant, l'icône peut être répétée et masquée sans rien casser.
+const CHEST_ART={bois:['#9a6232','#4b3622','#d8b04a'],argent:['#b7c3ce','#66788a','#f4f7fa'],or:['#ebb73c','#9a6a12','#fff1b8'],royal:['#6d3fcb','#f3c64a','#ffe08a']};
+function chestSVG(t,cls=''){const[b,band,lock]=CHEST_ART[t]||CHEST_ART.bois,wood=t==='bois'?'<path d="M9 37.5h46M9 45.5h46" stroke="#0000002e" stroke-width="1.6"/>':'';
+ return `<svg class="chest ${cls}" viewBox="0 0 64 64" role="img" aria-label="Coffre ${CHESTS[t]?.n||''}"><ellipse class="ch-shadow" cx="32" cy="58.5" rx="23" ry="3.6" fill="#00000059"/>`+
+  `<g class="ch-body"><rect x="9" y="30" width="46" height="26" rx="4" fill="${b}"/><rect x="9" y="45" width="46" height="11" rx="4" fill="#00000033"/>${wood}<rect x="15" y="30" width="6.5" height="26" fill="${band}"/><rect x="42.5" y="30" width="6.5" height="26" fill="${band}"/><rect x="9" y="52.5" width="46" height="3.5" rx="1.7" fill="${band}"/></g>`+
+  `<g class="ch-glow"><ellipse cx="32" cy="30" rx="19" ry="5" fill="#fff6c8"/></g>`+
+  `<g class="ch-lid"><rect x="9" y="14.5" width="46" height="17.5" rx="8" fill="${b}"/><path d="M13 20.5C16 16.6 48 16.6 51 20.5" fill="none" stroke="#ffffff6b" stroke-width="2.2" stroke-linecap="round"/><rect x="15" y="15.2" width="6.5" height="16.8" fill="${band}"/><rect x="42.5" y="15.2" width="6.5" height="16.8" fill="${band}"/><rect x="8" y="28.5" width="48" height="4.2" rx="2" fill="${band}"/>${t==='royal'?`<path d="M23.5 15.5 26 7.5l6 4.6 6-4.6 2.5 8z" fill="${band}" stroke="#00000040" stroke-width="1"/><circle cx="32" cy="9.6" r="1.6" fill="#ff5d8f"/>`:''}</g>`+
+  `<g class="ch-lock"><rect x="26.5" y="27" width="11" height="13" rx="2.6" fill="${lock}" stroke="#00000038" stroke-width="1"/><circle cx="32" cy="32" r="1.9" fill="#0000009c"/><rect x="31.2" y="32.4" width="1.6" height="4.2" rx=".8" fill="#0000009c"/></g></svg>`}
+// coffre en ligne dans un texte HTML (récompenses de saison, tournoi, boutique, La Couronne) ; les toasts gardent l'émoji
+const chestIco=t=>`<span class="ico-chest">${chestSVG(t)}</span>`;
+// temps restant d'un coffre : « 14:32 » sous l'heure, « 2 h 05 » au-delà
+const chestLeft=ms=>{const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h} h ${String(m).padStart(2,'0')}`:`${m}:${String(x).padStart(2,'0')}`};
 const LOGIN=[{gold:2000},{feed:2500},{gems:10},{gold:5000},{elixir:1},{feed:6000},{chest:'or'}];
 const meta=(()=>{const C=career.data;C.chests=C.chests||[null,null,null,null];C.streak=C.streak||0;C.elixirs=C.elixirs||0;C.login=C.login||{day:'',idx:-1};
  const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
@@ -2847,32 +3166,57 @@ const meta=(()=>{const C=career.data;C.chests=C.chests||[null,null,null,null];C.
   const o={gold:Math.round((700+r()*500)*m*k/50)*50,feed:Math.round((500+r()*400)*m*k/50)*50};if(type!=='bois')o.gems=Math.round((2+r()*3)*m/2.6);if(type==='or'||type==='royal'||(type==='argent'&&r()<.35))o.elixir=type==='royal'?3:1;return o}
  function tap(i){const c=C.chests[i];if(!c)return;const now=Date.now();
   if(c.ends&&now>=c.ends)return open(i);
-  if(c.ends){const min=Math.ceil((c.ends-now)/6e4),cost=Math.max(1,Math.ceil(min/6));return confirmGems(i,cost,min)}
+  if(c.ends){const min=Math.ceil((c.ends-now)/6e4);return confirmGems(i,gemCost(c.ends-now),min)}
   if(C.chests.some(x=>x&&x.ends&&x.ends>now))return confirmGems(i,Math.max(1,Math.ceil(CHESTS[c.type].min/6)),CHESTS[c.type].min,true);
   c.ends=now+CHESTS[c.type].min*6e4;save();render();toast(`Ouverture du coffre ${CHESTS[c.type].n} : ${fmtMin(CHESTS[c.type].min)}`)}
- function confirmGems(i,cost,min,busy){$('#panelTitle').textContent=`Coffre ${CHESTS[C.chests[i].type].n}`;$('#panel .card').classList.remove('wide');
-  $('#panelBody').innerHTML=`<div class="chest-pop"><div class="chest-big" style="--c:${CHESTS[C.chests[i].type].col}">${CHESTS[C.chests[i].type].ico}</div><p>${busy?'Un autre coffre est déjà en cours d’ouverture.':`Encore ${fmtMin(min)} avant l’ouverture.`}</p><button class="action green" data-open-gems="${i}" data-cost="${cost}">OUVRIR MAINTENANT · 💎 ${cost}</button></div>`;$('#panel').classList.add('open')}
- function open(i,paid){const c=C.chests[i];if(!c)return;const o=contents(c.type,Date.now());C.chests[i]=null;state.gold+=o.gold;state.feed+=o.feed;state.gems+=o.gems||0;C.elixirs+=o.elixir||0;save();sync();render();sound.fanfare();buzz([30,30,60]);
+ const gemCost=ms=>Math.max(1,Math.ceil(Math.ceil(ms/6e4)/6));
+ function confirmGems(i,cost,min,busy){const c=C.chests[i],T=CHESTS[c.type];$('#panelTitle').textContent=`Coffre ${T.n}`;$('#panel .card').classList.remove('wide');
+  const other=busy&&C.chests.find(x=>x&&x.ends&&x.ends>Date.now());
+  $('#panelBody').innerHTML=`<div class="chest-pop${busy?'':' timing'}" data-chest="${i}" style="--c:${T.col}"><div class="chest-stage">${chestSVG(c.type,'big')}</div>
+   ${busy?`<p>Un seul coffre s’ouvre à la fois : le coffre ${CHESTS[other.type].n} sera prêt dans <b class="chest-left" data-ends="${other.ends}">${chestLeft(other.ends-Date.now())}</b>.<br>Celui-ci demande ${fmtMin(T.min)}.</p>`
+   :`<p class="chest-count">Ouverture dans <b class="chest-left" data-ends="${c.ends}">${chestLeft(c.ends-Date.now())}</b></p><div class="chest-bar"><i style="width:${(100*(1-(c.ends-Date.now())/(T.min*6e4))).toFixed(1)}%"></i></div>`}
+   <button class="action green" data-open-gems="${i}" data-cost="${cost}">OUVRIR MAINTENANT · 💎 ${cost}</button></div>`;$('#panel').classList.add('open')}
+ function open(i,paid){const c=C.chests[i];if(!c)return;const o=contents(c.type,Date.now());C.chests[i]=null;state.gold+=o.gold;state.feed+=o.feed;state.gems+=o.gems||0;C.elixirs+=o.elixir||0;save();sync();render();
   $('#panelTitle').textContent=`Coffre ${CHESTS[c.type].n}`;$('#panel .card').classList.remove('wide');
-  $('#panelBody').innerHTML=`<div class="chest-pop open"><div class="chest-big" style="--c:${CHESTS[c.type].col}">${CHESTS[c.type].ico}</div><div class="loot">${[['🪙',o.gold,'or'],['🌾',o.feed,'fourrage'],['💎',o.gems,'gemmes'],['🧪',o.elixir,'élixir d’XP']].filter(x=>x[1]).map(([i,v,n],k)=>`<div style="animation-delay:${.15+k*.18}s"><i>${i}</i><b>+${fmt(v)}</b><small>${n}</small></div>`).join('')}</div><button class="action green" id="lootOk">SUPER !</button></div>`;$('#panel').classList.add('open')}
+  const L=[['🪙',o.gold,'or'],['🌾',o.feed,'fourrage'],['💎',o.gems,'gemmes'],['🧪',o.elixir,'élixir d’XP']].filter(x=>x[1]);
+  $('#panelBody').innerHTML=`<div class="chest-pop opening" style="--c:${CHESTS[c.type].col}"><div class="chest-stage"><span class="chest-rays"></span>${chestSVG(c.type,'big')}<span class="chest-sparks">${'<i></i>'.repeat(10)}</span></div>
+   <div class="loot">${L.map(([e,v,n])=>`<div><i>${e}</i><b data-to="${v}">+0</b><small>${n}</small></div>`).join('')}</div><button class="action green" id="lootOk">SUPER !</button><p class="chest-skip">Touche le coffre pour tout voir</p></div>`;$('#panel').classList.add('open');
+  // déroulé : le coffre tremble, le couvercle saute dans un éclat de lumière, puis chaque gain apparaît et se compte ; toucher le coffre montre tout
+  const pop=$('#panelBody .chest-pop'),items=[...pop.querySelectorAll('.loot div')],still=REDUCE_MOTION.matches,T0=performance.now();let done=false;
+  const count=(el,ms)=>{const to=+el.dataset.to,t0=performance.now(),f=now=>{if(!el.isConnected)return;const k=Math.min(1,(now-t0)/ms),e=1-Math.pow(1-k,3);el.textContent='+'+fmt(Math.round(to*e));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)};
+  const finish=()=>{if(done)return;done=true;pop.classList.add('opened','shown');items.forEach(d=>{d.classList.add('in');const b=d.querySelector('b');b.textContent='+'+fmt(+b.dataset.to)})};
+  if(still){sound.fanfare();buzz([30,30,60]);return finish()}
+  pop.querySelector('.chest-stage').addEventListener('click',finish);
+  setTimeout(()=>{if(done||!pop.isConnected)return;pop.classList.add('opened');sound.fanfare();buzz([30,30,60])},700);
+  items.forEach((d,k)=>setTimeout(()=>{if(done||!pop.isConnected)return;d.classList.add('in');count(d.querySelector('b'),650);sound.coin()},1050+k*380));
+  setTimeout(()=>{if(!done&&pop.isConnected){done=true;pop.classList.add('shown')}},1050+L.length*380+500)}
  const fmtMin=m=>m>=60?`${Math.floor(m/60)} h${m%60?` ${m%60}`:''}`:`${m} min`;
- $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openGems!=null){const cost=+b.dataset.cost;if(state.gems<cost)return toast('Pas assez de gemmes');state.gems-=cost;sync();open(+b.dataset.openGems)}else if(b.id==='lootOk'||b.id==='loginOk')$('#panel').classList.remove('open')});
+ $('#panelBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.openGems!=null){const cost=+b.dataset.cost;if(state.gems<cost)return toast('Pas assez de gemmes');state.gems-=cost;sync();open(+b.dataset.openGems)}else if(b.dataset.openFree!=null)open(+b.dataset.openFree);else if(b.id==='lootOk'||b.id==='loginOk')$('#panel').classList.remove('open')});
  // ---------- récompense quotidienne ----------
  function login(){const d=new Date().toISOString().slice(0,10);if(C.login.day===d)return;C.login.day=d;C.login.idx=(C.login.idx+1)%7;const R=LOGIN[C.login.idx];
   state.gold+=R.gold||0;state.feed+=R.feed||0;state.gems+=R.gems||0;C.elixirs+=R.elixir||0;if(R.chest)addChest(R.chest);save();sync();
   setTimeout(()=>{if($('#studio').classList.contains('open'))return;$('#panelTitle').textContent='Récompense du jour';$('#panel .card').classList.remove('wide');
-   $('#panelBody').innerHTML=`<p class="hint">Reviens chaque jour : la 7e récompense est un coffre d’or.</p><div class="login">${LOGIN.map((x,i)=>`<div class="${i<C.login.idx?'got':i===C.login.idx?'today':''}"><small>Jour ${i+1}</small><i>${x.gold?'🪙':x.feed?'🌾':x.gems?'💎':x.elixir?'🧪':'💰'}</i><b>${x.gold?fmt(x.gold):x.feed?fmt(x.feed):x.gems||x.elixir||'Coffre'}</b></div>`).join('')}</div><button class="action green" id="loginOk">RÉCUPÉRER</button>`;$('#panel').classList.add('open');sound.coin()},1400)}
+   $('#panelBody').innerHTML=`<p class="hint">Reviens chaque jour : la 7e récompense est un coffre d’or.</p><div class="login">${LOGIN.map((x,i)=>`<div class="${i<C.login.idx?'got':i===C.login.idx?'today':''}"><small>Jour ${i+1}</small><i>${x.gold?'🪙':x.feed?'🌾':x.gems?'💎':x.elixir?'🧪':chestSVG(x.chest||'or')}</i><b>${x.gold?fmt(x.gold):x.feed?fmt(x.feed):x.gems||x.elixir||'Coffre'}</b></div>`).join('')}</div><button class="action green" id="loginOk">RÉCUPÉRER</button>`;$('#panel').classList.add('open');sound.coin()},1400)}
  // ---------- adéquation cheval / course ----------
  function suit(h,m=RACE){const T=TERRAINS[m.terrain],d=Math.abs(h.dist-m.dist)/400,terr=T.drain>1?(65-h.stats.end)/15:0,s=d*1.2+Math.max(0,terr)+(h.dist<m.dist?d*.5:0)+(h.fatigue>55?1:0);
   return s<.7?{k:'ideal',n:'Idéal',i:'✓'}:s<1.6?{k:'ok',n:'Correct',i:'~'}:{k:'risk',n:'Risqué',i:'⚠'}}
  // ---------- barre d'accueil : coffres + bouton COURIR ----------
  const bar=document.createElement('div');bar.className='homebar';bar.innerHTML='<div class="slots"></div><button class="play" id="playBtn"><b>COURIR</b><small></small></button>';$('#game').appendChild(bar);
  bar.querySelector('.slots').addEventListener('click',e=>{const s=e.target.closest('[data-slot]');if(s)tap(+s.dataset.slot)});$('#playBtn').onclick=()=>openCourses();
- function render(){const now=Date.now();bar.querySelector('.slots').innerHTML=C.chests.map((c,i)=>{if(!c)return `<div class="slot empty" data-slot="${i}" title="Gagne ou place-toi sur le podium pour remplir cet emplacement"><i>🧰</i><small>Libre</small></div>`;const T=CHESTS[c.type],ready=c.ends&&now>=c.ends,left=c.ends?Math.max(0,Math.ceil((c.ends-now)/6e4)):T.min;
-   return `<button class="slot${ready?' ready':c.ends?' going':''}" data-slot="${i}" style="--c:${T.col}"><i>${T.ico}</i><small>${ready?'OUVRIR':c.ends?fmtMin(left):fmtMin(T.min)}</small></button>`}).join('');
+ function render(){const now=Date.now();bar.querySelector('.slots').innerHTML=C.chests.map((c,i)=>{if(!c)return `<div class="slot empty" data-slot="${i}" title="Gagne ou place-toi sur le podium pour remplir cet emplacement"><i>${chestSVG('bois','ghost')}</i><small>Libre</small></div>`;const T=CHESTS[c.type],ready=c.ends&&now>=c.ends;
+   return `<button class="slot${ready?' ready':c.ends?' going':''}" data-slot="${i}" style="--c:${T.col}${c.ends&&!ready?`;--p:${(1-(c.ends-now)/(T.min*6e4)).toFixed(3)}`:''}" aria-label="Coffre ${T.n}${ready?' : prêt, touche pour l’ouvrir':c.ends?' en cours d’ouverture':` : touche pour lancer son ouverture (${fmtMin(T.min)})`}"><i>${chestSVG(c.type,ready?'ready':'')}</i><small${c.ends&&!ready?` data-ends="${c.ends}"`:''}>${ready?'OUVRIR':c.ends?chestLeft(c.ends-now):fmtMin(T.min)}</small>${c.ends&&!ready?'<span class="prog"></span>':''}</button>`}).join('');
   const h=stable.active(),sf=suit(h);$('#playBtn small').innerHTML=`${escapeHTML(RACE.n)} · <span class="suit ${sf.k}">${sf.i} ${escapeHTML(h.name)}</span>`;
   const n=C.chests.filter(c=>c&&c.ends&&now>=c.ends).length;bar.classList.toggle('has-ready',!!n)}
  setInterval(render,20e3);champion.on(render);
+ // décompte à la seconde (emplacements et fenêtre du coffre ouverte) ; quand un coffre devient prêt : tout est redessiné, un petit son
+ setInterval(()=>{if(document.hidden)return;const now=Date.now();let ready=false;
+  bar.querySelectorAll('.slot.going small[data-ends]').forEach(el=>{const e=+el.dataset.ends,sl=el.parentNode,T=CHESTS[C.chests[+sl.dataset.slot]?.type];if(now>=e){ready=true;return}el.textContent=chestLeft(e-now);if(T)sl.style.setProperty('--p',(1-(e-now)/(T.min*6e4)).toFixed(3))});
+  const pop=$('#panelBody .chest-pop[data-chest]');if(pop&&$('#panel').classList.contains('open')){const i=+pop.dataset.chest,c=C.chests[i];
+   pop.querySelectorAll('.chest-left[data-ends]').forEach(el=>el.textContent=chestLeft(+el.dataset.ends-now));
+   if(c&&c.ends&&pop.classList.contains('timing')){const T=CHESTS[c.type],bt=pop.querySelector('[data-open-gems]'),w=pop.querySelector('.chest-bar i');if(w)w.style.width=(100*Math.min(1,1-(c.ends-now)/(T.min*6e4))).toFixed(1)+'%';
+    if(now>=c.ends){pop.classList.remove('timing');pop.classList.add('ready');pop.querySelector('.chest-count').innerHTML='<b>Prêt !</b>';if(bt){bt.outerHTML=`<button class="action green" data-open-free="${i}">OUVRIR</button>`}}
+    else if(bt){const k=gemCost(c.ends-now);if(+bt.dataset.cost!==k){bt.dataset.cost=k;bt.textContent=`OUVRIR MAINTENANT · 💎 ${k}`}}}}
+  if(ready){render();sound.coin()}},1000);
  return{onRace,render,suit,addChest,login,get elixirs(){return C.elixirs},useElixir(){if(C.elixirs<1)return false;C.elixirs--;save();return true},get streak(){return C.streak}}})();
 meta.render();if(career.data.stats?.races>0)meta.login();{const s2=sync;sync=function(){s2();meta.render()}}
 </script>
@@ -2882,7 +3226,7 @@ const season=(()=>{const C=career.data,sid=()=>Math.floor(Date.now()/864e5/28),l
  if(!C.season||C.season.id!==sid())C.season={id:sid(),stars:0,claimed:[]};C.unlocks=C.unlocks||[];const S=C.season,PER=3;
  const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
  const tier=()=>Math.min(20,Math.floor(S.stars/PER));
- const rtxt=r=>r.pattern?'🎨 '+r.label:r.chest?`${CHESTS[r.chest].ico} Coffre ${CHESTS[r.chest].n}`:r.elixir?'🧪 Élixir':r.gems?`💎 ${r.gems}`:r.feed?`🌾 ${fmt(r.feed)}`:`🪙 ${fmt(r.gold)}`;
+ const rtxt=r=>r.pattern?'🎨 '+r.label:r.chest?`${chestIco(r.chest)} Coffre ${CHESTS[r.chest].n}`:r.elixir?'🧪 Élixir':r.gems?`💎 ${r.gems}`:r.feed?`🌾 ${fmt(r.feed)}`:`🪙 ${fmt(r.gold)}`;
  function add(n){if(!n)return;const before=tier();S.stars+=n;save();badge();if(tier()>before)toast(`Route des étoiles : palier ${tier()} atteint !`)}
  function claim(t){if(S.claimed.includes(t)||tier()<t)return;const r=SEASON_TIERS[t-1];if(r.chest&&!meta.addChest(r.chest))return toast('Libère un emplacement de coffre d’abord');
   S.claimed.push(t);state.gold+=r.gold||0;state.feed+=r.feed||0;state.gems+=r.gems||0;if(r.elixir)career.data.elixirs=(career.data.elixirs||0)+r.elixir;if(r.pattern&&!C.unlocks.includes(r.pattern)){C.unlocks.push(r.pattern);toast('Nouveau motif de casaque débloqué : Soleil royal !')}save();sync();sound.coin();open()}
@@ -2976,7 +3320,7 @@ const tour=(()=>{const C=career.data;C.tour=C.tour||{day:'',used:false,cups:0,a:
  function meeting(){const a=T.a;if(!a)return{...MEETINGS[1]};const L=career.league();
   return{id:'tour',tour:true,round:a.round,n:`Tournoi royal · ${TOUR_ROUNDS[a.round]}`,dist:a.dist,terrain:a.terrain,hippo:a.hippo,league:0,diff:L*2-2+a.round*2.5,purse:Math.round([1500,2500,4000][a.round]*k()/50)*50,fee:0}}
  const prizes=()=>{const K=k(),L=career.league();return[{gold:Math.round(8000*K/50)*50,gems:20,chest:L>=2?'royal':'or'},{gold:Math.round(4000*K/50)*50,chest:'argent'},{gold:Math.round(2500*K/50)*50,chest:'bois'}]};
- const ptxt=p=>[p.gold?`🪙 ${fmt(p.gold)}`:'',p.gems?`💎 ${p.gems}`:'',p.chest?`${CHESTS[p.chest].ico} coffre ${CHESTS[p.chest].n}`:''].filter(Boolean).join(' · ');
+ const ptxt=p=>[p.gold?`🪙 ${fmt(p.gold)}`:'',p.gems?`💎 ${p.gems}`:'',p.chest?`${chestIco(p.chest)} coffre ${CHESTS[p.chest].n}`:''].filter(Boolean).join(' · ');
  function enter(){roll();const h=stable.byId(pickId||stable.data.active);if(!h)return;if(h.injury||h.fatigue>=70)return toast(`${h.name} doit être reposé (fatigue < 70) pour un tournoi`);
   if(T.used){if(state.gems<TOUR_GEMS)return toast('Pas assez de gemmes');state.gems-=TOUR_GEMS;sync()}T.used=true;const c=conf();T.a={horse:h.id,round:0,dist:c.dist,terrain:c.terrain,hippo:c.hippo,ranks:[]};save();refresh();
   stable.setActive(h.id);champion.emit();RACE=meeting();sound.fanfare();openCourses()}
@@ -3072,12 +3416,12 @@ const shop=(()=>{const C=career.data;C.shop=C.shop||{day:'',gift:false,deal:fals
  // offre du jour : un article tiré au sort, −40 %
  function deal(){const L=items();let x=[...day()].reduce((a,c)=>a*31+c.charCodeAt(0),5)%2147483647;x=(x*16807)%2147483647;const it=L[x%L.length];return{...it,id:'deal',n:it.n+' · offre du jour',cost:Math.max(1,Math.round(it.cost*.6)),was:it.cost}}
  const gift=()=>({gold:r50(1200*k()),feed:r50(900*k())});
- const txt=g=>[g.gold?`🪙 ${fmt(g.gold)}`:'',g.feed?`🌾 ${fmt(g.feed)}`:'',g.gems?`💎 ${g.gems}`:'',g.elixir?`🧪 ${g.elixir} élixir`:'',g.chest?`${CHESTS[g.chest].ico} coffre ${CHESTS[g.chest].n}`:''].filter(Boolean).join(' · ');
+ const txt=(g,html=1)=>[g.gold?`🪙 ${fmt(g.gold)}`:'',g.feed?`🌾 ${fmt(g.feed)}`:'',g.gems?`💎 ${g.gems}`:'',g.elixir?`🧪 ${g.elixir} élixir`:'',g.chest?`${html?chestIco(g.chest):CHESTS[g.chest].ico} coffre ${CHESTS[g.chest].n}`:''].filter(Boolean).join(' · ');
  function give(g){if(g.chest&&!meta.addChest(g.chest)){toast('Tes 4 emplacements de coffres sont pleins');return false}state.gold+=g.gold||0;state.feed+=g.feed||0;state.gems+=g.gems||0;if(g.elixir)C.elixirs=(C.elixirs||0)+g.elixir;save();sync();sound.coin();buzz(20);return true}
  function buy(id){roll();if(id==='gift'){if(S.gift)return;if(give(gift())){S.gift=true;save();toast('Cadeau du jour récupéré !')}return open()}
   const it=id==='deal'?deal():items().find(x=>x.id===id);if(!it)return;if(id==='deal'&&S.deal)return;if(state.gems<it.cost)return toast(`Il te manque ${it.cost-state.gems} 💎 — gagne-en avec les succès, missions et coffres`);
-  state.gems-=it.cost;if(!give(it.got)){state.gems+=it.cost;sync();return}if(id==='deal'){S.deal=true;save()}toast(`${it.n} : ${txt(it.got)}`);open()}
- function card(it,done){return `<article class="ware${it.id==='deal'?' deal':''}"><i>${it.i}</i><b>${it.n}</b><small>${txt(it.got)}</small><button class="action green" data-ware="${it.id}" ${done?'disabled':''}>${done?'ACHETÉ':`${it.was?`<s>💎 ${it.was}</s> `:''}💎 ${it.cost}`}</button></article>`}
+  state.gems-=it.cost;if(!give(it.got)){state.gems+=it.cost;sync();return}if(id==='deal'){S.deal=true;save()}toast(`${it.n} : ${txt(it.got,0)}`);open()}
+ function card(it,done){return `<article class="ware${it.id==='deal'?' deal':''}"><i>${it.got&&it.got.chest&&!it.got.gold?chestSVG(it.got.chest):it.i}</i><b>${it.n}</b><small>${txt(it.got)}</small><button class="action green" data-ware="${it.id}" ${done?'disabled':''}>${done?'ACHETÉ':`${it.was?`<s>💎 ${it.was}</s> `:''}💎 ${it.cost}`}</button></article>`}
  function open(focus){roll();$('#panelTitle').textContent='Boutique royale';$('#panel .card').classList.add('wide');const g=gift(),left=new Date();left.setHours(24,0,0,0);const h=Math.ceil((left-new Date())/36e5);
   $('#panelBody').innerHTML=`<p class="hint">Tu as <b>💎 ${fmt(state.gems)}</b>. Les gemmes se gagnent en jouant : succès, missions, coffres, Route des étoiles, tournoi. Nouvelles offres dans ${h} h.</p>
   <div class="wares top"><article class="ware gift${S.gift?' done':''}"><i>🎁</i><b>Cadeau du jour</b><small>${txt(g)}</small><button class="action green" data-ware="gift" ${S.gift?'disabled':''}>${S.gift?'REVIENS DEMAIN':'GRATUIT'}</button></article>${card(deal(),S.deal)}</div>
@@ -3371,7 +3715,7 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
  let pending=[];
  hooks.on('race:end',()=>{if(RACE.defi)return;const n=races();pending.push(...UNLOCKS.filter(U=>U.at===n))});
  // les annonces attendent le retour au domaine (après la course, le podium et le récapitulatif)
- hooks.on('race:leave',()=>{if(!pending.length)return;const list=pending;pending=[];setTimeout(()=>{apply();list.forEach(U=>coach.tip('unlock-'+U.k,`<b>Nouveau : ${U.n} !</b><br>${U.txt}`,U.sel[0]));buzz([20,30,20]);sound.coin()},700)});
+ hooks.on('race:leave',()=>{if(!pending.length)return;const list=pending;pending=[];setTimeout(()=>{if(enCourse()){pending.unshift(...list);return}apply();list.forEach(U=>coach.tip('unlock-'+U.k,`<b>Nouveau : ${U.n} !</b><br>${U.txt}`,U.sel[0]));buzz([20,30,20]);sound.coin()},700)});
  // objectif suivant, toujours visible au-dessus du bouton COURIR
  const bar=$('.homebar'),goal=document.createElement('button');goal.className='goal';bar.appendChild(goal);
  function next(){const C=career.data,h=stable.active(),n=races(),M=C.missions||[],ready=(C.chests||[]).findIndex(c=>c&&c.ends&&Date.now()>=c.ends);
@@ -3386,10 +3730,10 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
   try{const g=couronne.goal();if(g)return g}catch(e){}
   const R=rival.rec;if(R.w<=R.l)return[`Prends l’avantage sur Black Majesty (${R.w} – ${R.l})`,'courses'];
   return[n>=5?'Remporte le Tournoi royal du jour':'Enchaîne les victoires','courses']}
- function render(){const[t,a]=next();if(goal.dataset.a!==a||goal.textContent!=='🎯 '+t){goal.textContent='🎯 '+t;goal.dataset.a=a}}
+ function render(){const[t,a]=next();if(goal.dataset.a!==a||goal.dataset.t!==t){goal.textContent='🎯 '+t;goal.dataset.a=a;goal.dataset.t=t}}
  goal.onclick=()=>{const a=goal.dataset.a;if(a.startsWith('chest:'))return bar.querySelectorAll('.slots [data-slot]')[+a.slice(6)]?.click();if(a==='ecurie')return openStable();if(a==='defi'){openCourses();return defi.select()}openPanel(a)};
  // la récompense quotidienne attend la fin de la première course (sinon, rien ne doit détourner du premier départ)
- hooks.on('race:leave',()=>{if(races()>0)setTimeout(()=>meta.login(),1600)});
+ hooks.on('race:leave',()=>{if(races()>0)setTimeout(()=>{if(!enCourse())meta.login()},1600)});
  // premier affichage une fois tous les modules chargés : next() lit le Défi du jour (module 37), pas encore défini ici
  apply();hooks.on('ready',()=>{render();setInterval(render,1500)});hooks.on('race:leave',()=>setTimeout(render,50));
  return{apply,next}})();
@@ -3402,7 +3746,7 @@ const onboarding=(()=>{const races=()=>career.data.stats?.races||0;
 // 5 (2.7) : hippodromes (RACE.hippo, virages tirés du tracé). Le moteur 4 n'avait que l'Hippodrome Royal, dont les formules n'ont pas
 // changé : ses enregistrements (ENGINE_OK) se refont toujours à l'identique, sur l'Hippodrome Royal quoi qu'indique la course.
 const ENGINE=5,ENGINE_OK=[4,5];
-const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o));let rec=null,busy=false,toCheck=null;
+const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o));let rec=null,busy=false,toCheck=[];
  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}},store=list=>{try{localStorage.setItem(KEY,JSON.stringify(list.slice(-10)))}catch(e){}};
  const at=(type,v)=>{if(rec&&!busy)rec.inputs.push([raceTime,type,v])};
  hooks.on('race:start',()=>{if(busy)return;rec={v:1,e:ENGINE,at:new Date().toISOString(),race:clone(RACE),field:clone(currentField),seed:raceSeed,player:clone(racePlayer),strategy:state.strategy,horse:stable.active().name,liv:{...stable.silks,coat:stable.active().coat},inputs:[]}});
@@ -3412,9 +3756,12 @@ const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o
  hooks.on('race:jump',c=>at('jump',c));
  hooks.on('race:pace',v=>at('pace',v));
  hooks.on('moment:choose',ch=>at('moment',ch));
- hooks.on('race:end',()=>{if(!rec||busy)return;rec.result={order:finishOrder.slice(),times:raceFinishTimes.map(t=>+t.toFixed(3))};const list=load();list.push(rec);store(list);toCheck=rec;rec=null});
- // vérification au retour au domaine (le podium n'utilise plus l'état de course)
- hooks.on('race:leave',()=>{const r=toCheck;toCheck=null;if(r)setTimeout(()=>{const v=verify(r);if(v.ok===false)console.warn('Rejeu : écart détecté',v);try{playtest.on&&playtest.log('rejeu',{ok:v.ok})}catch(e){}},400)});
+ hooks.on('race:end',()=>{if(!rec||busy)return;rec.result={order:finishOrder.slice(),times:raceFinishTimes.map(t=>+t.toFixed(3))};const list=load();list.push(rec);store(list);toCheck.push(rec);if(toCheck.length>3)toCheck.shift();rec=null});
+ // vérification au retour au domaine (le podium n'utilise plus l'état de course). Le rejeu remplace un instant tout l'état de course :
+ // jamais pendant qu'une course est à l'écran (2.8 : après RECOURIR, la vérification de la course précédente tombait en pleine
+ // introduction de la suivante et y laissait la caméra d'arrivée — écran uni — et le HUD de la course rejouée). Elle attend donc la sortie.
+ const check=()=>{if(!toCheck.length||$('#raceScreen').classList.contains('open')||raceLoop)return;for(const r of toCheck.splice(0)){const v=verify(r);if(v.ok===false)console.warn('Rejeu : écart détecté',v);try{playtest.on&&playtest.log('rejeu',{ok:v.ok})}catch(e){}}};
+ hooks.on('race:leave',()=>setTimeout(check,400));
  // refait la course sans rien afficher ni jouer de son, puis restaure l'état ; opts.track : trajectoire du joueur pas à pas (fantôme d'un duel)
  function verify(r,opts={}){const e=r&&r.e||1;if(!ENGINE_OK.includes(e))return{ok:null,why:'version'};if(busy||raceLoop>0)return{ok:null,why:'course en cours'};busy=true;
   const keep={RACE,currentField,racePlayer,strategy:state.strategy,complete:completeRace,say:sound.say,bump:career.bump,tip:coach.tip,said:runRaceV2.said,tipd:runRaceV2.tipd,
@@ -3580,7 +3927,7 @@ const tele=(()=>{let on=false,loop=0,rec=null,i=0,keep=null,speed=1;
   RACE=JSON.parse(JSON.stringify(r.race));currentField=JSON.parse(JSON.stringify(r.field));racePlayer=JSON.parse(JSON.stringify(r.player));state.strategy=r.strategy;raceSeed=r.seed;raceRng=seeded(raceSeed);
   raceVenue(threeRace);resetRacers();runRaceV2.said=1;runRaceV2.tipd=1;
   initRivalAI();if(r.plan)moments.plan=r.plan;
-  const q=threeRace;q.podiumActive=false;q.finishView=false;q.tvView=true;q.startPhase='running';q.camPos=null;q.camTarget=null;q.podium.visible=false;q.stalls.visible=true;q.stalls.userData.doors.forEach(d=>{d.rotation.x=-Math.PI/2;d.position.y=.15});
+  const q=threeRace;q.podiumActive=false;$('#raceScreen').classList.remove('podium');q.finishView=false;q.tvView=true;q.startPhase='running';q.camPos=null;q.camTarget=null;q.podium.visible=false;q.stalls.visible=true;q.stalls.userData.doors.forEach(d=>{d.rotation.x=-Math.PI/2;d.position.y=.15});
   q.horses.forEach((h,k)=>{h.visible=true;h.material.map=q.horseTextures[k];h.material.needsUpdate=true});
   $('#finishBoard').classList.remove('show');$('#raceResult').classList.remove('show');scr.classList.add('tv');bar.querySelector('.tv-title').textContent=r.race.n;bar.querySelector('[data-tv=speed]').textContent='×2';
   sound.crowdStart();loop=setInterval(tickTv,100)}
@@ -3611,7 +3958,7 @@ const installer=(()=>{const KEY='trr.install';let S={};try{S=JSON.parse(localSto
  function show(){if(!available())return false;card.innerHTML=`<div class="ic-icon"><img src="assets/icons/icon-192.png" alt=""></div><div class="ic-body"><b>Installe The Royal Race</b><p>${ios?'Touche <b>Partager</b> <span class="ic-share">⬆︎</span> dans Safari, puis <b>« Sur l’écran d’accueil »</b>.':'Plein écran, lancement instantané, jouable même sans connexion.'}</p><div>${ios?'':'<button class="action green" data-in="go">INSTALLER</button>'}<button class="action" data-in="later">${ios?'COMPRIS':'PLUS TARD'}</button></div></div>`;card.hidden=false;return true}
  card.addEventListener('click',async e=>{const b=e.target.closest('[data-in]');if(!b)return;e.stopPropagation();if(b.dataset.in==='go'&&deferred){deferred.prompt();const r=await deferred.userChoice.catch(()=>null);deferred=null;if(r&&r.outcome==='accepted'){S.done=true;save()}}card.hidden=true;S.asked=new Date().toISOString().slice(0,10);save()});
  // au bon moment : retour au domaine après la 3e course terminée
- hooks.on('race:leave',fini=>{if(!fini||S.asked||S.done||(career.data.stats?.races||0)<3)return;setTimeout(()=>{if(!$('#panel').classList.contains('open')&&!coach.open)show()},2200)});
+ hooks.on('race:leave',fini=>{if(!fini||S.asked||S.done||(career.data.stats?.races||0)<3)return;setTimeout(()=>{if(!$('#panel').classList.contains('open')&&!coach.open&&!enCourse())show()},2200)});
  // aussi dans les réglages
  new MutationObserver(()=>{if(!$('#panel').classList.contains('open')||$('#panelTitle').textContent!=='Réglages'||$('#panelBody .set-install')||!available())return;
   $('#panelBody .set')?.insertAdjacentHTML('afterbegin','<section class="set-install"><h4>APPLICATION</h4><button class="action green" id="installBtn">📲 INSTALLER LE JEU SUR L’ÉCRAN D’ACCUEIL</button></section>');$('#installBtn').onclick=()=>{$('#panel').classList.remove('open');show()}}).observe($('#panel'),{attributes:true,attributeFilter:['class'],subtree:false});
@@ -4057,7 +4404,7 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
  // conditions d'un chapitre (le précédent doit être réussi)
  function lock(ch){const i=COURONNE.indexOf(ch);if(i>0&&!K.done.includes(COURONNE[i-1].id))return 'Réussis le chapitre précédent';const R=ch.req;
   if(R.league&&career.league()<R.league)return `Ligue ${LEAGUES[R.league].n} requise`;if(R.haras&&dlv('haras')<R.haras)return `Haras niveau ${R.haras} requis`;return null}
- const rtxt=r=>[r.gold?`🪙 ${fmt(r.gold)}`:'',r.gems?`💎 ${r.gems}`:'',r.chest?`${CHESTS[r.chest].ico} coffre ${CHESTS[r.chest].n}`:'',r.pattern?`🎨 motif « ${LIVERY.PATTERNS.find(p=>p[0]===r.pattern)[1]} »`:'',r.horse?'🐎 un cheval d’exception':''].filter(Boolean).join(' · ');
+ const rtxt=r=>[r.gold?`🪙 ${fmt(r.gold)}`:'',r.gems?`💎 ${r.gems}`:'',r.chest?`${chestIco(r.chest)} coffre ${CHESTS[r.chest].n}`:'',r.pattern?`🎨 motif « ${LIVERY.PATTERNS.find(p=>p[0]===r.pattern)[1]} »`:'',r.horse?'🐎 un cheval d’exception':''].filter(Boolean).join(' · ');
  function meeting(ch){return{id:'cour',keep:true,couronne:ch.id,league:0,...ch.race,n:ch.race.n}}
  function select(id){const ch=byId(id);if(!ch||lock(ch))return false;RACE=meeting(ch);currentField=null;buildField();return true}
  // Black Majesty au sommet de sa forme pour la finale
@@ -4081,7 +4428,7 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
   $('#fbGain').insertAdjacentHTML('beforeend',`<div class="cour-res${ok?' ok':''}"><b>👑 ${ch.n} : ${ok?(first?'chapitre réussi !':'objectif atteint'):'objectif manqué'}</b><span>${GOALS[ch.goal]}${ok?'':' · retente ta chance'}</span>${first?`<small>${rtxt(ch.reward)}</small>`:''}</div>`);
   });
  // de retour au domaine : Valmont réagit, et le chapitre suivant s'annonce
- hooks.on('race:leave',()=>{if(!epilogue)return;const ch=epilogue;epilogue=null;setTimeout(()=>scene(ch),900)});
+ hooks.on('race:leave',()=>{if(!epilogue)return;const ch=epilogue;epilogue=null;setTimeout(()=>{if(enCourse()){epilogue=ch;return}scene(ch)},900)});
  function scene(ch){const nx=cur(),end=!nx;$('#panelTitle').textContent=end?'La Couronne est à toi !':`${ch.n} : réussi !`;$('#panel .card').classList.remove('wide');
   $('#panelBody').innerHTML=`<div class="cour-scene"><div class="tface big">🎩</div><p class="cour-quote">${ch.after}</p><small>— Le Comte de Valmont</small>
    <p class="hint">Récompense : ${rtxt(ch.reward)}${ch.reward.pattern?' — à choisir dans l’atelier du champion (touche ta casaque).':''}</p>
@@ -4106,6 +4453,12 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
 <script type="text/x-module" data-f="50-nouveautes.js">/* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🏆','Un vrai podium','Marches de marbre et médailles, portique au nom de la course, projecteurs, pluie de confettis et guirlande de roses pour le vainqueur. Pendant la cérémonie, les commandes de course s’effacent.',0,'2.8'],
+ ['🎨','Atelier en 3D','Robe, casaque et toque se choisissent sur le vrai cheval de course : fais-le tourner, regarde-le au galop. Chaque cheval de l’écurie se personnalise, et ses portraits (écurie, courses, ventes, Légendes) sont en 3D.',0,'2.8'],
+ ['🏇','Jockey en selle','À l’arrêt, le jockey s’assoit dans la selle ; ses jambes épousent les flancs, ses bottes reposent dans les étriers. Le numéro du tapis se lit droit sur les deux flancs, la robe est plus lisse et lustrée.',0,'2.8'],
+ ['🧰','Coffres','Coffres dessinés (bois, argent, or, royal), décompte à la seconde avec sa barre de progression, et une ouverture en trois temps : le coffre tremble, s’ouvre dans un éclat de lumière, puis chaque gain se compte.',0,'2.8'],
+ ['🍂','Le domaine et la course se répondent','Depuis l’Hippodrome Royal, c’est ton haras qu’on voit sur la colline, au niveau que tu as construit ; les arbres des hippodromes suivent la saison du domaine. Une seule icône pour l’or, le fourrage et les gemmes, partout. Les ponts du village enjambent droit la rivière.',0,'2.8'],
+ ['🔁','Recourir sans accroc','RECOURIR relance proprement la course suivante : plus d’écran gris, et plus aucune fenêtre ne s’ouvre en pleine course.',0,'2.8'],
  ['🗺️','Cinq hippodromes','Forêt (main droite, virages serrés), Côte face à la mer (longues lignes droites), Cimes au pied des glaciers, Capitale sous les projecteurs, et l’Hippodrome Royal. Le tracé compte : dans les virages serrés, courir au large coûte plus cher. Quatre nouvelles courses, et un succès pour qui gagne partout.',0,'2.7'],
  ['📐','Domaine plus lisible','La fiche d’un bâtiment ne recouvre plus l’objectif, les coffres ni COURIR, sur aucun téléphone ; la caméra cadre le bâtiment au-dessus de sa fiche. Gros montants abrégés (2,3 M) dans la barre du haut.',0,'2.7'],
  ['📱','Course lisible sur petits téléphones','Sur les écrans étroits, la carte du cheval, l’allure, le sprint et les couloirs ne se chevauchent plus. Le commentaire ne s’affiche plus par-dessus la course : tu entends le speaker, le classement en direct donne les écarts.',0,'2.6'],
@@ -4311,6 +4664,16 @@ const domaine3d = (() => {
   const ROADS = [[[-6, 125], [-6, 60], [-6, 22]], [[-6, 6], [-5, -2]], [[-18, 14], [-55, 10], [-95, 8]], [[6, 14], [40, 20], [60, 22]], [[84, 28], [105, 38]], [[-30, -18], [-62, -34], [-78, -44]], [[26, -16], [70, -24], [96, -24]], [[-5, -28], [-2, -44]],
     [[-20, 24], [-55, 44], [-72, 56]], [[-110, 20], [-106, 44]], [[114, -8], [120, 28]], [[-130, -40], [-128, -10], [-122, 0]], [[60, 40], [70, 70], [60, 110], [30, 124]], [[-40, -60], [-70, -75], [-90, -95]], [[90, -50], [120, -70], [150, -80]]];
   const RIVER = [[-200, -10], [-172, 40], [-142, 82], [-100, 110], [-40, 124], [20, 128], [80, 122], [128, 104], [168, 84], [205, 70]];
+  // ponts (2.8) : posés en travers de la rivière (perpendiculaires au courant à l'endroit franchi, plus « de travers »), reliés aux allées
+  // des deux côtés : côté domaine jusqu'à l'allée la plus proche, côté forêt un sentier qui s'y enfonce
+  const PONTS = (() => { const q = catmull(RIVER, 10);
+    return [[-6, 126, null], [148, 92, [105, 38]], [-150, 66, [-106, 44]]].map(([x, z, link]) => {
+      let bi = 0, bd = 1e9; q.forEach(([a, b], i) => { const d = Math.hypot(a - x, b - z); if (d < bd) { bd = d; bi = i } });
+      const [cx, cz] = q[bi], a = q[Math.max(0, bi - 1)], b = q[Math.min(q.length - 1, bi + 1)], tx = b[0] - a[0], tz = b[1] - a[1], L = Math.hypot(tx, tz) || 1;
+      let nx = -tz / L, nz = tx / L; if (nx * -cx + nz * -cz < 0) { nx = -nx; nz = -nz } // vers le cœur du domaine
+      const E = 17, w = 9 + Math.sin(bi * .37) * 1.5, inn = [cx + nx * E, cz + nz * E], out = [cx - nx * E, cz - nz * E], paths = [[out, [out[0] - nx * 14 + tx / L * 4, out[1] - nz * 14 + tz / L * 4], [out[0] - nx * 30 + tx / L * 10, out[1] - nz * 30 + tz / L * 10]]];
+      if (link) paths.push([inn, [inn[0] + nx * 12, inn[1] + nz * 12], [(inn[0] + nx * 12 + link[0]) / 2, (inn[1] + nz * 12 + link[1]) / 2], link]);
+      return { x: cx, z: cz, ry: Math.atan2(nx, nz), w, E, paths } }) })();
   const LAWNS = [[-40, 40, 26, 26], [30, 42, 26, 26], [-42, -40, 22, 16], [32, 58, 0, 0], [-38, 88, 24, 30], [30, 88, 24, 30]];
   function catmull(pts, seg = 8) { const v = pts.map(([x, z]) => new THREE.Vector3(x, 0, z)); return new THREE.CatmullRomCurve3(v).getPoints(Math.max(2, (pts.length - 1) * seg)).map(p => [p.x, p.z]) }
   function groundTexture(season) {
@@ -4325,6 +4688,7 @@ const domaine3d = (() => {
     // rivière (lit sombre sous l'eau), allées, place de la fontaine, cour du haras
     road(RIVER, 22, '#3d5a4a', '#6a6a4a');
     ROADS.forEach((p, i) => road(p, i < 2 ? 9 : 6, winter ? '#e8e0d0' : '#d9c28c', winter ? '#cfc6b6' : '#a98f5e'));
+    PONTS.forEach(b => b.paths.forEach(p => road(p, 6, winter ? '#e8e0d0' : '#d9c28c', winter ? '#cfc6b6' : '#a98f5e')));
     x.fillStyle = winter ? '#e8e0d0' : '#dcc592'; { const [a, b] = P(-6, 14); x.beginPath(); x.arc(a, b, 17 * SC, 0, 6.3); x.fill() } { const [a, b] = P(-45, -1); x.fillRect(a, b, 80 * SC, 9 * SC) }
     // sable : carrière, piste de l'hippodrome (anneau), stalles
     const [ca, cb] = P(B.carriere[0], B.carriere[1]); x.save(); x.translate(ca, cb); x.rotate(B.carriere[3] * -1); x.fillStyle = '#c9955a'; x.beginPath(); x.roundRect(-30 * SC, -16 * SC, 60 * SC, 32 * SC, 6 * SC); x.fill(); x.restore();
@@ -4388,11 +4752,22 @@ const domaine3d = (() => {
     const rocks = []; for (let i = 0; i < q.length; i += 2) for (const s of [1, -1]) if (r() < .55) { const a = q[Math.max(0, i - 1)], b = q[Math.min(q.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz) || 1; rocks.push([q[i][0] - dz / L * s * (10 + r() * 2), q[i][1] + dx / L * s * (10 + r() * 2), .6 + r() * 1.6]) }
     const rm = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0x8a8a80, roughness: .95, flatShading: true }), rocks.length);
     rocks.forEach(([x, z, s], i) => rm.setMatrixAt(i, M(x, s * .2, z, r() * 6, s, s * .6, s))); rm.instanceMatrix.needsUpdate = true; rm.castShadow = rm.receiveShadow = true; S.add(rm);
-    // ponts de pierre en arc (avenue principale, est)
-    for (const [x, z, ry] of [[-6, 126, 0], [150, 94, -.4], [-150, 70, .9]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; const bp = [];
-      for (let k = 0; k <= 8; k++) { const t = k / 8, y = Math.sin(t * Math.PI) * 2.2; bp.push({ g: bx(11, .8, 3.4), m: M(0, y + .3, -12 + t * 24, 0), c: C.stone }) }
-      for (const s of [-1, 1]) for (let k = 0; k <= 8; k++) { const t = k / 8, y = Math.sin(t * Math.PI) * 2.2; bp.push({ g: bx(.6, 1.2, 3.2), m: M(s * 5.4, y + 1.2, -12 + t * 24), c: C.trim }) }
-      g.add(mesh(bp, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 }))); S.add(g) }
+    // ponts de pierre (2.8) : un seul bloc en arc elliptique au-dessus de l'eau, tablier lisse en dos d'âne, rampes douces, parapets qui suivent
+    // le tablier, piliers d'angle à chapeau, claveaux autour de l'arche ; posé en travers du courant (PONTS)
+    { const shp = pts => { const sh = new THREE.Shape(); pts.forEach(([u, v], i) => i ? sh.lineTo(u, v) : sh.moveTo(u, v)); return sh },
+        ext = (pts, depth, x0) => new THREE.ExtrudeGeometry(shp(pts), { depth, bevelEnabled: false, curveSegments: 1 }).rotateY(Math.PI / 2).translate(x0, 0, 0), bm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .92 });
+      for (const b of PONTS) { const W = 9, a = b.w + 1.2, E = b.E, D = E - 4.5, top = u => { const t = Math.abs(u); return t <= D ? .9 + 2.1 * (1 - (t / D) ** 2) : .9 - .75 * (t - D) / (E - D) }, N = 28, deck = [], arch = [], ring = [];
+        for (let k = 0; k <= N; k++) { const u = -E + 2 * E * k / N; deck.push([u, top(u)]) }
+        for (let k = 0; k <= N; k++) { const u = a - 2 * a * k / N, e = Math.sqrt(Math.max(0, 1 - (u / a) ** 2)); arch.push([u, 2.05 * e]); ring.push([u, (2.05 + .55) * Math.sqrt(Math.max(0, 1 - (u / (a + .55)) ** 2))]) }
+        // corps : dessus = tablier, dessous = sol (-.4) avec l'arche ouverte au-dessus de l'eau
+        const body = [[-E, -.4], ...deck, [E, -.4], [a, -.4], ...arch, [-a, -.4]], bp = [{ g: ext(body, W, -W / 2), m: M(0, 0, 0), c: C.stone }];
+        // claveaux : anneau légèrement en relief sur les deux faces
+        for (const x0 of [-W / 2 - .18, W / 2]) bp.push({ g: ext([[a + .55, 0], ...ring.slice(1, -1), [-a - .55, 0], [-a, 0], ...arch.slice(1, -1).reverse(), [a, 0]], .18, x0), m: M(0, 0, 0), c: C.trim });
+        // parapets qui suivent le tablier, piliers d'angle à chapeau
+        const par = [...deck.map(([u, v]) => [u, v + 1]), ...deck.slice().reverse()];
+        for (const x0 of [-W / 2, W / 2 - .5]) bp.push({ g: ext(par, .5, x0), m: M(0, 0, 0), c: C.trim });
+        for (const sx of [-1, 1]) for (const su of [-1, 1]) { const u = su * (E - .4), y = top(u); bp.push({ g: bx(1.1, 1.9, 1.1), m: M(sx * (W / 2 - .25), y + .95, u), c: C.stone }, { g: new THREE.ConeGeometry(.85, .7, 4), m: M(sx * (W / 2 - .25), y + 2.25, u, Math.PI / 4), c: C.trim }) }
+        const g = new THREE.Group(); g.position.set(b.x, 0, b.z); g.rotation.y = b.ry; const m = mesh(bp, bm); g.add(m); S.add(g) } }
     // fontaine : bassins, colonne, gerbe d'eau animée
     { const fP = []; part(fP, new THREE.CylinderGeometry(8, 8.4, 1, 32), 0, .5, 0, C.stone); part(fP, new THREE.CylinderGeometry(1.4, 1.8, 4, 12), 0, 2.5, 0, C.trim); part(fP, new THREE.CylinderGeometry(3.4, 2.6, .7, 20), 0, 4.2, 0, C.stone); part(fP, new THREE.CylinderGeometry(.5, .7, 2, 10), 0, 5.5, 0, C.trim); part(fP, new THREE.SphereGeometry(.9, 12, 8), 0, 7, 0, C.gold);
       const g = mesh(fP, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .7 })); g.position.set(-6, 0, 14); S.add(g);
@@ -4474,6 +4849,7 @@ const domaine3d = (() => {
   function trees(season, Q) {
     const kit = K(), r = kit.rng(4242), G = kit.treeGeos(), dens = !Q.shadow ? .5 : Q.shadow < 2048 ? .8 : 1, list = [[], [], []];
     const segs = []; for (const p of ROADS) { const q = catmull(p, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 6]) } { const q = catmull(RIVER, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 14]) }
+    for (const b of PONTS) { for (const p of b.paths) { const q = catmull(p, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 6]) } const s2 = Math.sin(b.ry), c2 = Math.cos(b.ry); segs.push([[b.x - s2 * (b.E + 3), b.z - c2 * (b.E + 3)], [b.x + s2 * (b.E + 3), b.z + c2 * (b.E + 3)], 8]) }
     const dseg = (x, z, [a, b]) => { const dx = b[0] - a[0], dz = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1))); return Math.hypot(x - a[0] - dx * t, z - a[1] - dz * t) };
     const FOOT = { haras: [48, 22], hippodrome: [70, 46], carriere: [38, 24], clinique: [26, 16], ecurie: [32, 26], chantier: [22, 18], moulin: [42, 16], paddocks: [36, 24] };
     const blocked = (x, z) => { for (const id in B) { const [bx_, bz] = B[id], [w, d] = FOOT[id]; if (Math.abs(x - bx_ - (id === 'moulin' ? 14 : 0)) < w && Math.abs(z - bz) < d) return true }
@@ -4676,7 +5052,16 @@ const domaine3d = (() => {
   }
   function show() { on = true; world.classList.add('d3-on'); adopt(); if (!raf) raf = requestAnimationFrame(frame) }
   hooks.on('ready', () => setTimeout(start, 30));
-  return { get on() { return on }, start, view: W3, supported, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls, images: T.images || 0 } },
+  // 2.8 : un bâtiment du domaine à son niveau actuel, hors de la scène du domaine (le château vu depuis l'Hippodrome Royal est le haras du joueur) ;
+  // même matériau (fenêtres qui s'allument la nuit : model(id).userData.night(v))
+  function model(id) {
+    const mk = ({ haras, ecurie, clinique, moulin, chantier, carriere, paddocks, hippodrome })[id]; if (!mk) return null;
+    let l = 1; try { l = dlv(id) || 1 } catch (e) { }
+    const r = mk(l), mat = bldMat(), g = new THREE.Group(); if (r.P.length) g.add(mesh(r.P, mat));
+    (r.flags || []).forEach(([fx, fy, fz], k) => { const f = K().flagMesh(k % 2 ? C.red : C.navy, C.gold, 3.2, 2); f.position.set(fx, fy + 3.5, fz); g.add(f) });
+    g.userData.night = v => { mat.userData.u.uNight.value = v }; return g
+  }
+  return { get on() { return on }, start, view: W3, supported, model, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls, images: T.images || 0 } },
     // capture sans attendre requestAnimationFrame (panneau masqué) : fait avancer la vie de ms millisecondes puis dessine
     snap(ms = 0) { if (!on) return; const t = performance.now() / 1000; for (let k = 0; k < 4; k++) { stepHorses(ms / 4000, t); if (T.smoke) stepLife(ms / 4000, t) } raceWorld.uniforms.uTime.value = t; light(); camera(); R.render(S, cam); placeUI() } }
 })();

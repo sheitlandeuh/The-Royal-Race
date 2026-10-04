@@ -4,7 +4,7 @@ const season=(()=>{const C=career.data,sid=()=>Math.floor(Date.now()/864e5/28),l
  if(!C.season||C.season.id!==sid())C.season={id:sid(),stars:0,claimed:[]};C.unlocks=C.unlocks||[];const S=C.season,PER=3;
  const save=()=>{try{localStorage.setItem('trr.progress',JSON.stringify(C))}catch(e){}};
  const tier=()=>Math.min(20,Math.floor(S.stars/PER));
- const rtxt=r=>r.pattern?'🎨 '+r.label:r.chest?`${CHESTS[r.chest].ico} Coffre ${CHESTS[r.chest].n}`:r.elixir?'🧪 Élixir':r.gems?`💎 ${r.gems}`:r.feed?`🌾 ${fmt(r.feed)}`:`🪙 ${fmt(r.gold)}`;
+ const rtxt=r=>r.pattern?'🎨 '+r.label:r.chest?`${chestIco(r.chest)} Coffre ${CHESTS[r.chest].n}`:r.elixir?'🧪 Élixir':r.gems?`💎 ${r.gems}`:r.feed?`🌾 ${fmt(r.feed)}`:`🪙 ${fmt(r.gold)}`;
  function add(n){if(!n)return;const before=tier();S.stars+=n;save();badge();if(tier()>before)toast(`Route des étoiles : palier ${tier()} atteint !`)}
  function claim(t){if(S.claimed.includes(t)||tier()<t)return;const r=SEASON_TIERS[t-1];if(r.chest&&!meta.addChest(r.chest))return toast('Libère un emplacement de coffre d’abord');
   S.claimed.push(t);state.gold+=r.gold||0;state.feed+=r.feed||0;state.gems+=r.gems||0;if(r.elixir)career.data.elixirs=(career.data.elixirs||0)+r.elixir;if(r.pattern&&!C.unlocks.includes(r.pattern)){C.unlocks.push(r.pattern);toast('Nouveau motif de casaque débloqué : Soleil royal !')}save();sync();sound.coin();open()}

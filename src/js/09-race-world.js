@@ -101,9 +101,18 @@ const raceWorld = (() => {
        {float n=ln(vLeaf*.9)*.6+ln(vLeaf*2.7)*.4;diffuseColor.rgb*=mix(.62,1.18,n);diffuseColor.rgb*=mix(.8,1.08,smoothstep(0.,22.,vLeaf.y));}`)
     }; return m
   }
+  // 2.8 : la saison du domaine (31-heure) colore aussi les hippodromes : chênes roux et peupliers dorés à l'automne, branches nues l'hiver
+  // (mêmes teintes que les arbres du domaine) ; conifères toujours verts. Ordre : chêne, peuplier, pin, pin parasol, sapin
+  const season = () => typeof heure !== 'undefined' && heure.season ? heure.season() : 'ete';
+  function seasonGreens() {
+    const s = season(), G = [[0x4f7a2e, 0x3f6a28, 0x6a8f3a, 0x587f30], [0x5d8a35, 0x4c7a2c, 0x6f9440], [0x2f5230, 0x3a5e36, 0x28482a], [0x4f6b34, 0x5a7a3a, 0x46642f], [0x1f3d2a, 0x264a30, 0x1a3524]];
+    if (s === 'automne') { G[0] = [0xc2702a, 0xd9a03a, 0x9c4a22, 0x7f8a30, 0xb85a28]; G[1] = [0xd9b040, 0xc89a30, 0xe0b848] }
+    if (s === 'hiver') { G[0] = [0x8a8f86, 0x9a9690, 0x7e8279]; G[1] = [0x8c9088, 0x969a92]; G[2] = [0x3e5a44, 0x4a664e]; G[4] = [0x2e4a38, 0x3a5644] }
+    return G
+  }
   function forest(scene, list, q) {
     const G = treeGeos(), bark = new THREE.MeshStandardMaterial({ color: 0x5b4633, roughness: 1 }), leaf = leafMat(), c = new THREE.Color(), r = rng(77);
-    const GREENS = [[0x4f7a2e, 0x3f6a28, 0x6a8f3a, 0x587f30], [0x5d8a35, 0x4c7a2c, 0x6f9440], [0x2f5230, 0x3a5e36, 0x28482a], [0x4f6b34, 0x5a7a3a, 0x46642f], [0x1f3d2a, 0x264a30, 0x1a3524]];
+    const GREENS = seasonGreens();
     for (let k = 0; k < G.length; k++) {
       const L = list.filter(t => t[3] === k); if (!L.length) continue;
       const cr = new THREE.InstancedMesh(G[k].crown, leaf, L.length), tr = new THREE.InstancedMesh(G[k].trunk, bark, L.length);
@@ -152,6 +161,14 @@ const raceWorld = (() => {
     tower(-80, 44, 6, 34); tower(80, 44, 6, 34);
     const m = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .85 })); m.position.set(x, y0, z); m.rotation.y = Math.atan2(x, z) + Math.PI; scene.add(m);
     const flag = flagMesh(0x10284a, 0xd4a73a, 9, 6); flag.position.set(0, 72 + 30 + 2, -6); m.add(flag)
+  }
+  // 2.8 : à l'Hippodrome Royal, « face au château », c'est le haras du domaine (le même modèle, au niveau construit par le joueur) qui domine
+  // la colline, sur un soubassement de pierre ; ses fenêtres s'allument avec les projecteurs (night)
+  let palaceG = null;
+  function palace(scene, x, z) {
+    const g = typeof domaine3d !== 'undefined' && domaine3d.model && domaine3d.model('haras'); if (!g) return false;
+    const y0 = hillH(x, z), base = new THREE.Mesh(merge([{ g: box(84, 24, 44), m: M4(0, -10, 0), c: 0xc6b89c }, { g: box(30, 1.6, 22), m: M4(0, 1.2, 20), c: 0xd8ccb0 }]), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 }));
+    g.add(base); g.scale.setScalar(2.3); g.position.set(x, y0 + 1, z); g.rotation.y = Math.atan2(x, z) + Math.PI; scene.add(g); palaceG = g; return true
   }
   // ---------- drapeaux au vent ----------
   function flagMesh(c1, c2, w = 7, h = 4.5) {
@@ -269,6 +286,7 @@ const raceWorld = (() => {
   }
   // ---------- montage ----------
   function build(scene, q, id = 'royal', dir = 1) {
+    palaceG = null;
     const T = THEMES[id] || THEMES.royal, C = PAL[id] || PAL.royal, Q = q || { shadow: 1 }, dens = !Q.shadow ? .45 : Q.shadow < 2048 ? .75 : 1, r = rng(1234);
     const R = TRACK.r, S2 = TRACK.S / 2, XF = S2 - 32, sx0 = XF + Math.min(...T.stands.map(a => a[0])), sx1 = XF + Math.max(...T.stands.map(a => a[1]));
     W = { dens, id }; const parts = [], crowd = { list: [], occ: dens >= 1 ? .86 : dens >= .75 ? .7 : .38 };
@@ -286,7 +304,7 @@ const raceWorld = (() => {
     const hedge = [], flowers = []; for (let t = 0; t < 1; t += .0028) { const p = trackPose(t, 27); if (p.p.z > R - 15 && p.p.x > sx0 - 10 && p.p.x < sx1 + 7) continue; hedge.push([p.p.x, p.p.z, Math.atan2(p.f.x, p.f.z)]) }
     for (let x = XF - 258; x < XF + 22; x += 9) flowers.push([x, R + 24]);
     const hm = new THREE.InstancedMesh(fluffy(new THREE.IcosahedronGeometry(2.2, 1).scale(1.5, .8, 1), 0, 0, 0, .6).translate(0, 1.4, 0), leafMat(), hedge.length);
-    hedge.forEach(([x, z, a], i) => { hm.setMatrixAt(i, M4(x, 0, z, a, .9 + r() * .3)); hm.setColorAt(i, new THREE.Color(0x3f6a2a).multiplyScalar(.85 + r() * .3)) }); hm.instanceMatrix.needsUpdate = true; hm.instanceColor.needsUpdate = true; hm.receiveShadow = true; scene.add(hm);
+    hedge.forEach(([x, z, a], i) => { hm.setMatrixAt(i, M4(x, 0, z, a, .9 + r() * .3)); hm.setColorAt(i, new THREE.Color(season() === 'hiver' ? 0x5d7a5a : 0x3f6a2a).multiplyScalar(.85 + r() * .3)) }); hm.instanceMatrix.needsUpdate = true; hm.instanceColor.needsUpdate = true; hm.receiveShadow = true; scene.add(hm);
     // jardinières : bac de pierre et massif fleuri (taches de couleur semées par le shader)
     const pg = merge([{ g: box(5, 1.1, 1.8).translate(0, .55, 0), c: 0xe9e2d2 }, { g: fluffy(new THREE.IcosahedronGeometry(1, 1).scale(2.4, .6, .85), 0, 0, 0, .6).translate(0, 1.25, 0), c: 0x3d6a2c, fl: 1 }], ['fl']);
     const pm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 }), FLC = [[.75, .08, .12], [.95, .78, .2], [.95, .93, .9], [.55, .2, .7]];
@@ -313,7 +331,7 @@ const raceWorld = (() => {
     forest(scene, trees, Q);
     lakes.forEach(([x, z, rx, rz]) => id === 'cimes' ? pond(scene, x, z, rx, rz, 0x2f7f93, 0x8a8a7e) : pond(scene, x, z, rx, rz));
     if (id === 'capitale') city(scene, dens); else hills(scene, T.relief);
-    if (id === 'royal') castle(scene, -160, -900);
+    if (id === 'royal') palace(scene, -160, -900) || castle(scene, -160, -900);
     W.screen = screen(scene, dir < 0); floodlights(scene);
     return W
   }
@@ -331,7 +349,7 @@ const raceWorld = (() => {
     const g = new THREE.Mesh(merge(P), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6, metalness: .3 })); g.castShadow = true; scene.add(g)
   }
   function haloTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.2, 'rgba(255,240,210,.5)'); g.addColorStop(1, 'rgba(255,230,190,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c) }
-  function night(v) { LAMP.emissiveIntensity = v * 2.4; if (halo) halo.opacity = v * .9; U.uNight.value = v }
+  function night(v) { LAMP.emissiveIntensity = v * 2.4; if (halo) halo.opacity = v * .9; U.uNight.value = v; if (palaceG && palaceG.userData.night) palaceG.userData.night(v) }
   function update(q, now) {
     U.uTime.value = now * .001; if (!W) return;
     const src = (typeof progress !== 'undefined' && progress.length) ? progress : [0], lead = Math.max(...src), running = q.startPhase === 'running';

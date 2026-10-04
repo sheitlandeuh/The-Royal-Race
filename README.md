@@ -96,6 +96,20 @@ Un nouveau joueur ne voit que le domaine et la course. Les systèmes s’ouvrent
 La course est **déterministe** : avec la même graine (tirée à la création du plateau) et les mêmes actions du joueur, le résultat est identique. C’est ce qui permettra au serveur de revérifier les courses (étape 3).
 Voir `claude/the-royal-race-systeme-ecurie.md` (projet) pour les formules.
 
+## Nouveautés de la 2.8
+
+**Atelier et portraits en 3D.** L'atelier (`11-studio`) montre le vrai cheval de course (`08-portrait3d` : rendu hors écran, plateau tournant, vues 3/4, profil, galop, casaque, cheval qu'on fait tourner du doigt) ; chaque cheval de l'écurie se personnalise (nom, robe), la casaque et la toque restent celles de l'écurie. Les vignettes (écurie, courses, haras, ventes, Légendes, tournoi) sont rendues en 3D, en buste, et mises en cache ; l'image peinte ne sert plus que sans WebGL.
+
+**Cheval et jockey.** Le jockey a un os pour ses jambes (`JB[7]`) : à l'arrêt il s'assoit dans la selle, buste relevé, et reprend la position de course dès le trot ; cuisses le long du garrot, bottes dans les étriers contre les flancs, par-dessus les quartiers de la selle. Le tapis passe enfin sur le dos (le tube était à l'envers, sous le ventre) et son numéro se lit droit sur les deux flancs. Relief de la robe adouci (plus de taches de reflets en gros plan), ombre du jockey sur le cheval dans l'atelier.
+
+**Podium.** Nouvelle scène (`05-race-scene` : `createPodium`, `podiumTitle`, `podiumFX`, `podiumGarland`) : estrade ronde éclairée, marches de marbre aux médailles, fond courbe aux néons, portique au nom de la course, projecteurs et faisceaux, confettis qui tombent, guirlande de roses au garrot du vainqueur ; chevaux de trois quarts tournés vers le centre ; la caméra avance doucement et se cadre au-dessus de la carte du résultat (portrait comme paysage). Les commandes de course s'effacent pendant la cérémonie (`#raceScreen.podium`) ; le bouton du podium reste visible en bas du classement officiel ; boutons du résultat alignés.
+
+**Coffres.** Coffres dessinés (`chestSVG` : bois cerclé de fer, argent, or, royal à couronne), le même dans les emplacements, la boutique, la saison, le tournoi et La Couronne ; décompte à la seconde (« 46:47 », « 2 h 05 ») avec barre de progression, dans l'emplacement comme dans la fenêtre du coffre ; ouverture en trois temps (secousse, couvercle et éclat de lumière, gains comptés un à un ; toucher le coffre montre tout ; rien d'animé avec « réduire les animations »).
+
+**Domaine et course reliés.** Une seule icône par ressource dans tout le jeu (`01-icones` : les dessins de la barre du haut remplacent partout les émojis 🪙 🌾 💎 🔨 🏆). Depuis l'Hippodrome Royal, le château sur la colline est le haras du joueur (`domaine3d.model('haras')`, à son niveau, fenêtres allumées la nuit) ; les arbres des hippodromes suivent la saison du domaine (automne roux, hiver nu). Ponts du village calculés sur la rivière (`PONTS`), droits sur le courant.
+
+**Corrections.** RECOURIR : la vérification du rejeu de la course précédente attend le retour au domaine (`36-replay`), plus d'écran gris ; aucune fenêtre (déblocage, installation, La Couronne, récompense du jour) ne s'ouvre pendant une course (`enCourse()`).
+
 ## Nouveautés de la 2.7
 
 **Cinq hippodromes.** Chaque course a son hippodrome (`src/js/04-hippodromes.js`) : un tracé (longueur des lignes droites, rayon des virages, sens) et un décor 3D (`09-race-world`, thèmes).

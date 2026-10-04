@@ -156,6 +156,16 @@ const domaine3d = (() => {
   const ROADS = [[[-6, 125], [-6, 60], [-6, 22]], [[-6, 6], [-5, -2]], [[-18, 14], [-55, 10], [-95, 8]], [[6, 14], [40, 20], [60, 22]], [[84, 28], [105, 38]], [[-30, -18], [-62, -34], [-78, -44]], [[26, -16], [70, -24], [96, -24]], [[-5, -28], [-2, -44]],
     [[-20, 24], [-55, 44], [-72, 56]], [[-110, 20], [-106, 44]], [[114, -8], [120, 28]], [[-130, -40], [-128, -10], [-122, 0]], [[60, 40], [70, 70], [60, 110], [30, 124]], [[-40, -60], [-70, -75], [-90, -95]], [[90, -50], [120, -70], [150, -80]]];
   const RIVER = [[-200, -10], [-172, 40], [-142, 82], [-100, 110], [-40, 124], [20, 128], [80, 122], [128, 104], [168, 84], [205, 70]];
+  // ponts (2.8) : posés en travers de la rivière (perpendiculaires au courant à l'endroit franchi, plus « de travers »), reliés aux allées
+  // des deux côtés : côté domaine jusqu'à l'allée la plus proche, côté forêt un sentier qui s'y enfonce
+  const PONTS = (() => { const q = catmull(RIVER, 10);
+    return [[-6, 126, null], [148, 92, [105, 38]], [-150, 66, [-106, 44]]].map(([x, z, link]) => {
+      let bi = 0, bd = 1e9; q.forEach(([a, b], i) => { const d = Math.hypot(a - x, b - z); if (d < bd) { bd = d; bi = i } });
+      const [cx, cz] = q[bi], a = q[Math.max(0, bi - 1)], b = q[Math.min(q.length - 1, bi + 1)], tx = b[0] - a[0], tz = b[1] - a[1], L = Math.hypot(tx, tz) || 1;
+      let nx = -tz / L, nz = tx / L; if (nx * -cx + nz * -cz < 0) { nx = -nx; nz = -nz } // vers le cœur du domaine
+      const E = 17, w = 9 + Math.sin(bi * .37) * 1.5, inn = [cx + nx * E, cz + nz * E], out = [cx - nx * E, cz - nz * E], paths = [[out, [out[0] - nx * 14 + tx / L * 4, out[1] - nz * 14 + tz / L * 4], [out[0] - nx * 30 + tx / L * 10, out[1] - nz * 30 + tz / L * 10]]];
+      if (link) paths.push([inn, [inn[0] + nx * 12, inn[1] + nz * 12], [(inn[0] + nx * 12 + link[0]) / 2, (inn[1] + nz * 12 + link[1]) / 2], link]);
+      return { x: cx, z: cz, ry: Math.atan2(nx, nz), w, E, paths } }) })();
   const LAWNS = [[-40, 40, 26, 26], [30, 42, 26, 26], [-42, -40, 22, 16], [32, 58, 0, 0], [-38, 88, 24, 30], [30, 88, 24, 30]];
   function catmull(pts, seg = 8) { const v = pts.map(([x, z]) => new THREE.Vector3(x, 0, z)); return new THREE.CatmullRomCurve3(v).getPoints(Math.max(2, (pts.length - 1) * seg)).map(p => [p.x, p.z]) }
   function groundTexture(season) {
@@ -170,6 +180,7 @@ const domaine3d = (() => {
     // rivière (lit sombre sous l'eau), allées, place de la fontaine, cour du haras
     road(RIVER, 22, '#3d5a4a', '#6a6a4a');
     ROADS.forEach((p, i) => road(p, i < 2 ? 9 : 6, winter ? '#e8e0d0' : '#d9c28c', winter ? '#cfc6b6' : '#a98f5e'));
+    PONTS.forEach(b => b.paths.forEach(p => road(p, 6, winter ? '#e8e0d0' : '#d9c28c', winter ? '#cfc6b6' : '#a98f5e')));
     x.fillStyle = winter ? '#e8e0d0' : '#dcc592'; { const [a, b] = P(-6, 14); x.beginPath(); x.arc(a, b, 17 * SC, 0, 6.3); x.fill() } { const [a, b] = P(-45, -1); x.fillRect(a, b, 80 * SC, 9 * SC) }
     // sable : carrière, piste de l'hippodrome (anneau), stalles
     const [ca, cb] = P(B.carriere[0], B.carriere[1]); x.save(); x.translate(ca, cb); x.rotate(B.carriere[3] * -1); x.fillStyle = '#c9955a'; x.beginPath(); x.roundRect(-30 * SC, -16 * SC, 60 * SC, 32 * SC, 6 * SC); x.fill(); x.restore();
@@ -233,11 +244,22 @@ const domaine3d = (() => {
     const rocks = []; for (let i = 0; i < q.length; i += 2) for (const s of [1, -1]) if (r() < .55) { const a = q[Math.max(0, i - 1)], b = q[Math.min(q.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz) || 1; rocks.push([q[i][0] - dz / L * s * (10 + r() * 2), q[i][1] + dx / L * s * (10 + r() * 2), .6 + r() * 1.6]) }
     const rm = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0x8a8a80, roughness: .95, flatShading: true }), rocks.length);
     rocks.forEach(([x, z, s], i) => rm.setMatrixAt(i, M(x, s * .2, z, r() * 6, s, s * .6, s))); rm.instanceMatrix.needsUpdate = true; rm.castShadow = rm.receiveShadow = true; S.add(rm);
-    // ponts de pierre en arc (avenue principale, est)
-    for (const [x, z, ry] of [[-6, 126, 0], [150, 94, -.4], [-150, 70, .9]]) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; const bp = [];
-      for (let k = 0; k <= 8; k++) { const t = k / 8, y = Math.sin(t * Math.PI) * 2.2; bp.push({ g: bx(11, .8, 3.4), m: M(0, y + .3, -12 + t * 24, 0), c: C.stone }) }
-      for (const s of [-1, 1]) for (let k = 0; k <= 8; k++) { const t = k / 8, y = Math.sin(t * Math.PI) * 2.2; bp.push({ g: bx(.6, 1.2, 3.2), m: M(s * 5.4, y + 1.2, -12 + t * 24), c: C.trim }) }
-      g.add(mesh(bp, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .9 }))); S.add(g) }
+    // ponts de pierre (2.8) : un seul bloc en arc elliptique au-dessus de l'eau, tablier lisse en dos d'âne, rampes douces, parapets qui suivent
+    // le tablier, piliers d'angle à chapeau, claveaux autour de l'arche ; posé en travers du courant (PONTS)
+    { const shp = pts => { const sh = new THREE.Shape(); pts.forEach(([u, v], i) => i ? sh.lineTo(u, v) : sh.moveTo(u, v)); return sh },
+        ext = (pts, depth, x0) => new THREE.ExtrudeGeometry(shp(pts), { depth, bevelEnabled: false, curveSegments: 1 }).rotateY(Math.PI / 2).translate(x0, 0, 0), bm = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .92 });
+      for (const b of PONTS) { const W = 9, a = b.w + 1.2, E = b.E, D = E - 4.5, top = u => { const t = Math.abs(u); return t <= D ? .9 + 2.1 * (1 - (t / D) ** 2) : .9 - .75 * (t - D) / (E - D) }, N = 28, deck = [], arch = [], ring = [];
+        for (let k = 0; k <= N; k++) { const u = -E + 2 * E * k / N; deck.push([u, top(u)]) }
+        for (let k = 0; k <= N; k++) { const u = a - 2 * a * k / N, e = Math.sqrt(Math.max(0, 1 - (u / a) ** 2)); arch.push([u, 2.05 * e]); ring.push([u, (2.05 + .55) * Math.sqrt(Math.max(0, 1 - (u / (a + .55)) ** 2))]) }
+        // corps : dessus = tablier, dessous = sol (-.4) avec l'arche ouverte au-dessus de l'eau
+        const body = [[-E, -.4], ...deck, [E, -.4], [a, -.4], ...arch, [-a, -.4]], bp = [{ g: ext(body, W, -W / 2), m: M(0, 0, 0), c: C.stone }];
+        // claveaux : anneau légèrement en relief sur les deux faces
+        for (const x0 of [-W / 2 - .18, W / 2]) bp.push({ g: ext([[a + .55, 0], ...ring.slice(1, -1), [-a - .55, 0], [-a, 0], ...arch.slice(1, -1).reverse(), [a, 0]], .18, x0), m: M(0, 0, 0), c: C.trim });
+        // parapets qui suivent le tablier, piliers d'angle à chapeau
+        const par = [...deck.map(([u, v]) => [u, v + 1]), ...deck.slice().reverse()];
+        for (const x0 of [-W / 2, W / 2 - .5]) bp.push({ g: ext(par, .5, x0), m: M(0, 0, 0), c: C.trim });
+        for (const sx of [-1, 1]) for (const su of [-1, 1]) { const u = su * (E - .4), y = top(u); bp.push({ g: bx(1.1, 1.9, 1.1), m: M(sx * (W / 2 - .25), y + .95, u), c: C.stone }, { g: new THREE.ConeGeometry(.85, .7, 4), m: M(sx * (W / 2 - .25), y + 2.25, u, Math.PI / 4), c: C.trim }) }
+        const g = new THREE.Group(); g.position.set(b.x, 0, b.z); g.rotation.y = b.ry; const m = mesh(bp, bm); g.add(m); S.add(g) } }
     // fontaine : bassins, colonne, gerbe d'eau animée
     { const fP = []; part(fP, new THREE.CylinderGeometry(8, 8.4, 1, 32), 0, .5, 0, C.stone); part(fP, new THREE.CylinderGeometry(1.4, 1.8, 4, 12), 0, 2.5, 0, C.trim); part(fP, new THREE.CylinderGeometry(3.4, 2.6, .7, 20), 0, 4.2, 0, C.stone); part(fP, new THREE.CylinderGeometry(.5, .7, 2, 10), 0, 5.5, 0, C.trim); part(fP, new THREE.SphereGeometry(.9, 12, 8), 0, 7, 0, C.gold);
       const g = mesh(fP, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .7 })); g.position.set(-6, 0, 14); S.add(g);
@@ -319,6 +341,7 @@ const domaine3d = (() => {
   function trees(season, Q) {
     const kit = K(), r = kit.rng(4242), G = kit.treeGeos(), dens = !Q.shadow ? .5 : Q.shadow < 2048 ? .8 : 1, list = [[], [], []];
     const segs = []; for (const p of ROADS) { const q = catmull(p, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 6]) } { const q = catmull(RIVER, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 14]) }
+    for (const b of PONTS) { for (const p of b.paths) { const q = catmull(p, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 6]) } const s2 = Math.sin(b.ry), c2 = Math.cos(b.ry); segs.push([[b.x - s2 * (b.E + 3), b.z - c2 * (b.E + 3)], [b.x + s2 * (b.E + 3), b.z + c2 * (b.E + 3)], 8]) }
     const dseg = (x, z, [a, b]) => { const dx = b[0] - a[0], dz = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1))); return Math.hypot(x - a[0] - dx * t, z - a[1] - dz * t) };
     const FOOT = { haras: [48, 22], hippodrome: [70, 46], carriere: [38, 24], clinique: [26, 16], ecurie: [32, 26], chantier: [22, 18], moulin: [42, 16], paddocks: [36, 24] };
     const blocked = (x, z) => { for (const id in B) { const [bx_, bz] = B[id], [w, d] = FOOT[id]; if (Math.abs(x - bx_ - (id === 'moulin' ? 14 : 0)) < w && Math.abs(z - bz) < d) return true }
@@ -521,7 +544,16 @@ const domaine3d = (() => {
   }
   function show() { on = true; world.classList.add('d3-on'); adopt(); if (!raf) raf = requestAnimationFrame(frame) }
   hooks.on('ready', () => setTimeout(start, 30));
-  return { get on() { return on }, start, view: W3, supported, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls, images: T.images || 0 } },
+  // 2.8 : un bâtiment du domaine à son niveau actuel, hors de la scène du domaine (le château vu depuis l'Hippodrome Royal est le haras du joueur) ;
+  // même matériau (fenêtres qui s'allument la nuit : model(id).userData.night(v))
+  function model(id) {
+    const mk = ({ haras, ecurie, clinique, moulin, chantier, carriere, paddocks, hippodrome })[id]; if (!mk) return null;
+    let l = 1; try { l = dlv(id) || 1 } catch (e) { }
+    const r = mk(l), mat = bldMat(), g = new THREE.Group(); if (r.P.length) g.add(mesh(r.P, mat));
+    (r.flags || []).forEach(([fx, fy, fz], k) => { const f = K().flagMesh(k % 2 ? C.red : C.navy, C.gold, 3.2, 2); f.position.set(fx, fy + 3.5, fz); g.add(f) });
+    g.userData.night = v => { mat.userData.u.uNight.value = v }; return g
+  }
+  return { get on() { return on }, start, view: W3, supported, model, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls, images: T.images || 0 } },
     // capture sans attendre requestAnimationFrame (panneau masqué) : fait avancer la vie de ms millisecondes puis dessine
     snap(ms = 0) { if (!on) return; const t = performance.now() / 1000; for (let k = 0; k < 4; k++) { stepHorses(ms / 4000, t); if (T.smoke) stepLife(ms / 4000, t) } raceWorld.uniforms.uTime.value = t; light(); camera(); R.render(S, cam); placeUI() } }
 })();

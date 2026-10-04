@@ -115,9 +115,11 @@ void main(){vec2 d=vUv-vec2(.5,.46);vec3 col=texture2D(tDiffuse,vUv).rgb;
  function hurdles(q){if(fx.hurdles){q.scene.remove(fx.hurdles);fx.hurdles=null}fx.hp=null;const n=RACE.haies|0;if(!n)return;const g=new THREE.Group(),mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.9});fx.hp=haies.posOf(n);
   for(const hp of fx.hp){const p=trackPose(RACE_ORIGIN+hp/100,0),m=new THREE.Mesh(hurdleGeo(),mat);m.position.copy(p.p);m.rotation.y=Math.atan2(p.f.x,p.f.z);m.castShadow=m.receiveShadow=true;g.add(m)}q.scene.add(g);fx.hurdles=g}
  // podium : les trois premiers, en 3D, de trois quarts sur leur marche (rend faux tant que le maillage n'est pas prêt : l'image peinte prend le relais)
- function podium(q,i,slot,now){if(!fx)return false;fx.horseShadows[i].visible=false;const m=fx.h3d&&fx.h3d[i];if(!m)return false;if(!slot||m.userData.pending){m.visible=false;return false}
-  const u=m.userData;HORSE3D.setLod(m,0);m.visible=true;if(u.op!==1){u.op=1;u.mats.forEach(x=>{x.opacity=1})}const S=slot.x?2.9:3.2;m.scale.setScalar(S);
-  m.position.set(slot.x,slot.h,.4);m.rotation.y=-Math.PI/2+(slot.x<0?.42:slot.x>0?-.42:.2);HORSE3D.pose(m,(now*.0004+i*.3)%1,.05,0);return true}
+ function podium(q,i,slot,now,win){if(!fx)return false;fx.horseShadows[i].visible=false;const m=fx.h3d&&fx.h3d[i];if(!m)return false;if(!slot||m.userData.pending){m.visible=false;return false}
+  const u=m.userData;HORSE3D.setLod(m,0);m.visible=true;if(u.op!==1){u.op=1;u.mats.forEach(x=>{x.opacity=1})}m.scale.setScalar(win?2.7:2.45);
+  // 2.8 : de trois quarts, tournés vers le vainqueur ; le vainqueur porte la guirlande de roses
+  m.position.set(slot.x,slot.h+.38,.5);m.rotation.y=-Math.PI/2+(slot.x<0?.8:slot.x>0?-.8:.48);HORSE3D.pose(m,(now*.0004+i*.3)%1,.05,0);
+  if(win&&u.B){const g=podiumGarland();if(g.parent!==u.B[0])u.B[0].add(g)}return true}
  function render(q){const r=q.renderer;if(!fx)return r.render(q.scene,q.camera);const now=performance.now(),dt=Math.min(.05,(now-fx.last)/1000);fx.last=now;
   r.getDrawingBufferSize(fx.size);const P=fx.post;if(!P.rt){P.rt=new THREE.WebGLRenderTarget(fx.size.x,fx.size.y,{type:THREE.HalfFloatType,samples:r.capabilities.isWebGL2?4:0});P.mat.uniforms.tDiffuse.value=P.rt.texture}
   if(P.rt.width!==fx.size.x||P.rt.height!==fx.size.y)P.rt.setSize(fx.size.x,fx.size.y);P.mat.uniforms.uBloom.value=fx.bloom=({haute:.55,moyenne:.4,basse:0})[settings.level()]??.4;

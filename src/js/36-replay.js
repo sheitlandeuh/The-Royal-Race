@@ -6,7 +6,7 @@
 // 5 (2.7) : hippodromes (RACE.hippo, virages tirés du tracé). Le moteur 4 n'avait que l'Hippodrome Royal, dont les formules n'ont pas
 // changé : ses enregistrements (ENGINE_OK) se refont toujours à l'identique, sur l'Hippodrome Royal quoi qu'indique la course.
 const ENGINE=5,ENGINE_OK=[4,5];
-const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o));let rec=null,busy=false,toCheck=null;
+const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o));let rec=null,busy=false,toCheck=[];
  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}},store=list=>{try{localStorage.setItem(KEY,JSON.stringify(list.slice(-10)))}catch(e){}};
  const at=(type,v)=>{if(rec&&!busy)rec.inputs.push([raceTime,type,v])};
  hooks.on('race:start',()=>{if(busy)return;rec={v:1,e:ENGINE,at:new Date().toISOString(),race:clone(RACE),field:clone(currentField),seed:raceSeed,player:clone(racePlayer),strategy:state.strategy,horse:stable.active().name,liv:{...stable.silks,coat:stable.active().coat},inputs:[]}});
@@ -16,9 +16,12 @@ const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o
  hooks.on('race:jump',c=>at('jump',c));
  hooks.on('race:pace',v=>at('pace',v));
  hooks.on('moment:choose',ch=>at('moment',ch));
- hooks.on('race:end',()=>{if(!rec||busy)return;rec.result={order:finishOrder.slice(),times:raceFinishTimes.map(t=>+t.toFixed(3))};const list=load();list.push(rec);store(list);toCheck=rec;rec=null});
- // vérification au retour au domaine (le podium n'utilise plus l'état de course)
- hooks.on('race:leave',()=>{const r=toCheck;toCheck=null;if(r)setTimeout(()=>{const v=verify(r);if(v.ok===false)console.warn('Rejeu : écart détecté',v);try{playtest.on&&playtest.log('rejeu',{ok:v.ok})}catch(e){}},400)});
+ hooks.on('race:end',()=>{if(!rec||busy)return;rec.result={order:finishOrder.slice(),times:raceFinishTimes.map(t=>+t.toFixed(3))};const list=load();list.push(rec);store(list);toCheck.push(rec);if(toCheck.length>3)toCheck.shift();rec=null});
+ // vérification au retour au domaine (le podium n'utilise plus l'état de course). Le rejeu remplace un instant tout l'état de course :
+ // jamais pendant qu'une course est à l'écran (2.8 : après RECOURIR, la vérification de la course précédente tombait en pleine
+ // introduction de la suivante et y laissait la caméra d'arrivée — écran uni — et le HUD de la course rejouée). Elle attend donc la sortie.
+ const check=()=>{if(!toCheck.length||$('#raceScreen').classList.contains('open')||raceLoop)return;for(const r of toCheck.splice(0)){const v=verify(r);if(v.ok===false)console.warn('Rejeu : écart détecté',v);try{playtest.on&&playtest.log('rejeu',{ok:v.ok})}catch(e){}}};
+ hooks.on('race:leave',()=>setTimeout(check,400));
  // refait la course sans rien afficher ni jouer de son, puis restaure l'état ; opts.track : trajectoire du joueur pas à pas (fantôme d'un duel)
  function verify(r,opts={}){const e=r&&r.e||1;if(!ENGINE_OK.includes(e))return{ok:null,why:'version'};if(busy||raceLoop>0)return{ok:null,why:'course en cours'};busy=true;
   const keep={RACE,currentField,racePlayer,strategy:state.strategy,complete:completeRace,say:sound.say,bump:career.bump,tip:coach.tip,said:runRaceV2.said,tipd:runRaceV2.tipd,

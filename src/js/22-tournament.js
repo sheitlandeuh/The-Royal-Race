@@ -10,7 +10,7 @@ const tour=(()=>{const C=career.data;C.tour=C.tour||{day:'',used:false,cups:0,a:
  function meeting(){const a=T.a;if(!a)return{...MEETINGS[1]};const L=career.league();
   return{id:'tour',tour:true,round:a.round,n:`Tournoi royal · ${TOUR_ROUNDS[a.round]}`,dist:a.dist,terrain:a.terrain,hippo:a.hippo,league:0,diff:L*2-2+a.round*2.5,purse:Math.round([1500,2500,4000][a.round]*k()/50)*50,fee:0}}
  const prizes=()=>{const K=k(),L=career.league();return[{gold:Math.round(8000*K/50)*50,gems:20,chest:L>=2?'royal':'or'},{gold:Math.round(4000*K/50)*50,chest:'argent'},{gold:Math.round(2500*K/50)*50,chest:'bois'}]};
- const ptxt=p=>[p.gold?`🪙 ${fmt(p.gold)}`:'',p.gems?`💎 ${p.gems}`:'',p.chest?`${CHESTS[p.chest].ico} coffre ${CHESTS[p.chest].n}`:''].filter(Boolean).join(' · ');
+ const ptxt=p=>[p.gold?`🪙 ${fmt(p.gold)}`:'',p.gems?`💎 ${p.gems}`:'',p.chest?`${chestIco(p.chest)} coffre ${CHESTS[p.chest].n}`:''].filter(Boolean).join(' · ');
  function enter(){roll();const h=stable.byId(pickId||stable.data.active);if(!h)return;if(h.injury||h.fatigue>=70)return toast(`${h.name} doit être reposé (fatigue < 70) pour un tournoi`);
   if(T.used){if(state.gems<TOUR_GEMS)return toast('Pas assez de gemmes');state.gems-=TOUR_GEMS;sync()}T.used=true;const c=conf();T.a={horse:h.id,round:0,dist:c.dist,terrain:c.terrain,hippo:c.hippo,ranks:[]};save();refresh();
   stable.setActive(h.id);champion.emit();RACE=meeting();sound.fanfare();openCourses()}

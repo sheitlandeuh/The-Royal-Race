@@ -311,3 +311,40 @@
       #raceScreen .steer button{width:58px}
       #raceScreen .lane-meter span{display:none}
     }
+    /* ===== 2.8 : icônes des ressources (01-icones) — même dessin que la barre du haut, à la taille du texte ===== */
+    .ri{display:inline-block;width:1.18em;height:1.18em;vertical-align:-.24em;flex:none;overflow:visible;filter:drop-shadow(0 1px 0 #0006)}
+    .ri+.ri{margin-left:.1em}
+    /* ===== 2.8 : atelier en 3D (08-portrait3d) — scène de studio, vues, choix du cheval ===== */
+    .studio-stage{background:radial-gradient(90% 60% at 50% 88%,#2a3f7a 0,#151d4b 45%,#080b1e 100%)}
+    .studio-stage.is3d #studioCanvas{display:none}
+    .studio-stage .studio3d{position:relative;z-index:1;flex:1;width:100%;min-height:0;display:block;touch-action:none;cursor:grab}
+    .studio-stage .studio3d:active{cursor:grabbing}
+    .studio-stage.loading::before{content:'Le cheval se prépare…';display:grid;place-items:center;z-index:2;color:var(--mut);font:600 13px var(--fu);letter-spacing:.08em;background:none}
+    .studio-plate{z-index:2}.studio-view{z-index:2}
+    .studio-view button{font:700 12.5px var(--fu);letter-spacing:.05em;padding:7px 12px}
+    .studio-hint{position:absolute;z-index:2;left:0;right:0;top:64px;margin:0;text-align:center;color:#c9d3ff99;font:600 11px var(--fu);letter-spacing:.08em;pointer-events:none}
+    .studio-stage:not(.is3d) .studio-hint,.studio-stage.turned .studio-hint{display:none}
+    .studio-horses{display:flex;gap:6px;overflow-x:auto;padding:12px 20px 4px;scrollbar-width:none;flex:none}
+    .studio-horses:empty{display:none}
+    .studio-horses button{flex:none;display:flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;border-radius:999px;border:1px solid var(--line);background:#ffffff0a;color:var(--txt);font:700 13px var(--fu);letter-spacing:.02em;white-space:nowrap}
+    .studio-horses button.on{border-color:var(--gold);background:linear-gradient(180deg,#f0c75c33,#b27a1f22);color:#fff}
+    .studio-note{margin:-2px 0 8px;color:var(--mut);font-size:12px;line-height:1.35}
+    @media (max-width:760px){.studio-horses{padding:8px 16px 2px}.studio-hint{top:auto;bottom:58px}}
+    /* vignettes 3D : un fond discret le temps que le cheval soit rendu */
+    canvas.p3d{background:none}
+    /* 2.8 : cérémonie du podium — les commandes de course s'effacent, il reste le titre, le classement et la carte du résultat */
+    #raceScreen.podium :is(.steer,.look,.auto-gallop,.pace-ctl,.sprint-btn,.race-map,.race-call,.race-head .position,.race-head .distance,#quitRace,.look-label,.draft){opacity:0!important;pointer-events:none!important;transition:opacity .4s}
+    /* 2.8 : carte du résultat — boutons alignés et espacés (Recourir d'abord), qui passent à la ligne sur téléphone */
+    #raceResult .result-card{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:10px}
+    #raceResult .result-card>:not(button){flex:1 0 100%;margin-left:0;margin-right:0}
+    #raceResult .result-card>button{margin:0!important;flex:1 1 140px;max-width:240px;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.1}
+    #raceResult .result-card>button[hidden]{display:none}
+    #raceAgain{order:1}#tvBtn{order:2}#returnDomain{order:3}
+    /* classement officiel : le bouton du podium reste visible en bas de la carte, même quand l'analyse la fait défiler */
+    .finish-board-card #showPodium{position:sticky;bottom:-1px;z-index:2;display:block;width:100%;margin:14px 0 0;box-shadow:0 -22px 18px 10px #090c22,0 10px 0 10px #090c22}
+    /* 2.8 : les fenêtres s'ouvrent en douceur ; barres de défilement aux couleurs du jeu */
+    .panel.open .card{animation:cardIn .24s cubic-bezier(.2,.9,.3,1.12) both}@keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.975)}}
+    .card,.finish-board-card,.studio-body,.studio-horses{scrollbar-width:thin;scrollbar-color:#8b5cff80 transparent}
+    .card::-webkit-scrollbar,.finish-board-card::-webkit-scrollbar,.studio-body::-webkit-scrollbar{width:8px;height:8px}
+    .card::-webkit-scrollbar-thumb,.finish-board-card::-webkit-scrollbar-thumb,.studio-body::-webkit-scrollbar-thumb{background:#8b5cff70;border-radius:8px}
+    @media (prefers-reduced-motion:reduce){.panel.open .card{animation:none}}

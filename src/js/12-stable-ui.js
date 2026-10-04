@@ -3,7 +3,8 @@ const stUI={horse:null,tab:'train',int:'normal',filter:null};
 const livOf=h=>({...stable.silks,name:h.name,coat:h.coat});
 const coatName=id=>LIVERY.COATS.find(c=>c.id===id).name;
 const distName=d=>(DISTS.find(x=>x[0]===d)||DISTS[1])[1];
-function drawPortrait(cv,h,zoom=1.25,dy=-4){LIVERY.ready.then(()=>{const p=LIVERY.portrait(livOf(h)),x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const s=cv.width/p.width*zoom;x.drawImage(p,(cv.width-p.width*s)/2,dy,p.width*s,p.height*s)})}
+// 2.8 : le vrai cheval de course en 3D (PORTRAIT3D) ; l'image peinte seulement sans WebGL
+function drawPortrait(cv,h,zoom=1.25,dy=-4){if(cv&&h&&PORTRAIT3D.draw(cv,livOf(h)))return;LIVERY.ready.then(()=>{const p=LIVERY.portrait(livOf(h)),x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const s=cv.width/p.width*zoom;x.drawImage(p,(cv.width-p.width*s)/2,dy,p.width*s,p.height*s)})}
 const condLabel=(k,v)=>k==='fatigue'?(v<25?'Frais':v<50?'Correct':v<75?'Fatigué':'Épuisé'):k==='form'?(v<40?'Méforme':v<60?'Moyenne':v<78?'Bonne':'Au sommet'):(v<40?'Maussade':v<65?'Calme':'Joyeux');
 const condColor=(k,v)=>k==='fatigue'?(v<50?'#55c756':v<75?'#eeb93d':'#e26b4a'):(v<40?'#e26b4a':v<60?'#eeb93d':'#55c756');
 const costTxt=c=>[c.gold?`🪙 ${fmt(c.gold)}`:'',c.feed?`🌾 ${fmt(c.feed)}`:''].filter(Boolean).join(' · ')||'Gratuit';
@@ -43,7 +44,7 @@ $('#panelBody').addEventListener('click',e=>{const t=e.target.closest('button,a'
  else if(t.dataset.release){if(!t.dataset.armed){t.dataset.armed=1;t.textContent='CONFIRMER : '+h.name+' quitte l’écurie';setTimeout(()=>{if(t.isConnected){delete t.dataset.armed;renderStable()}},4000);return}const g=stable.rating(h)*80;if(stable.removeHorse(h.id)){state.gold+=g;sync();stUI.horse=stable.data.active;renderStable();toast(`${h.name} part pour une nouvelle vie · +${fmt(g)} or`)}}
  else if(t.dataset.engage){stable.setActive(t.dataset.engage);champion.emit();renderStable();toast(`${h.name} est engagé pour la prochaine course`)}
  else if(t.hasAttribute('data-goraces')){openCourses()}
- else if(t.dataset.studioFor){stable.setActive(t.dataset.studioFor);stUI.horse=t.dataset.studioFor;champion.emit();$('#panel').classList.remove('open');studio.open()}});
+ else if(t.dataset.studioFor){stUI.horse=t.dataset.studioFor;$('#panel').classList.remove('open');studio.open(false,t.dataset.studioFor)}});
 /* ---------- engagement en course : partants, pronostic, tactique ---------- */
 /* avance des adversaires sur la note du cheval engagé (points de note) : réglée au bot pour qu'un bon joueur gagne 35 à 75 % à sa distance */
 const FIELD_EDGE=0;

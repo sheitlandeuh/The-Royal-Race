@@ -52,12 +52,12 @@
   </section>
   <section class="studio" id="studio" aria-label="Atelier du champion"><div class="studio-card">
     <div class="studio-stage"><div class="studio-plate" id="studioPlate"></div><canvas id="studioCanvas" aria-label="Aperçu du cheval et de la casaque"></canvas>
-      <div class="studio-view"><button class="on" data-view="portrait">Portrait</button><button data-view="gallop">Au galop</button></div></div>
-    <div class="studio-side"><header><div style="flex:1"><h2 id="studioTitle">Mon champion</h2><p id="studioIntro"></p></div><button class="close" id="studioClose" aria-label="Fermer">×</button></header>
+      <div class="studio-view" role="group" aria-label="Vue du cheval"><button class="on" data-view="portrait">3/4</button><button data-view="profil">Profil</button><button data-view="galop">Galop</button><button data-view="casaque">Casaque</button></div><p class="studio-hint">Glisse pour tourner le cheval</p></div>
+    <div class="studio-side"><header><div style="flex:1"><h2 id="studioTitle">Mon champion</h2><p id="studioIntro"></p></div><button class="close" id="studioClose" aria-label="Fermer">×</button></header><div class="studio-horses" id="studioHorses" role="tablist" aria-label="Cheval à personnaliser"></div>
       <div class="studio-body">
         <div class="studio-sec"><h3>NOM DU CHEVAL</h3><input class="studio-name" id="studioName" maxlength="18" autocomplete="off" spellcheck="false" /></div>
         <div class="studio-sec"><h3>ROBE</h3><div class="coat-row" id="studioCoats"></div></div>
-        <div class="studio-sec"><h3>CASAQUE — COULEUR PRINCIPALE</h3><div class="sw-row" id="studioMain"></div></div>
+        <div class="studio-sec"><h3>CASAQUE — COULEUR PRINCIPALE</h3><p class="studio-note">La casaque et la toque sont les couleurs de ton écurie : tous tes chevaux les portent.</p><div class="sw-row" id="studioMain"></div></div>
         <div class="studio-sec"><h3>CASAQUE — COULEUR SECONDAIRE</h3><div class="sw-row" id="studioSecond"></div></div>
         <div class="studio-sec"><h3>MOTIF</h3><div class="motif-row" id="studioMotifs"></div></div>
         <div class="studio-sec"><h3>TOQUE</h3><div class="sw-row" id="studioCap"></div></div>

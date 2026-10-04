@@ -152,9 +152,15 @@ export async function run({ quick = false } = {}) {
       const a = JSON.stringify(ecuries.tirage(99, 5, J)), b = JSON.stringify(ecuries.tirage(99, 5, J));
       pass('Écuries rivales : plateaux variés et valides', !bad && a === b && noms.size >= 50, `${noms.size} chevaux croisés sur 300 plateaux · ${bad} anomalie${bad > 1 ? 's' : ''}`) }
 
-    // mémoire graphique (2.6) : trois courses d'affilée ne doivent pas accumuler de textures (squelettes des chevaux 3D, portraits du podium)
-    if (threeRace && !threeRace.headless) { const frames = n => new Promise(r => { const f = () => --n > 0 ? requestAnimationFrame(f) : r(); requestAnimationFrame(f) }), T = [];
-      for (let k = 0; k < 3; k++) { RACE = { ...MEETINGS[k % 2] }; currentField = null; buildField(300 + k); stable.active().fatigue = 10; state.feed = 99999; startRace(); await frames(6); while (coach.open) coach.hide(); leaveRace(); while (coach.open) coach.hide(); await frames(3); T.push(threeRace.renderer.info.memory.textures) }
+    // mémoire graphique (2.6) : trois courses d'affilée ne doivent pas accumuler de textures (squelettes des chevaux 3D, portraits du podium).
+    // 2.8 : three.js n'envoie une texture au GPU que la première fois qu'elle est vue ; le compte dépendait donc de ce que la caméra
+    // d'introduction avait déjà montré (un drapeau lointain vu à la 2e course comptait comme une fuite). On attend que les chevaux
+    // soient assemblés, puis toutes les textures de la scène sont envoyées avant de compter : seules les vraies fuites font grimper le compte.
+    if (threeRace && !threeRace.headless) { const frames = n => new Promise(r => { const f = () => --n > 0 ? requestAnimationFrame(f) : r(); requestAnimationFrame(f) }), T = [], R3 = threeRace.renderer;
+      const upload = () => threeRace.scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) for (const key in m) { const v = m[key]; if (v && v.isTexture && v.image) try { R3.initTexture(v) } catch (e) { } }
+        if (o.isSkinnedMesh && o.skeleton) { if (!o.skeleton.boneTexture) o.skeleton.computeBoneTexture(); try { R3.initTexture(o.skeleton.boneTexture) } catch (e) { } } });
+      const ready = async () => { for (let i = 0; i < 300 && (raceFX._fx?.h3d || []).some(m => m.userData.pending); i++) await frames(2) };
+      for (let k = 0; k < 3; k++) { RACE = { ...MEETINGS[k % 2] }; currentField = null; buildField(300 + k); stable.active().fatigue = 10; state.feed = 99999; startRace(); await frames(6); await ready(); upload(); while (coach.open) coach.hide(); leaveRace(); while (coach.open) coach.hide(); await frames(3); upload(); T.push(R3.info.memory.textures) }
       pass('Mémoire graphique stable entre les courses', T[2] - T[0] <= 2, `textures après chaque course : ${T.join(' → ')}`) }
 
     // hippodromes (2.7) : l'Hippodrome Royal n'a pas bougé (moteur 4), chaque hippodrome se rejoue à l'identique, le tracé compte,

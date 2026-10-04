@@ -348,3 +348,6 @@
     .card::-webkit-scrollbar,.finish-board-card::-webkit-scrollbar,.studio-body::-webkit-scrollbar{width:8px;height:8px}
     .card::-webkit-scrollbar-thumb,.finish-board-card::-webkit-scrollbar-thumb,.studio-body::-webkit-scrollbar-thumb{background:#8b5cff70;border-radius:8px}
     @media (prefers-reduced-motion:reduce){.panel.open .card{animation:none}}
+    /* classement officiel sur téléphone : la carte tient dans l'écran (elle débordait à droite), le conseil passe au-dessus de son bouton */
+    .finish-board-card{width:min(720px,100%);box-sizing:border-box}
+    @media (max-width:520px){.finish-board{padding:10px}.finish-board-card{padding:16px 12px}.an-adv{flex-direction:column;align-items:stretch;text-align:left}.an-adv .action{align-self:flex-end;padding:8px 16px}}

@@ -97,6 +97,9 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
  // par le HUD (51-domaine3d y garde l'étiquette du bâtiment choisi et y cadre la caméra).
  const zone={l:0,r:innerWidth,t:96,b:innerHeight};
  function place(){const g=$('#game'),bar=$('.homebar'),card=$('#selection');if(!g||!bar)return;const G=g.getBoundingClientRect(),B=bar.getBoundingClientRect();
+  // 2.8 : barre pas encore mise en page (hauteur nulle) → valeur de secours, et nouvelle mesure à l'image suivante (sinon la carte
+  // pouvait rester posée sur les coffres et COURIR : vu une fois en intégration continue)
+  if(!B.height&&!place.again){place.again=1;requestAnimationFrame(()=>{place.again=0;place()})}
   const top=B.height?B.top:G.bottom-90,sb=Math.round(G.bottom-top+8);g.style.setProperty('--sel-b',sb+'px');
   const r=s=>{const e=$(s);if(!e||!e.offsetParent)return null;const x=e.getBoundingClientRect();return x.width?x:null},L=r('.rail.left'),Rr=r('.rail.right'),top2=r('.resources');
   // petit écran : si la carte ouverte touche les rails de boutons, ils s'effacent le temps qu'elle reste ouverte
@@ -105,7 +108,7 @@ const domaine=(()=>{const C=career.data;C.domaine=C.domaine||{lv:{},work:[],prod
   zone.l=(L&&!serre?L.right:0)+6;zone.r=(Rr&&!serre?Rr.left:G.width)-6;zone.t=Math.max(80,(top2?top2.bottom:60)+12);
   zone.b=open?ct-10:G.bottom-sb-40}
  // mise en place synchrone (microtâche, mise en page forcée) : jamais une image avec l'ancienne position
- const ob=new MutationObserver(()=>{document.body.classList.toggle('sel-open',$('#selection').classList.contains('open'));place()});ob.observe($('#selection'),{attributes:true,attributeFilter:['class']});
+ const ob=new MutationObserver(()=>{document.body.classList.toggle('sel-open',$('#selection').classList.contains('open'));place();requestAnimationFrame(place);setTimeout(place,320)});ob.observe($('#selection'),{attributes:true,attributeFilter:['class']});
  // le texte de COURIR (course, cheval) change la hauteur de la barre : la carte suit tout de suite
  new MutationObserver(()=>place()).observe($('.homebar'),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden']});
  $('#selClose').onclick=e=>{e.stopPropagation();village.deselect()};

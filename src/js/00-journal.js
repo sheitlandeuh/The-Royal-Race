@@ -75,7 +75,7 @@ const journal = (() => {
     etape(nom) { if (M.etapes[nom]) return false; M.etapes[nom] = { jeu: tempsJeu(), session: M.sessions, jour: Math.round((minuit(Date.now()) - minuit(M.debut)) / JOUR) }; sauver(); return true },
     compte(nom, n = 1) { M.compteurs[nom] = (M.compteurs[nom] || 0) + n },
     // or / gemmes / fourrage gagnés ou dépensés, par source
-    flux(res, delta, source) { if (!delta) return; const f = M.flux[res] = M.flux[res] || { gain: {}, depense: {} }, sens = delta > 0 ? f.gain : f.depense; if (!(source in sens) && Object.keys(sens).length >= 24) source = 'autre'; sens[source] = (sens[source] || 0) + Math.abs(delta) },
+    flux(res, delta, source, sure) { if (!delta) return; const f = M.flux[res] = M.flux[res] || { gain: {}, depense: {} }, sens = delta > 0 ? f.gain : f.depense; if (!sure && !(source in sens) && Object.keys(sens).length >= 24) source = 'autre'; sens[source] = (sens[source] || 0) + Math.abs(delta) },
     note(k, v) { M[k] = v },
     sauver, tempsJeu,
     get mesures() { compterTemps(); return M }, get erreurs() { return E.slice() }, get session() { return { ...session, n: M.sessions } }, get fil() { return fil.slice() },

@@ -40,12 +40,15 @@ const mesures = (() => {
     'vente:debut': 'ventes', 'vente:fin': 'ventes', legende: 'légendes', couronne: 'couronne', deco: 'décors', 'defi:end': 'défi du jour', 'duel:end': 'duels' };
   let recent = { nom: '', t: -1e9 };
   for (const [e, nom] of Object.entries(SOURCES)) hooks.on(e, () => { recent = { nom, t: performance.now() } }, 20);
-  const source = () => performance.now() - recent.t < 1500 ? recent.nom : $('#raceScreen').classList.contains('open') ? 'course'
-    : $('#panel').classList.contains('open') ? ($('#panelTitle').textContent || 'panneau').trim().toLowerCase().slice(0, 30) : 'domaine';
+  // 2.8 : les sources connues (événements du jeu, course, domaine) sont toujours rangées à leur nom ; seuls les titres de panneaux,
+  // en nombre illimité (coffres, récompense du jour…), passent dans « autre » au-delà de 24 sources — sinon un jour chargé en panneaux
+  // faisait disparaître les récoltes du bilan
+  const source = () => performance.now() - recent.t < 1500 ? [recent.nom, 1] : $('#raceScreen').classList.contains('open') ? ['course', 1]
+    : $('#panel').classList.contains('open') ? [($('#panelTitle').textContent || 'panneau').trim().toLowerCase().slice(0, 30), 0] : ['domaine', 1];
   let avant = { or: state.gold, gemmes: state.gems, fourrage: state.feed }, prevu = false;
   // mesuré juste après la tâche en cours : l'événement qui suit souvent la modification (hooks.emit après sync) est alors connu
-  const compter = () => { prevu = false; const now = { or: state.gold, gemmes: state.gems, fourrage: state.feed }, src = source();
-    for (const k in now) if (Number.isFinite(now[k]) && Number.isFinite(avant[k])) J.flux(k, now[k] - avant[k], src); avant = now };
+  const compter = () => { prevu = false; const now = { or: state.gold, gemmes: state.gems, fourrage: state.feed }, [src, sure] = source();
+    for (const k in now) if (Number.isFinite(now[k]) && Number.isFinite(avant[k])) J.flux(k, now[k] - avant[k], src, sure); avant = now };
   { const s55 = sync; sync = function () { s55(); if (!prevu) { prevu = true; setTimeout(compter, 0) } } }
   // --- appareil (rapport de bug) ---
   function gpu() {

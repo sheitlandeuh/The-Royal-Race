@@ -1,6 +1,9 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🏇','Cheval et jockey plus fins','Casaque nette jusque sur les flancs, bottes à revers, gants et culotte aux bords francs ; visage, oreilles et jugulaire du casque. Le cheval porte un vrai filet qui suit sa tête, des yeux sous l’arcade, et une selle moulée sur le dos, avec ses quartiers de cuir.',0,'2.9'],
+ ['✨','Bâtiment choisi en lumière','Plus d’anneau autour du bâtiment choisi au village : il s’illumine d’un contour doré ; la piste, la carrière et les paddocks s’éclairent au sol.',0,'2.9'],
+ ['🐎','Village remis d’aplomb','Les cavaliers de la carrière avancent enfin dans le bon sens, les chevaux de l’hippodrome ne traversent plus la tribune ni les stalles, le pré de l’écurie quitte l’allée. Nouvelles stalles de départ et poteau d’arrivée.',0,'2.9'],
  ['🏆','Un vrai podium','Marches de marbre et médailles, portique au nom de la course, projecteurs, pluie de confettis et guirlande de roses pour le vainqueur. Pendant la cérémonie, les commandes de course s’effacent.',0,'2.8'],
  ['🎨','Atelier en 3D','Robe, casaque et toque se choisissent sur le vrai cheval de course : fais-le tourner, regarde-le au galop. Chaque cheval de l’écurie se personnalise, et ses portraits (écurie, courses, ventes, Légendes) sont en 3D.',0,'2.8'],
  ['🏇','Jockey en selle','À l’arrêt, le jockey s’assoit dans la selle ; ses jambes épousent les flancs, ses bottes reposent dans les étriers. Le numéro du tapis se lit droit sur les deux flancs, la robe est plus lisse et lustrée.',0,'2.8'],

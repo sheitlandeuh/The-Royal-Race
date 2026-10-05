@@ -1048,7 +1048,7 @@ const journal = (() => {
   };
 })();
 </script>
-<script type="text/x-module" data-f="01-core.js">const VERSION='2.8';
+<script type="text/x-module" data-f="01-core.js">const VERSION='2.9';
 const state={gold:6000,feed:4000,gems:40,trophies:0};
 /* sauvegarde corrompue ? on restaure la dernière copie de secours (trr.bak) avant que les modules ne la lisent */
 (()=>{try{const bak=JSON.parse(localStorage.getItem('trr.bak')||'null');for(const k of['trr.stable','trr.progress','trr.champion']){const v=localStorage.getItem(k);if(v==null)continue;try{JSON.parse(v)}catch(e){if(bak&&bak.k&&bak.k[k]){localStorage.setItem(k,bak.k[k]);window.__restored=true}else localStorage.removeItem(k)}}}catch(e){}})();
@@ -1476,7 +1476,8 @@ const HORSE3D = (() => {
     }
     function f(x, y, z) {
       let d = 1e9;
-      for (let i = 0; i < prims.length; i++) { const P = prims[i], sx = x - P.bc[0], sy = y - P.bc[1], sz = z - P.bc[2], sb = Math.sqrt(sx * sx + sy * sy + sz * sz) - P.br; if (sb > d + k) continue; const e = dist(P, x, y, z), hh = Math.max(k - Math.abs(d - e), 0) / k; d = Math.min(d, e) - hh * hh * k * .25 }
+      // fondu propre à la primitive (P.k : petits reliefs nets, nez, oreilles) sinon fondu général
+      for (let i = 0; i < prims.length; i++) { const P = prims[i], kk = P.k || k, sx = x - P.bc[0], sy = y - P.bc[1], sz = z - P.bc[2], sb = Math.sqrt(sx * sx + sy * sy + sz * sz) - P.br; if (sb > d + kk) continue; const e = dist(P, x, y, z), hh = Math.max(kk - Math.abs(d - e), 0) / kk; d = Math.min(d, e) - hh * hh * kk * .25 }
       for (let i = 0; i < negs.length; i++) { const P = negs[i], sx = x - P.bc[0], sy = y - P.bc[1], sz = z - P.bc[2]; if (Math.sqrt(sx * sx + sy * sy + sz * sz) - P.br > kn) continue; const e = -dist(P, x, y, z), hh = Math.max(kn - Math.abs(d - e), 0) / kn; d = Math.max(d, e) + hh * hh * kn * .25 }
       return d
     }
@@ -1484,7 +1485,7 @@ const HORSE3D = (() => {
     function region(x, y, z) { let b = 1e9, id = 0, b2 = 1e9, id2 = -1; const best = {};
       for (const P of prims) { const e = dist(P, x, y, z), r = P.id || 0; if (!(r in best) || e < best[r]) best[r] = e }
       for (const r in best) { const e = best[r]; if (e < b) { b2 = b; id2 = id; b = e; id = +r } else if (e < b2) { b2 = e; id2 = +r } }
-      return [id, id2 < 0 ? id : id2, id2 < 0 ? 0 : .5 * Math.exp(-(b2 - b) / (spec.soft || h * .7))] }
+      return [id, id2 < 0 ? id : id2, id2 < 0 ? 0 : .5 * Math.exp(-(b2 - b) / (spec.soft || h * .7)), best] }
     // grille grossière (pas H) puis fine (pas h) seulement près de la surface
     const R = 4, H = h * R, cx = Math.ceil((max[0] - min[0]) / H) + 1, cy = Math.ceil((max[1] - min[1]) / H) + 1, cz = Math.ceil((max[2] - min[2]) / H) + 1;
     const CF = new Float32Array(cx * cy * cz), CI = (i, j, k2) => i + cx * (j + cy * k2);
@@ -1521,12 +1522,16 @@ const HORSE3D = (() => {
       for (let it = 0; it < spec.smooth; it++) { const Q = new Float32Array(P); for (let v = 0; v < n; v++) { const L = nb[v]; if (!L.length) continue; let x = 0, y = 0, z = 0; for (const u of L) { x += Q[u * 3]; y += Q[u * 3 + 1]; z += Q[u * 3 + 2] } P[v * 3] = Q[v * 3] * .5 + x / L.length * .5; P[v * 3 + 1] = Q[v * 3 + 1] * .5 + y / L.length * .5; P[v * 3 + 2] = Q[v * 3 + 2] * .5 + z / L.length * .5 } }
     }
     const nor = new Float32Array(n * 3), ao = new Float32Array(n), reg = new Uint8Array(n), reg2 = new Uint8Array(n), rt = new Float32Array(n), e = h * .5;
+    // 2.9 : distance de chaque sommet à chaque groupe de couleur (spec.groups) : interpolée au pixel, la frontière entre deux couleurs suit
+    // l'égalité des distances (ligne nette et lisse) au lieu de suivre les arêtes du maillage (bord « déchiré »)
+    const GR = spec.groups, NG = GR ? GR.length : 0, gd = GR ? new Float32Array(n * NG) : null;
     for (let v = 0; v < n; v++) {
       const x = P[v * 3], y = P[v * 3 + 1], z = P[v * 3 + 2]; let gx = f(x + e, y, z) - f(x - e, y, z), gy = f(x, y + e, z) - f(x, y - e, z), gz = f(x, y, z + e) - f(x, y, z - e); const L = Math.hypot(gx, gy, gz) || 1; gx /= L; gy /= L; gz /= L; nor[v * 3] = gx; nor[v * 3 + 1] = gy; nor[v * 3 + 2] = gz;
-      let o = 0; for (const [d, w] of [[.02, 1], [.05, .6], [.11, .35]]) o += w * Math.max(0, d - f(x + gx * d, y + gy * d, z + gz * d)) / d; ao[v] = Math.max(.3, 1 - o * .5); const R3 = region(x, y, z); reg[v] = R3[0]; reg2[v] = R3[1]; rt[v] = R3[2]
+      let o = 0; for (const [d, w] of [[.02, 1], [.05, .6], [.11, .35]]) o += w * Math.max(0, d - f(x + gx * d, y + gy * d, z + gz * d)) / d; ao[v] = Math.max(.3, 1 - o * .5); const R3 = region(x, y, z); reg[v] = R3[0]; reg2[v] = R3[1]; rt[v] = R3[2];
+      for (let g = 0; g < NG; g++) { let m = .5; for (const id of GR[g]) if (id in R3[3] && R3[3][id] < m) m = R3[3][id]; gd[v * NG + g] = m }
     }
     spec.f = f;
-    return { pos: P, nor, ao, reg, reg2, rt, idx: n > 65535 ? new Uint32Array(idx) : new Uint16Array(idx), evals }
+    return { pos: P, nor, ao, reg, reg2, rt, gd, ng: NG, idx: n > 65535 ? new Uint32Array(idx) : new Uint16Array(idx), evals }
   }
   // Anatomie du pur-sang (mètres ; x = avant, y = haut, z = côté ; sol à y = 0), jambes d'aplomb au repos.
   // Régions : 0 corps, 1 encolure, 2 tête, 3 queue, 4 antérieur gauche, 5 antérieur droit, 6 postérieur gauche, 7 postérieur droit.
@@ -1561,7 +1566,12 @@ const HORSE3D = (() => {
         E([-.87, .62, zh], [.065, .075, .055], idH), E([-.94, .665, zh], [.035, .035, .03], idH), C([-.87, .58, zh], [-.86, .27, zh], .045, .04, idH, .85), C([-.9, .55, zh], [-.89, .29, zh], .026, .024, idH),
         E([-.86, .225, zh], [.064, .058, .052], idH), E([-.91, .2, zh], [.03, .03, .028], idH), C([-.855, .21, zh], [-.82, .105, zh], .042, .047, idH), E([-.815, .088, zh], [.058, .022, .054], idH));
     }
-    const N = [E([1.37, 1.6, .04], [.016, .026, .014]), E([1.37, 1.6, -.04], [.016, .026, .014]), E([1.35, 1.54, 0], [.03, .006, .04], 0, -.7)];
+    // 2.9 : arcade sourcilière au-dessus de l'œil ; relief musculaire doux : épine de l'épaule, pointe de la hanche, triceps
+    for (const s of [1, -1]) P.push(E([1.07, 1.952, .083 * s], [.05, .016, .03], 2, -.2),
+      Object.assign(C([.34, 1.55, .175 * s], [.53, 1.3, .195 * s], .03, .034, 0), { k: .14 }), Object.assign(E([-.47, 1.49, .135 * s], [.08, .05, .06], 0), { k: .14 }),
+      Object.assign(E([.36, 1.12, .155 * s], [.1, .09, .07], 0, .3), { k: .12 }));
+    // naseaux, commissure des lèvres, orbites (l'œil s'y enfonce : paupières dessinées par le creux)
+    const N = [E([1.37, 1.6, .04], [.016, .026, .014]), E([1.37, 1.6, -.04], [.016, .026, .014]), E([1.35, 1.54, 0], [.03, .006, .04], 0, -.7), E([1.1, 1.918, .106], [.031, .023, .02]), E([1.1, 1.918, -.106], [.031, .023, .02])];
     return { prims: P, negs: N, k: .07, kn: .012, min: [-1.12, .06, -.42], max: [1.46, 2.12, .42], h, smooth: 1 };
   }
   // Jockey en position de course (accroupi sur les étriers, jambes contre les flancs), mains aux rênes. Régions :
@@ -1574,7 +1584,10 @@ const HORSE3D = (() => {
       C([-.1, 1.99, 0], [.24, 2.07, 0], .15, .13, 0, 1.25), E([.02, 2.0, 0], [.2, .1, .17], 0, .15), E([.24, 2.06, 0], [.09, .085, .19], 0),
       E([-.1, 1.94, 0], [.15, .115, .155], 2), E([.1, 1.93, 0], [.12, .07, .12], 0, .2),
       // cou, tête (le casque, la visière et les lunettes sont des pièces rigides posées sur l'os de la tête)
-      C([.3, 2.1, 0], [.38, 2.15, 0], .05, .045, 4), E([.43, 2.158, 0], [.08, .09, .074], 4), E([.483, 2.098, 0], [.04, .03, .045], 4),
+      // 2.9 : crâne, visage plus court (plus de museau), nez, menton, pommettes, oreilles
+      C([.3, 2.1, 0], [.38, 2.15, 0], .05, .045, 4), E([.425, 2.16, 0], [.078, .086, .072], 4), E([.468, 2.128, 0], [.045, .058, .056], 4), E([.486, 2.083, 0], [.028, .024, .034], 4),
+      Object.assign(E([.514, 2.137, 0], [.019, .027, .013], 4, .45), { k: .012 }), E([.49, 2.13, .036], [.02, .015, .018], 4), E([.49, 2.13, -.036], [.02, .015, .018], 4),
+      Object.assign(E([.42, 2.152, .072], [.016, .025, .01], 4), { k: .01 }), Object.assign(E([.42, 2.152, -.072], [.016, .025, .01], 4), { k: .01 }),
     ];
     for (const [s, arm, hand] of [[1, 10, 12], [-1, 11, 13]]) P.push(
       // bras : épaule -> coude -> poignet, gant
@@ -1583,7 +1596,8 @@ const HORSE3D = (() => {
       C([-.08, 1.94, .115 * s], [.19, 1.775, .225 * s], .08, .063, 2), E([.205, 1.765, .232 * s], [.062, .058, .054], 2),
       C([.2, 1.75, .24 * s], [.172, 1.69, .26 * s], .057, .053, 2), C([.172, 1.69, .26 * s], [.158, 1.655, .27 * s], .054, .051, 8), C([.158, 1.655, .27 * s], [.075, 1.49, .318 * s], .05, .041, 3),
       E([.06, 1.475, .322 * s], [.045, .034, .036], 3), C([.06, 1.462, .322 * s], [.185, 1.448, .322 * s], .034, .028, 3));
-    return { prims: P, negs: [], k: .035, kn: .01, min: [-.32, 1.38, -.42], max: [.74, 2.36, .42], h, smooth: 1 };
+    // groupes de couleur : casaque, manches, culotte, bottes, peau, gants, revers de botte
+    return { prims: P, negs: [], k: .035, kn: .01, min: [-.32, 1.38, -.42], max: [.74, 2.36, .42], h, smooth: 1, groups: [[0], [1, 10, 11], [2], [3], [4], [7, 12, 13], [8]] };
   }
   // Pondérations de peau (4 os au plus par sommet) calculées d'après la région sculptée et la position au repos.
   // Os du cheval : 0 corps, 1 encolure, 2 tête, 3-5 queue, 6-8 antérieur gauche (bras, canon, paturon), 9-11 antérieur droit, 12-14 postérieur gauche, 15-17 postérieur droit.
@@ -1648,12 +1662,28 @@ const HORSE3D = (() => {
     return S
   }
 
-  const LOD_H = [[.018, .014], [.038, .03], [.06, .045]];
+  // 2.9 : filet posé sur la tête sculptée (montants, frontal, têtière, sous-gorge, muserolle) : chaque point est projeté sur la surface puis décollé
+  // de l'épaisseur du cuir — les lanières suivent les joues au lieu de flotter en bâtons droits
+  function HORSE_TACK(f) {
+    const grad = (x, y, z) => { const e = .003; return [(f(x + e, y, z) - f(x - e, y, z)) / (2 * e), (f(x, y + e, z) - f(x, y - e, z)) / (2 * e), (f(x, y, z + e) - f(x, y, z - e)) / (2 * e)] };
+    const on = (p, o = .008) => { for (let i = 0; i < 8; i++) { const d = f(p[0], p[1], p[2]), g = grad(p[0], p[1], p[2]), L = g[0] * g[0] + g[1] * g[1] + g[2] * g[2] || 1; p = [p[0] - d * g[0] / L, p[1] - d * g[1] / L, p[2] - d * g[2] / L] } const g = grad(p[0], p[1], p[2]), L = Math.hypot(g[0], g[1], g[2]) || 1; return [p[0] + g[0] / L * o, p[1] + g[1] / L * o, p[2] + g[2] / L * o] };
+    const S = [];
+    for (const s of [1, -1]) S.push([[.972, 2.035, .07 * s], [.985, 1.94, .095 * s], [1.05, 1.81, .1 * s], [1.17, 1.69, .09 * s], [1.3, 1.615, .075 * s]].map(p => on(p)));
+    S.push([[1.035, 1.995, .085], [1.075, 2.0, .045], [1.088, 2.0, 0], [1.075, 2.0, -.045], [1.035, 1.995, -.085]].map(p => on(p)));
+    S.push([[.975, 2.04, .075], [.962, 2.085, .04], [.958, 2.1, 0], [.962, 2.085, -.04], [.975, 2.04, -.075]].map(p => on(p)));
+    S.push([[.975, 2.03, .075], [.95, 1.93, .085], [.93, 1.83, .05], [.925, 1.81, 0], [.93, 1.83, -.05], [.95, 1.93, -.085], [.975, 2.03, -.075]].map(p => on(p)));
+    // muserolle : anneau autour du chanfrein, perpendiculaire à l'axe du nez
+    const up = [.72, .69], c = [1.225, 1.705], R = [];
+    for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI * 2; R.push(on([c[0] + up[0] * Math.cos(a) * .16, c[1] + up[1] * Math.cos(a) * .16, Math.sin(a) * .16])) }
+    S.push(R); return S
+  }
+
+  const LOD_H = [[.018, .011], [.035, .025], [.06, .045]];
   // ---------- calcul des maillages (Worker, sinon fil principal) ----------
-  const FNS = [SCULPT, HORSE_SPEC, JOCKEY_SPEC, HORSE_WEIGHTS, JOCKEY_WEIGHTS, HORSE_MANE];
+  const FNS = [SCULPT, HORSE_SPEC, JOCKEY_SPEC, HORSE_WEIGHTS, JOCKEY_WEIGHTS, HORSE_MANE, HORSE_TACK];
   function compute(lod) {
     const [hh, hj] = LOD_H[lod], hs = HORSE_SPEC(hh), H = SCULPT(hs), J = SCULPT(JOCKEY_SPEC(hj));
-    return { H: Object.assign(H, HORSE_WEIGHTS(H.pos, H.reg)), J: Object.assign(J, JOCKEY_WEIGHTS(J.pos, J.reg)), M: HORSE_MANE(hs.f) }
+    return { H: Object.assign(H, HORSE_WEIGHTS(H.pos, H.reg)), J: Object.assign(J, JOCKEY_WEIGHTS(J.pos, J.reg)), M: HORSE_MANE(hs.f), T: HORSE_TACK(hs.f) }
   }
   let worker = null, jobs = {};
   try {
@@ -1666,7 +1696,7 @@ const HORSE3D = (() => {
   const DATA = {};
   function ready(lod = 0) {
     if (jobs[lod]) return jobs[lod].p;
-    const J = jobs[lod] = {}; J.p = new Promise(res => { J.res = r => { J.done = true; DATA[lod] = { H: geo(r.H), J: geo(r.J), M: r.M }; res(DATA[lod]) } });
+    const J = jobs[lod] = {}; J.p = new Promise(res => { J.res = r => { J.done = true; DATA[lod] = { H: geo(r.H), J: geo(r.J), M: r.M, T: r.T }; res(DATA[lod]) } });
     if (worker) worker.postMessage({ lod }); else setTimeout(() => J.res(compute(lod)), 0);
     return J.p
   }
@@ -1675,6 +1705,7 @@ const HORSE3D = (() => {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(m.pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(m.nor, 3));
     g.setAttribute('ao', new THREE.BufferAttribute(m.ao, 1)); g.setAttribute('reg', new THREE.BufferAttribute(new Float32Array(m.reg), 1));
     g.setAttribute('reg2', new THREE.BufferAttribute(new Float32Array(m.reg2), 1)); g.setAttribute('rt', new THREE.BufferAttribute(m.rt, 1));
+    if (m.gd) { const n = m.pos.length / 3, A = new Float32Array(n * 4), Bq = new Float32Array(n * 4).fill(.5); for (let v = 0; v < n; v++) for (let k = 0; k < m.ng; k++) (k < 4 ? A : Bq)[v * 4 + (k & 3)] = m.gd[v * m.ng + k]; g.setAttribute('gA', new THREE.BufferAttribute(A, 4)); g.setAttribute('gB', new THREE.BufferAttribute(Bq, 4)) }
     g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(m.si, 4)); g.setAttribute('skinWeight', new THREE.BufferAttribute(m.sw, 4)); g.setIndex(new THREE.BufferAttribute(m.idx, 1)); g.computeBoundingSphere(); return g
   }
   const V = (x, y, z = 0) => new THREE.Vector3(x, y, z);
@@ -1762,6 +1793,13 @@ const HORSE3D = (() => {
     const ear = new THREE.LatheGeometry([new THREE.Vector2(0, 0), new THREE.Vector2(.034, .01), new THREE.Vector2(.036, .05), new THREE.Vector2(.026, .1), new THREE.Vector2(.008, .145), new THREE.Vector2(0, .15)], 10, 0, Math.PI * 1.35).scale(1, 1, .6);
     const smooth = (ctrl, steps = 5) => { const c = new THREE.CatmullRomCurve3(ctrl.map(p => p[0]), false, 'centripetal'), n = (ctrl.length - 1) * steps + 1, pts = c.getPoints(n - 1), r = []; for (let i = 0; i < n; i++) { const f = i / (n - 1) * (ctrl.length - 1), k = Math.min(ctrl.length - 2, Math.floor(f)), u = f - k, s = u * u * (3 - 2 * u); r.push([ctrl[k][1] + (ctrl[k + 1][1] - ctrl[k][1]) * s, ctrl[k][2] + (ctrl[k + 1][2] - ctrl[k][2]) * s]) } return [pts, r] };
     const tube = (ctrl, seg, arc = [0, Math.PI * 2]) => { const [p, r] = smooth(ctrl); return loft(p, r, seg, arc) };
+    // coque épaisse posée sur le dos (axe du corps à y = 1,31) : stations [x, rayon latéral, rayon vertical, angle début, angle fin, épaisseur],
+    // angle 0 = flanc gauche, π/2 = dos, π = flanc droit ; dessus, dessous, chants et bouts fermés
+    const shell = (st, seg) => { const pos = [], idx = [], n = st.length, R = (seg + 1) * 2, yc = 1.31;
+      for (const [x, rx, ry, a0, a1, th] of st) for (const o of [th, 0]) for (let j = 0; j <= seg; j++) { const a = a0 + (a1 - a0) * (o ? j : seg - j) / seg; pos.push(x, yc + (ry + o) * Math.sin(a), (rx + o) * Math.cos(a)) }
+      for (let i = 0; i < n - 1; i++) for (let j = 0; j < R; j++) { const a = i * R + j, b = i * R + (j + 1) % R; idx.push(a, a + R, b, b, a + R, b + R) }
+      for (const [i, f] of [[0, 1], [n - 1, 0]]) for (let j = 0; j < seg; j++) { const o1 = i * R + j, o2 = o1 + 1, i1 = i * R + R - 1 - j, i2 = i1 - 1; f ? idx.push(o1, o2, i1, o2, i2, i1) : idx.push(o1, i1, o2, o2, i1, i2) }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g };
     // pièces rigides regroupées par os et par matière (un seul appel de dessin chacune), positions relatives à l'os au repos
     const T = (g, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => g.clone().applyMatrix4(new THREE.Matrix4().compose(V(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), V(sx, sy, sz)));
     const both = f => [f(1), f(-1)], HX = .97, HY = 1.95, JX = .36, JY = 2.12;
@@ -1774,32 +1812,41 @@ const HORSE3D = (() => {
     return PARTS = { hoof,
       head: {
         leather: mergeG([T(nose, 1.255 - HX, 1.675 - HY, 0, 0, Math.PI / 2, .72, 1, .95, 1.06), T(brow, 1.02 - HX, 1.995 - HY, 0, 0, Math.PI / 2, .35, 1.03, .55, 1), ...both(s => T(cheek, 1.13 - HX, 1.84 - HY, .083 * s, 0, 0, .9, 1, .33, 1))]),
-        steel: mergeG(both(s => T(bit, 1.31 - HX, 1.6 - HY, .066 * s))), eye: mergeG(both(s => T(eye, 1.1 - HX, 1.918 - HY, .094 * s))),
+        steel: mergeG(both(s => T(bit, 1.31 - HX, 1.6 - HY, .066 * s))), eye: mergeG(both(s => T(eye, 1.1 - HX, 1.918 - HY, .093 * s, 0, 0, 0, 1.08, 1, 1))),
         ear: mergeG(both(s => earA(s)), { ao: .9, reg: 2 }), earIn: mergeG(both(s => T(ear, 1.0 - HX, 2.063 - HY, .058 * s, s * .35, s * (Math.PI * .5 - .25), -.25, .82, .9, .7))),
         blink: mergeG(both(s => T(blink, 1.08 - HX, 1.93 - HY, .1 * s, s * -Math.PI / 2))) },
       cap: mergeG([T(helmet, .418 - JX, 2.19 - JY, 0, 0, 0, .18), T(peak, .505 - JX, 2.186 - JY, 0, 0, 0, -.1), T(pom, .4 - JX, 2.29 - JY, 0)]),
-      glass: mergeG([...both(s => T(lens, .508 - JX, 2.168 - JY, .031 * s)), T(band, .43 - JX, 2.168 - JY, 0)]),
+      // lunettes, élastique, jugulaire du casque sous le menton (2.9)
+      glass: mergeG([...both(s => T(lens, .508 - JX, 2.168 - JY, .031 * s)), T(band, .43 - JX, 2.168 - JY, 0), T(tube([[V(.405, 2.13, .077), .0045, .0045], [V(.442, 2.077, .06), .0045, .0045], [V(.48, 2.058, 0), .0045, .0045], [V(.442, 2.077, -.06), .0045, .0045], [V(.405, 2.13, -.077), .0045, .0045]], 6), -JX, -JY, 0)]),
       // 2.8 : étriers sous le pied du jockey, contre le flanc ; étrivières de la selle à l'étrier (par-dessus le quartier)
       irons: mergeG(both(s => T(iron, .12, 1.45, .322 * s, 0, Math.PI / 2))), straps: mergeG(both(s => leatherStrap(V(.07, 1.705, .2 * s), V(.12, 1.486, .322 * s)))),
       // tapis (numéro) posé sur le dos et tombant sur les flancs — l'arc du tube passe par le haut (« up » du tube = -y)
       cloth: tube([[V(-.36, 1.32), .305, .36], [V(-.1, 1.31), .31, .372], [V(.17, 1.31), .3, .366]], 34, [-Math.PI - .42, .42]),
-      // selle de course : siège plat sur le tapis, quartiers de cuir sous les genoux
-      saddle: tube([[V(-.22, 1.712), .15, .028], [V(-.05, 1.708), .17, .036], [V(.1, 1.714), .16, .032], [V(.17, 1.73), .1, .026]], 14),
-      flaps: tube([[V(-.08, 1.33), .324, .39], [V(.07, 1.33), .324, .39], [V(.2, 1.33), .312, .384]], 22, [-Math.PI + .42, -.42]),
+      // 2.9 : selle de course moulée sur le dos (coque épaisse : troussequin et pommeau relevés, siège creux) ; quartiers de cuir épais, coins
+      // arrondis, glissés sous la selle — plus de plaque plate posée au-dessus du tapis
+      saddle: shell([[-.225, .33, .394, .3, .07], [-.19, .332, .396, .48, .05], [-.12, .334, .397, .56, .036], [-.02, .334, .397, .58, .03], [.07, .332, .395, .56, .036], [.14, .328, .392, .48, .055], [.185, .324, .388, .32, .068]].map(([x, rx, ry, w, th]) => [x, rx, ry, Math.PI / 2 - w, Math.PI / 2 + w, th]), 28),
+      flaps: mergeG([1, -1].map(sd => shell([[-.1, .318, .382, .56, 1.12], [-.085, .318, .382, .45, 1.12], [-.04, .318, .382, .42, 1.12], [.12, .316, .381, .42, 1.12], [.19, .313, .379, .45, 1.1], [.21, .312, .378, .56, 1.08]].map(([x, rx, ry, a0, a1]) => [x, rx, ry, sd > 0 ? a0 : Math.PI - a1, sd > 0 ? a1 : Math.PI - a0, .009]), 14))),
       girth: new THREE.TorusGeometry(1, .036, 6, 44).rotateY(Math.PI / 2).scale(1, .335, .292),
       rein: new THREE.CylinderGeometry(.007, .007, 1, 5).translate(0, .5, 0).rotateZ(-Math.PI / 2),
       whip: new THREE.CylinderGeometry(.005, .009, .62, 5).translate(0, -.31, 0) }
+  }
+  // filet en cuir (lanières projetées sur la tête dans le Worker), dans le repère de l'os de la tête ; calculé une fois
+  let TACK_G = null;
+  function tackGeo(T) {
+    if (TACK_G || !T) return TACK_G;
+    TACK_G = mergeG(T.map((L, i) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(L.map(p => V(p[0] - .97, p[1] - 1.95, p[2])), i === T.length - 1, 'centripetal'), L.length * 6, i === T.length - 1 ? .0085 : .0075, 6, i === T.length - 1)));
+    return TACK_G
   }
   // ---------- matériaux ----------
   const NOISE3 = 'float h3(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}float n3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z);}';
   // pelage : robe, extrémités sombres, balzanes (hauteur par jambe), liste / étoile, pommelures, bout du nez, poil fin, occlusion
   function coatMat(col, dark, o) {
     // robe lustrée d'un pur-sang : vernis léger (clearcoat) qui prend les reflets du ciel, reflet de poil (sheen) et relief musculaire (bosselage procédural)
-    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .42, sheen: .6, sheenRoughness: .42, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .3, clearcoatRoughness: .44, envMapIntensity: 1.15 });
+    const m = new THREE.MeshPhysicalMaterial({ color: col, roughness: .46, sheen: .6, sheenRoughness: .42, sheenColor: new THREE.Color(0xfff2dc), clearcoat: .2, clearcoatRoughness: .5, envMapIntensity: 1.1 });
     m.onBeforeCompile = s => {
-      Object.assign(s.uniforms, { uDark: { value: dark }, uPts: { value: o.points ? 1 : 0 }, uDap: { value: o.dapple ? 1 : 0 }, uSocks: { value: new THREE.Vector4(...o.socks) }, uBlaze: { value: o.blaze } });
+      Object.assign(s.uniforms, { uDark: { value: dark }, uPts: { value: o.points ? 1 : 0 }, uDap: { value: o.dapple ? 1 : 0 }, uSocks: { value: new THREE.Vector4(...o.socks) }, uBlaze: { value: o.blaze }, uTack: { value: o.tack ? 1 : 0 } });
       s.vertexShader = 'attribute float ao;attribute float reg;varying float vAo;varying float vReg;varying vec3 vRest;varying vec3 vRestN;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvAo=ao;vReg=reg;vRest=position;vRestN=normal;');
-      s.fragmentShader = 'uniform vec3 uDark;uniform float uPts,uDap,uBlaze;uniform vec4 uSocks;varying float vAo;varying float vReg;varying vec3 vRest;varying vec3 vRestN;\n' + NOISE3 + '\n' + s.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      s.fragmentShader = 'uniform vec3 uDark;uniform float uPts,uDap,uBlaze,uTack;uniform vec4 uSocks;varying float vAo;varying float vReg;varying vec3 vRest;varying vec3 vRestN;\n' + NOISE3 + '\n' + s.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
       {vec3 P=vRest;float hair=n3(P*vec3(40.,170.,40.))*.5+n3(P*9.)*.5;int r=int(vReg+.5);
        float leg=r>=4?1.:0.;float kneeY=r>=6?.66:.61;float pts=leg*smoothstep(kneeY+.1,kneeY-.12,P.y)*uPts;
        float top=smoothstep(1.05,1.62,P.y);diffuseColor.rgb*=mix(.88,1.07,top)*mix(.93,1.05,hair);
@@ -1810,6 +1857,8 @@ const HORSE3D = (() => {
        float bl=0.;if(r==2&&uBlaze>.5){vec2 a=vec2(1.02,2.0),b=vec2(1.36,1.57);vec2 d=b-a;float t=clamp(dot(P.xy-a,d)/dot(d,d),0.,1.);float front=dot(vRestN.xy,normalize(vec2(d.y,-d.x)));
         float w=uBlaze>1.5?.028+t*.018:(t<.2?.03:0.);bl=smoothstep(w+.006,w-.006,abs(P.z))*smoothstep(.2,.45,front)*(uBlaze>1.5?step(t,.93):1.);}
        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.93,.91,.87),max(sock,bl));
+       // 2.9 : ombre de contact sous les bords du tapis (cheval harnaché)
+       if(uTack>.5&&r<=1){float dc=max(1.16-P.y,max(-.36-P.x,P.x-.17));diffuseColor.rgb*=1.-.32*smoothstep(.06,0.,dc)*step(.95,P.y);}
        diffuseColor.rgb*=pow(vAo,1.25);}`).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
       {vec3 P=vRest;float lg=mix(.3,1.,smoothstep(.85,1.15,P.y));
        float hB=(n3(P*vec3(3.4,4.2,3.4))*.034+n3(P*11.)*.0035)*lg;vec2 dH=vec2(dFdx(hB),dFdy(hB));
@@ -1823,23 +1872,43 @@ const HORSE3D = (() => {
     const m = settings.level() === 'basse' ? new THREE.MeshStandardMaterial({ map: tex, roughness: .45, metalness: .02 }) : new THREE.MeshPhysicalMaterial({ map: tex, roughness: .45, metalness: .02, sheen: .7, sheenRoughness: .32, sheenColor: new THREE.Color(0xffffff), envMapIntensity: 1.1 });
     m.onBeforeCompile = s => {
       s.uniforms.uCols = { value: cols };
-      s.vertexShader = `attribute float ao;attribute float reg;attribute float reg2;attribute float rt;uniform vec3 uCols[9];varying float vAo;varying vec3 vCol;varying float vSilk;varying float vRough;varying vec3 vRest;
-       int jr(float x){int r=int(x+.5);return r>=12?7:r>=10?1:r;}vec3 jc(int r){vec3 c=uCols[0];for(int i=1;i<9;i++){if(i==r)c=uCols[i];}return c;}float jro(int r){return r==3?.25:r==4?.62:r==2?.55:r==7?.5:.4;}
-` + s.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-       vAo=ao;int r1=jr(reg),r2=jr(reg2);float s1=r1==0?1.:0.,s2=r2==0?1.:0.;vCol=mix(jc(r1)*(1.-s1),jc(r2)*(1.-s2),rt);vSilk=mix(s1,s2,rt);vRough=mix(jro(r1),jro(r2),rt);vRest=position;`);
-      s.fragmentShader = 'varying float vAo;varying vec3 vCol;varying float vSilk;varying float vRough;varying vec3 vRest;\n' + s.fragmentShader.replace('#include <map_fragment>', `vec4 sT=texture2D(map,vec2(.5+vRest.z/.42,(vRest.x+.14)/.46));diffuseColor.rgb=(vCol+vSilk*sT.rgb)*pow(vAo,1.2);`)
-        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor=vRough;')
+      s.vertexShader = 'attribute float ao;attribute vec4 gA;attribute vec4 gB;varying float vAo;varying vec4 vgA;varying vec4 vgB;varying vec3 vRest;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvAo=ao;vgA=gA;vgB=gB;vRest=position;');
+      // 2.9 : couleur au pixel = groupe le plus proche (distances interpolées), fondu sur un pixel seulement ; motif de la casaque projeté autour
+      // du dos (angle autour de l'axe du buste) : il ne s'étire plus sur les flancs
+      s.fragmentShader = `uniform vec3 uCols[9];varying float vAo;varying vec4 vgA;varying vec4 vgB;varying vec3 vRest;
+       vec3 jcol(int i){return i==1?uCols[1]:i==2?uCols[2]:i==3?uCols[3]:i==4?uCols[4]:i==5?uCols[7]:uCols[8];}float jro(int i){return i==3?.25:i==4?.62:i==2?.55:i==5?.5:.4;}
+` + s.fragmentShader.replace('#include <map_fragment>', `float D[7];D[0]=vgA.x;D[1]=vgA.y;D[2]=vgA.z;D[3]=vgA.w;D[4]=vgB.x;D[5]=vgB.y;D[6]=vgB.z;
+        float m1=1.,m2=1.;for(int i=0;i<7;i++){if(D[i]<m1){m2=m1;m1=D[i];}else if(D[i]<m2)m2=D[i];}float jT=max(fwidth(m2-m1),2e-5)*.75;
+        vec2 jA=vec2(-.1,1.99),jD=vec2(.34,.08);float jL=length(jD);vec2 jn=jD/jL,ju=vec2(-jn.y,jn.x),jq=vRest.xy-jA;float jR=dot(jq,ju),jAng=atan(vRest.z,jR),jAng2=atan(-vRest.z,-jR);
+        // l'angle est borné sur le devant (poitrine, ventre : la colonne du bord du motif) ; dérivées prises sur l'angle continu
+        vec2 jUV=vec2(.5+clamp(jAng,-1.65,1.65)/3.4,(dot(jq,jn)+.05)/(jL+.1));
+        vec2 jdA=vec2(dFdx(jAng),dFdy(jAng)),jdB=vec2(dFdx(jAng2),dFdy(jAng2)),jdV=vec2(dFdx(jUV.y),dFdy(jUV.y));vec2 jdU=(abs(jAng)>1.6?jdB:jdA)/3.4*step(abs(jAng),1.65);
+        vec3 sT=textureGrad(map,jUV,vec2(jdU.x,jdV.x),vec2(jdU.y,jdV.y)).rgb;
+        vec3 jC=vec3(0.);float jW=0.,jSilk=0.,jRough=0.,jLeg=0.,jSkin=0.;for(int i=0;i<7;i++){float w=exp(-(D[i]-m1)/jT);jW+=w;if(i==2||i==3||i==6){jLeg+=w;continue;}jC+=w*(i==0?sT:jcol(i));jRough+=w*jro(i);if(i==0)jSilk=w;if(i==4)jSkin=w;}
+        // jambe : culotte, revers et botte coupés le long de l'axe genou → cheville (coupes nettes, revers plus haut devant)
+        {vec2 kA=vec2(.2,1.75),kD=vec2(-.125,-.26);float t=dot(vRest.xy-kA,kD)/dot(kD,kD)+(vRest.x-.17)*.6,e=max(fwidth(t),1e-4)*.8;
+         float c1=smoothstep(.22-e,.22+e,t),c2=smoothstep(.355-e,.355+e,t);jC+=jLeg*mix(mix(uCols[2],uCols[8],c1),uCols[3],c2);jRough+=jLeg*mix(mix(.55,.4,c1),.25,c2);}
+        jC/=jW;jRough/=jW;jSilk/=jW;jSkin/=jW;diffuseColor.rgb=jC*pow(vAo,mix(1.2,.45,jSkin));`)
+        // peau : lumière diffusée sous la surface (les ombres du visage restent chaudes)
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=uCols[4]*jSkin*.22;')
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor=jRough;')
         .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        {vec3 P=vRest;float f=sin(P.x*62.+sin(P.z*25.)*2.2+sin(P.y*30.)*1.6)*.5+.5;float hB=f*f*.0045*(1.-vSilk*.3)*smoothstep(.07,.12,distance(P,vec3(.44,2.15,0.)));vec2 dH=vec2(dFdx(hB),dFdy(hB));
+        {vec3 P=vRest;float f=sin(P.x*62.+sin(P.z*25.)*2.2+sin(P.y*30.)*1.6)*.5+.5;float hB=f*f*.0045*(1.-jSilk*.3)*smoothstep(.07,.12,distance(P,vec3(.44,2.15,0.)));vec2 dH=vec2(dFdx(hB),dFdy(hB));
          vec3 sX=dFdx(-vViewPosition),sY=dFdy(-vViewPosition),R1=cross(sY,normal),R2=cross(normal,sX);float fD=dot(sX,R1);normal=normalize(abs(fD)*normal-sign(fD)*(dH.x*R1+dH.y*R2));}`)
     }; return m
   }
   const HAIR = { bai: 0x120c09, noir: 0x0b0a0a, alezan: 0x6a2c12, gris: 0x55555a, baibrun: 0x0e0a08, palomino: 0xefe2c0 };
   const POINTS = { bai: true, noir: true, baibrun: true, gris: true };
   const hexRGB = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-  function silkTexture(liv) { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'), img = x.createImageData(256, 256), m = hexRGB(liv.main), s = hexRGB(liv.second), pat = LIVERY.pattern;
-    for (let j = 0; j < 256; j++) for (let i = 0; i < 256; i++) { const u = i / 256, v = j / 256, alt = pat(liv.pattern, u, v), c2 = alt ? s : m, k = ((255 - j) * 256 + i) * 4, fold = .93 + .07 * Math.sin(u * 40 + v * 9); img.data[k] = c2[0] * fold; img.data[k + 1] = c2[1] * fold; img.data[k + 2] = c2[2] * fold; img.data[k + 3] = 255 }
-    x.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t }
+  // motif de la casaque (2.9 : 384 px, bords adoucis par les quatre coins de chaque pixel ; image gardée par livrée, chaque cheval a sa texture)
+  const SILK = new Map();
+  function silkTexture(liv) {
+    const key = [liv.main, liv.second, liv.pattern].join('|'); let c = SILK.get(key);
+    if (!c) { const N = 384, m = hexRGB(liv.main), s = hexRGB(liv.second), pat = LIVERY.pattern, K = new Uint8Array((N + 1) * (N + 1)); c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d'), img = x.createImageData(N, N);
+      for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) K[j * (N + 1) + i] = pat(liv.pattern, i / N, j / N) ? 1 : 0;
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const a = (K[j * (N + 1) + i] + K[j * (N + 1) + i + 1] + K[(j + 1) * (N + 1) + i] + K[(j + 1) * (N + 1) + i + 1]) / 4, k = ((N - 1 - j) * N + i) * 4; for (let q = 0; q < 3; q++) img.data[k + q] = m[q] + (s[q] - m[q]) * a; img.data[k + 3] = 255 }
+      x.putImageData(img, 0, 0); if (SILK.size > 24) SILK.delete(SILK.keys().next().value); SILK.set(key, c) }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t }
   function clothTexture(liv, num) { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const x = c.getContext('2d'); x.fillStyle = liv.main; x.fillRect(0, 0, 512, 128); x.fillStyle = liv.second; x.fillRect(0, 0, 512, 9); x.fillRect(0, 119, 512, 9); x.fillRect(0, 0, 12, 128); x.fillRect(500, 0, 12, 128);
     // u (largeur) fait le tour du dos (0 = bas du flanc droit, 0,5 = dos, 1 = bas du flanc gauche), v (hauteur) suit le cheval de l'arrière à l'avant :
     // chaque numéro est tourné d'un quart de tour pour se lire droit sur son flanc
@@ -1865,15 +1934,21 @@ const HORSE3D = (() => {
   }
   function assemble(root, D, liv, opt) {
     const P = parts(), HG = hairGeo(D.M), u = root.userData, mk = marks(liv, opt.seed), pts = POINTS[liv.coat], dk = new THREE.Color(HAIR[liv.coat] || 0x120c09), cc = coatColor(liv);
-    const coat = coatMat(cc, pts ? dk : cc.clone().multiplyScalar(.62), { points: pts, dapple: liv.coat === 'gris', socks: mk.socks, blaze: mk.blaze });
+    const coat = coatMat(cc, pts ? dk : cc.clone().multiplyScalar(.62), { points: pts, dapple: liv.coat === 'gris', socks: mk.socks, blaze: mk.blaze, tack: !opt.free });
     const hair = new THREE.MeshStandardMaterial({ color: HAIR[liv.coat] || 0x120c09, map: hairTexture(), alphaTest: .42, side: THREE.DoubleSide, roughness: .55 });
     const tailM = new THREE.MeshStandardMaterial({ color: HAIR[liv.coat] || 0x120c09, map: hairTexture(1), roughness: .6 });
     const hoof = new THREE.MeshStandardMaterial({ color: 0x2b2420, roughness: .42 }), leather = new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: .45 }), steel = new THREE.MeshStandardMaterial({ color: 0xc9ccd0, roughness: .25, metalness: .9 });
-    const glass = new THREE.MeshStandardMaterial({ color: 0x1c2228, roughness: .08, metalness: .6 }), flapM = new THREE.MeshStandardMaterial({ color: 0x2e1d12, roughness: .5, side: THREE.DoubleSide });
-    const eye = new THREE.MeshPhysicalMaterial({ color: 0x0a0706, roughness: .04, clearcoat: 1 }), earIn = new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: .8, side: THREE.DoubleSide });
+    const glass = new THREE.MeshStandardMaterial({ color: 0x1c2228, roughness: .08, metalness: .6 }), flapM = new THREE.MeshStandardMaterial({ color: 0x4a301c, roughness: .52 }), saddleM = new THREE.MeshStandardMaterial({ color: 0x3a2516, roughness: .36 });
+    const eye = new THREE.MeshPhysicalMaterial({ color: 0x1c0f08, roughness: .04, clearcoat: 1 }), earIn = new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: .8, side: THREE.DoubleSide });
     const silkTex = silkTexture(liv), clothTex = clothTexture(liv, opt.number), cloth = new THREE.MeshStandardMaterial({ map: clothTex, roughness: .85, side: THREE.DoubleSide }), capM = new THREE.MeshStandardMaterial({ color: liv.cap, roughness: .35 });
+    // 2.9 : ombre de contact de la selle et des quartiers sur le tapis (le cuir ne flotte plus au-dessus du tissu)
+    cloth.onBeforeCompile = s => { s.vertexShader = 'varying vec3 vRest;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvRest=position;');
+      s.fragmentShader = 'varying vec3 vRest;\n' + s.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+       {vec3 P=vRest;float th=atan(P.y-1.31,P.z);float ds=max(max(abs(th-1.5708)-.56,0.)*.37,max(-.225-P.x,P.x-.185));
+        float tf=min(abs(th-.77),abs(th-2.3716));float df=max(max(tf-.35,0.)*.37,max(-.1-P.x,P.x-.21));
+        diffuseColor.rgb*=1.-.5*max(smoothstep(.045,0.,ds),smoothstep(.03,0.,df));}`) };
     const lin = h => new THREE.Color(h), jk = jockeyMat(silkTex, [lin(liv.main), lin(liv.pattern === 'manches' ? liv.second : liv.main), lin(0xf1efe8), lin(0x141312), lin(0xdfa487), lin(liv.cap), lin(0x1a1f24), lin(0xf4f2ec), lin(0x8a5a32)]);
-    u.mats.push(coat, hair, tailM, glass, flapM, hoof, leather, steel, eye, earIn, cloth, capM, jk); u.texs.push(silkTex, clothTex);
+    u.mats.push(coat, hair, tailM, glass, flapM, saddleM, hoof, leather, steel, eye, earIn, cloth, capM, jk); u.texs.push(silkTex, clothTex);
     // cheval : corps sculpté + crins, un seul squelette
     const B = bones(HB), body = new THREE.SkinnedMesh(D.H, coat); body.castShadow = true; body.add(B[0]); root.add(body);
     root.updateMatrixWorld(true); const sk = new THREE.Skeleton(B); body.bind(sk);
@@ -1882,8 +1957,8 @@ const HORSE3D = (() => {
     for (const [b, x] of [[8, .53], [11, .53], [14, -.81], [17, -.81]]) at(b, P.hoof, hoof, x, 0, B[b].getWorldPosition(new THREE.Vector3()).z);
     onHead(P.head.eye, eye); onHead(P.head.ear, coat).castShadow = true; onHead(P.head.earIn, earIn);
     const u2 = { B, body, reins: [] }; if (opt.free) { Object.assign(u, u2); return }
-    onHead(P.head.leather, leather); onHead(P.head.steel, steel); if (opt.blinkers) onHead(P.head.blink, capM);
-    at(0, P.cloth, cloth, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.saddle, leather, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.flaps, flapM, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.girth, leather, .24, 1.29, 0);
+    onHead(tackGeo(D.T) || P.head.leather, leather).castShadow = true; onHead(P.head.steel, steel); if (opt.blinkers) onHead(P.head.blink, capM);
+    at(0, P.cloth, cloth, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.saddle, saddleM, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.flaps, flapM, 0, 0, 0, 1).position.set(0, -1.3, 0); at(0, P.girth, leather, .24, 1.29, 0);
     // jockey : son propre squelette, accroché au corps du cheval
     const jg = new THREE.Group(); jg.position.set(0, -1.3, 0); B[0].add(jg); const JB_ = bones(JB), jm = new THREE.SkinnedMesh(D.J, jk); jm.castShadow = true; jm.add(JB_[0], JB_[7]); jg.add(jm); root.updateMatrixWorld(true); jm.bind(new THREE.Skeleton(JB_));
     jg.add(new THREE.Mesh(P.irons, steel), new THREE.Mesh(P.straps, leather));
@@ -4459,6 +4534,9 @@ const couronne=(()=>{const C=career.data;C.couronne=C.couronne||{done:[],tries:{
 <script type="text/x-module" data-f="50-nouveautes.js">/* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🏇','Cheval et jockey plus fins','Casaque nette jusque sur les flancs, bottes à revers, gants et culotte aux bords francs ; visage, oreilles et jugulaire du casque. Le cheval porte un vrai filet qui suit sa tête, des yeux sous l’arcade, et une selle moulée sur le dos, avec ses quartiers de cuir.',0,'2.9'],
+ ['✨','Bâtiment choisi en lumière','Plus d’anneau autour du bâtiment choisi au village : il s’illumine d’un contour doré ; la piste, la carrière et les paddocks s’éclairent au sol.',0,'2.9'],
+ ['🐎','Village remis d’aplomb','Les cavaliers de la carrière avancent enfin dans le bon sens, les chevaux de l’hippodrome ne traversent plus la tribune ni les stalles, le pré de l’écurie quitte l’allée. Nouvelles stalles de départ et poteau d’arrivée.',0,'2.9'],
  ['🏆','Un vrai podium','Marches de marbre et médailles, portique au nom de la course, projecteurs, pluie de confettis et guirlande de roses pour le vainqueur. Pendant la cérémonie, les commandes de course s’effacent.',0,'2.8'],
  ['🎨','Atelier en 3D','Robe, casaque et toque se choisissent sur le vrai cheval de course : fais-le tourner, regarde-le au galop. Chaque cheval de l’écurie se personnalise, et ses portraits (écurie, courses, ventes, Légendes) sont en 3D.',0,'2.8'],
  ['🏇','Jockey en selle','À l’arrêt, le jockey s’assoit dans la selle ; ses jambes épousent les flancs, ses bottes reposent dans les étriers. Le numéro du tapis se lit droit sur les deux flancs, la robe est plus lisse et lustrée.',0,'2.8'],

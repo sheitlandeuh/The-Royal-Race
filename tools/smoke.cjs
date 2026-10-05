@@ -75,6 +75,10 @@ const SCREENS = [
         // HUD du domaine (2.7) : carte du bâtiment, objectif, coffres, COURIR, navigation, rails, ressources et profil ne se chevauchent jamais
         if (screen === 'domaine' || screen === 'batiment' || screen === 'domaine-3d') {
           await p.waitForFunction(() => { const c = document.querySelector('#selection'); return !c.classList.contains('open') || +getComputedStyle(c).opacity > .99 }, null, { timeout: 8000 }).catch(() => {}); await p.waitForTimeout(350);
+          // 2.9 : on mesure la position de repos. Avec le rendu 3D logiciel de l'intégration continue, une partie avancée peut bloquer la
+          // production d'images plusieurs secondes : la transition d'ouverture de la carte restait figée à sa première image (opacité 0,05,
+          // 17 px plus bas) et chevauchait la barre, alors qu'au repos elle est au-dessus. Les transitions finies, la mesure est celle du joueur.
+          await p.evaluate(() => document.querySelectorAll('#selection, .homebar, .homebar *, .rail, .dock').forEach(e => e.getAnimations().forEach(a => { try { if (a.effect && a.effect.getComputedTiming().endTime !== Infinity) a.finish() } catch (x) { } }))).catch(() => {});
           const hud = await p.evaluate(() => { const vis = e => { if (!e) return false; const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && +cs.opacity > .05 };
             const E = { carte: '#selection', objectif: '.homebar .goal', coffres: '.homebar .slots', COURIR: '#playBtn', navigation: '.dock', 'rail gauche': '.rail.left', 'rail droit': '.rail.right', ressources: '.resources', profil: '.profile' };
             const k = Object.keys(E).filter(n => vis(document.querySelector(E[n]))), el = n => document.querySelector(E[n]), R = n => el(n).getBoundingClientRect(), o = [];

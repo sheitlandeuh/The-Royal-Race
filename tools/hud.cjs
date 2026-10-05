@@ -35,6 +35,8 @@ const COURSE = { carte: '#autoGallop', allure: '#paceCtl', sprint: '#sprintBtn',
       await p.evaluate(s => { try { while (coach.open) coach.hide() } catch (e) { } document.querySelector('#panel').classList.remove('open'); s ? village.select(s) : village.deselect() }, sel);
       await p.waitForFunction(s => { const c = document.querySelector('#selection'); return s ? +getComputedStyle(c).opacity > .99 : +getComputedStyle(c).opacity < .01 }, sel, { timeout: 8000 }).catch(() => {});
       await p.waitForTimeout(350);
+      // position de repos : transitions terminées (rendu logiciel lent : une image figée en pleine ouverture ne compte pas, cf. smoke.cjs)
+      await p.evaluate(() => document.querySelectorAll('#selection, .homebar, .homebar *, .rail, .dock').forEach(e => e.getAnimations().forEach(a => { try { if (a.effect && a.effect.getComputedTiming().endTime !== Infinity) a.finish() } catch (x) { } }))).catch(() => {});
       dom.push(...(await p.evaluate(OVERLAPS, DOMAINE)).map(o => (sel ? 'bâtiment : ' : '') + o));
       if (shots && sel) await p.screenshot({ path: `${shots}/hud-domaine-${w}x${h}.png` });
     }

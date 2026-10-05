@@ -25,10 +25,43 @@ const domaine3d = (() => {
   const mansard = (w, d, h, top = .55) => new THREE.CylinderGeometry(top, 1, h, 4, 1).rotateY(Math.PI / 4).scale(w / Math.SQRT2, 1, d / Math.SQRT2).translate(0, h / 2, 0);
   function windows(P, x0, x1, y, z, n, ww = 1.6, wh = 2.2, face = 1, rot = 0) { for (let i = 0; i < n; i++) { const x = x0 + (x1 - x0) * (n > 1 ? i / (n - 1) : .5); P.push({ g: bx(ww, wh, .3), m: M(x, y, z + face * .1), c: C.win, glow: 1 }, { g: bx(ww + .5, .3, .5), m: M(x, y - wh / 2 - .1, z + face * .15), c: C.trim }) } }
   function part(P, g, x, y, z, c, ry = 0, glow = 0) { P.push({ g, m: M(x, y, z, ry), c, glow }) }
+  // ---------- surbrillance (2.9) : contour doré autour de la silhouette du bâtiment choisi, de largeur constante à l'écran, dessiné
+  // seulement hors du bâtiment (stencil écrit par bldMat) ; pour les lieux surtout au sol (hippodrome, carrière, paddocks), c'est
+  // leur surface même (piste, sable, prés) qui s'illumine, à leur forme exacte — plus d'anneau autour ----------
+  const HL = { col: new THREE.Color(0xffd36b), res: new THREE.Vector2(1, 1) };
+  function outlineMat() {
+    return new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uPx: { value: 3.2 }, uRes: { value: HL.res }, uC: { value: HL.col } }, transparent: true, depthTest: false, depthWrite: false,
+      stencilWrite: true, stencilRef: 1, stencilFunc: THREE.NotEqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp,
+      vertexShader: 'attribute vec3 onorm;uniform float uPx;uniform vec2 uRes;void main(){mat4 M=projectionMatrix*modelViewMatrix;vec4 c=M*vec4(position,1.),c2=M*vec4(position+onorm*.3,1.);vec2 d=c2.xy/c2.w-c.xy/c.w;float l=length(d);if(l>1e-6)c.xy+=d/l*uPx*2./uRes*c.w;gl_Position=c;}',
+      fragmentShader: 'uniform vec3 uC;uniform float uA;void main(){gl_FragColor=vec4(uC,uA);}' })
+  }
+  // normales lissées par position (les boîtes fusionnées ont des normales par face : sans lissage, le contour s'ouvrirait aux arêtes)
+  function outline(m) {
+    const g = m.geometry, pos = g.attributes.position, nor = g.attributes.normal, n = pos.count, key = i => Math.round(pos.getX(i) * 50) + ',' + Math.round(pos.getY(i) * 50) + ',' + Math.round(pos.getZ(i) * 50), acc = new Map(), sm = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const k = key(i); let a = acc.get(k); if (!a) acc.set(k, a = [0, 0, 0]); a[0] += nor.getX(i); a[1] += nor.getY(i); a[2] += nor.getZ(i) }
+    for (let i = 0; i < n; i++) { const a = acc.get(key(i)), l = Math.hypot(a[0], a[1], a[2]) || 1; sm[i * 3] = a[0] / l; sm[i * 3 + 1] = a[1] / l; sm[i * 3 + 2] = a[2] / l }
+    const og = new THREE.BufferGeometry(); og.setAttribute('position', pos); og.setAttribute('onorm', new THREE.BufferAttribute(sm, 3)); if (g.index) og.setIndex(g.index);
+    const o = new THREE.Mesh(og, outlineMat()); o.renderOrder = 5; o.frustumCulled = false; o.visible = false; o.userData.outline = 1; return o
+  }
+  // surface au sol d'un lieu (forme exacte) : voile doré, bord plus vif, posé juste au-dessus du sol
+  function zoneMat() { return new THREE.MeshBasicMaterial({ color: HL.col, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }) }
+  function zone(paths, holes = []) {
+    const open = pts => { const a = pts[0], b = pts[pts.length - 1]; return Math.hypot(a[0] - b[0], a[1] - b[1]) < 1e-6 ? pts.slice(0, -1) : pts }, v2 = pts => open(pts).map(([x, z]) => new THREE.Vector2(x, -z));
+    const shp = paths.map((pts, i) => { const s = new THREE.Shape(v2(pts)); if (holes[i]) s.holes.push(new THREE.Path(v2(holes[i]))); return s });
+    const fill = new THREE.Mesh(new THREE.ShapeGeometry(shp, 6).rotateX(-Math.PI / 2), zoneMat()); fill.position.y = .12; fill.renderOrder = 4;
+    // bord : bande de 1,6 m le long de chaque contour (extérieur et trous)
+    const P = [], I = [], w = .8;
+    for (const pts of [...paths, ...holes.filter(Boolean)]) for (let i = 0; i < pts.length - 1; i++) { const [ax, az] = pts[i], [bx_, bz] = pts[i + 1], L = Math.hypot(bx_ - ax, bz - az); if (L < 1e-6) continue; const nx = -(bz - az) / L * w, nz = (bx_ - ax) / L * w, k = P.length / 3;
+      P.push(ax - nx, .14, az - nz, ax + nx, .14, az + nz, bx_ - nx, .14, bz - nz, bx_ + nx, .14, bz + nz); I.push(k, k + 1, k + 2, k + 1, k + 3, k + 2) }
+    const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); eg.setIndex(I);
+    const edge = new THREE.Mesh(eg, zoneMat()); edge.renderOrder = 4; edge.material.side = THREE.DoubleSide;
+    const z = new THREE.Group(); z.add(fill, edge); z.visible = false; z.userData = { fill, edge }; return z
+  }
   function mesh(P, mat) { const m = new THREE.Mesh(K().merge(P, ['glow']), mat); m.castShadow = m.receiveShadow = true; return m }
   // matériau des bâtiments : couleurs par sommet, fenêtres qui s'allument la nuit, surbrillance au survol / à la sélection
+  // (2.9 : plus d'anneau au sol ; uHi pose un liseré doré sur les bords — Fresnel — et un voile chaud léger sur les faces)
   function bldMat() {
-    const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78 }); m.userData.u = { uNight: { value: 0 }, uHi: { value: 0 } };
+    const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp }); m.userData.u = { uNight: { value: 0 }, uHi: { value: 0 } };
     // 2.4 : matières procédurales (assises de pierre et joints sur les murs, rangs de tuiles sur les toits, grain, patine au pied des murs) ; le détail fin s'efface au loin (fwidth) pour ne pas scintiller
     m.onBeforeCompile = s => { Object.assign(s.uniforms, m.userData.u); s.vertexShader = 'attribute float glow;varying float vGlow;varying vec3 vWp;varying vec3 vWn;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvGlow=glow;vWp=(modelMatrix*vec4(transformed,1.)).xyz;vWn=normalize(mat3(modelMatrix)*objectNormal);');
       s.fragmentShader = 'uniform float uNight,uHi;varying float vGlow;varying vec3 vWp;varying vec3 vWn;float bh(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}float bn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(bh(i),bh(i+vec3(1,0,0)),f.x),mix(bh(i+vec3(0,1,0)),bh(i+vec3(1,1,0)),f.x),f.y),mix(mix(bh(i+vec3(0,0,1)),bh(i+vec3(1,0,1)),f.x),mix(bh(i+vec3(0,1,1)),bh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n' + s.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
@@ -37,7 +70,7 @@ const domaine3d = (() => {
        float row=floor(vWp.y/.7),jy=smoothstep(.9,.97,fract(vWp.y/.7)),jx=smoothstep(.95,.985,fract(u/1.5+row*.5));float stone=max(jy,jx)*fine*wall*step(.45,lum);
        diffuseColor.rgb*=1.-stone*.2;diffuseColor.rgb*=mix(.93,1.06,bn(vWp*1.7+row));
        float tile=smoothstep(.62,.95,fract(vWp.y/.42))*fine*roof;diffuseColor.rgb*=1.-tile*.26;diffuseColor.rgb*=mix(1.,mix(.9,1.08,bn(vWp*.9)),roof);
-       diffuseColor.rgb*=mix(.74,1.,smoothstep(0.,2.6,vWp.y));}`).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=vec3(1.,.72,.38)*vGlow*uNight*1.6+vec3(1.,.85,.45)*uHi*.18;') };
+       diffuseColor.rgb*=mix(.74,1.,smoothstep(0.,2.6,vWp.y));}`).replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=vec3(1.,.72,.38)*vGlow*uNight*1.6;\n{float fr=pow(1.-clamp(abs(dot(normalize(normal),normalize(vViewPosition))),0.,1.),2.2);totalEmissiveRadiance+=vec3(1.,.78,.36)*uHi*(.1+.8*fr)+diffuseColor.rgb*uHi*.3;}') };
     return m
   }
   // ---------- bâtiments ----------
@@ -116,27 +149,31 @@ const domaine3d = (() => {
     part(P, bx(5, 7, 5), 30, 3.5, -10, C.wood); part(P, bx(6.4, .4, 6.4), 30, 7.2, -10, C.wood2); part(P, new THREE.ConeGeometry(5, 3.5, 4).rotateY(Math.PI / 4), 30, 11, -10, C.roof);
     for (const [x, z] of [[27.6, -12.4], [32.4, -12.4], [27.6, -7.6], [32.4, -7.6]]) part(P, bx(.3, 2.2, .3), x, 8.3, z, C.wood2);
     for (const [x, z, c] of [[-10, -4, 0xc8202c], [8, 5, 0x1f5fbf], [-2, 8, 0xf2c230]]) { part(P, bx(.4, 1.8, .4), x - 2, .9, z, C.trim); part(P, bx(.4, 1.8, .4), x + 2, .9, z, C.trim); part(P, bx(4.4, .25, .25), x, 1.2, z, c); part(P, bx(4.4, .25, .25), x, .6, z, C.trim) }
-    return { P, fence: [roundRect(0, 0, 30, 16, 6)] }
+    return { P, fence: [roundRect(0, 0, 30, 16, 6)], zone: [[roundRect(0, 0, 30, 16, 6)]] }
   }
   function paddocks() {
     const P = [];
     for (const [x, z] of [[-14, -12], [16, -10]]) { part(P, bx(7, 3.4, 5), x, 1.7, z, C.wood); part(P, gable(8, 6, 2.2), x, 3.4, z, C.roof2); part(P, bx(6, 2.6, .3), x, 1.5, z + 2.6, 0x2a1d12) }
     part(P, bx(4, .8, 1.2), 0, .4, 8, C.stone);
-    return { P, fence: [rect(-15, 0, 28, 30), rect(15, 0, 28, 30)] }
+    return { P, fence: [rect(-15, 0, 28, 30), rect(15, 0, 28, 30)], zone: [[rect(-15, 0, 28, 30), rect(15, 0, 28, 30)]] }
   }
   function hippodrome() {
     const P = [];
-    // tribune au nord de la piste, face au sud
-    const zb = -40, x0 = 12, x1 = 58, rows = 8;
+    // tribune au nord de la piste, face au sud — 2.9 : entièrement derrière la lice extérieure (avant, son avant-toit et ses
+    // premiers gradins mordaient sur la piste et les chevaux galopaient au travers)
+    const zb = -52, x0 = 12, x1 = 58, rows = 8;
     for (let k = 0; k < rows; k++) { const y = 1.5 + k * 1.1; part(P, bx(x1 - x0, y, 2), (x0 + x1) / 2, y / 2, zb + (rows - k) * 2, 0xd6d0c4); part(P, bx(x1 - x0, .5, .6), (x0 + x1) / 2, y + .25, zb + (rows - k) * 2 + .5, k % 2 ? C.red : C.navy) }
-    part(P, bx(x1 - x0, 15, 1.5), (x0 + x1) / 2, 7.5, zb, C.wall); part(P, bx(x1 - x0 + 4, .8, 22), (x0 + x1) / 2, 15, zb + 9, C.roof); part(P, bx(x1 - x0 + 4.4, 1.4, .5), (x0 + x1) / 2, 14.6, zb + 20, C.navy);
-    for (let x = x0; x <= x1; x += 11.5) part(P, new THREE.CylinderGeometry(.3, .3, 14.5, 8), x, 7.2, zb + 19, C.trim);
+    part(P, bx(x1 - x0, 15, 1.5), (x0 + x1) / 2, 7.5, zb, C.wall); part(P, bx(x1 - x0 + 4, .8, 18.5), (x0 + x1) / 2, 15, zb + 8.2, C.roof); part(P, bx(x1 - x0 + 4.4, 1.4, .5), (x0 + x1) / 2, 14.6, zb + 17.2, C.navy);
+    for (let x = x0; x <= x1; x += 11.5) part(P, new THREE.CylinderGeometry(.3, .3, 14.5, 8), x, 7.2, zb + 16.6, C.trim);
+    // pelouse des spectateurs entre la tribune et la lice : barrière basse
+    part(P, bx(x1 - x0 + 6, .9, .25), (x0 + x1) / 2, .45, zb + 18.6, C.trim);
     for (const x of [x0 - 3, x1 + 3]) { part(P, bx(6, 20, 6), x, 10, zb + 4, C.wall2); part(P, new THREE.ConeGeometry(4.6, 6, 4).rotateY(Math.PI / 4), x, 23, zb + 4, C.roof2); windows(P, x, x, 14, zb + 7, 1) }
     // stalles de départ, écran géant, monument au centre
-    for (let k = 0; k < 6; k++) part(P, bx(1.6, 3.4, 3.2), 40 + k * 1.8, 1.7, 14, C.green); part(P, bx(11.5, .5, 3.6), 44.5, 3.6, 14, C.trim);
+    // stalles de départ garées dans l'enceinte, le long de la lice intérieure (plus sur la piste où passent les chevaux)
+    for (let k = 0; k < 6; k++) part(P, bx(1.6, 3.4, 3.2), 28 + k * 1.8, 1.7, 8, C.green); part(P, bx(11.5, .5, 3.6), 32.5, 3.6, 8, C.trim);
     part(P, bx(16, 9, .8), -38, 10, -30, 0x0a1624); part(P, bx(17, 10, .6), -38, 10, -30.5, C.navy); for (const x of [-44, -32]) part(P, bx(.8, 6, .8), x, 3, -30.5, C.navy);
     part(P, bx(4, 2, 4), 0, 1, 0, C.stone); part(P, new THREE.CylinderGeometry(.9, 1.2, 8, 8), 0, 6, 0, C.trim); part(P, new THREE.ConeGeometry(1, 2.5, 8), 0, 11, 0, C.gold);
-    return { P, fence: [ellipse(0, 0, 62.5, 32.5), ellipse(0, 0, 50, 21)], flags: [[x0 - 3, 26.5, zb + 4], [x1 + 3, 26.5, zb + 4]], extra: g => { const c = document.createElement('canvas'); c.width = 256; c.height = 144; const x = c.getContext('2d'); x.fillStyle = '#071a2d'; x.fillRect(0, 0, 256, 144); x.fillStyle = '#e0b249'; x.fillRect(0, 0, 256, 6); x.fillRect(0, 138, 256, 6); x.font = '26px "Russo One",sans-serif'; x.textAlign = 'center'; x.fillText('THE ROYAL RACE', 128, 66); x.font = '700 17px Rajdhani,system-ui,sans-serif'; x.fillStyle = '#fff7dc'; x.fillText('HIPPODROME DU DOMAINE', 128, 98);
+    return { P, fence: [ellipse(0, 0, 62.5, 32.5), ellipse(0, 0, 50, 21)], zone: [[ellipse(0, 0, 62.5, 32.5)], [ellipse(0, 0, 50, 21)]], flags: [[x0 - 3, 26.5, zb + 4], [x1 + 3, 26.5, zb + 4]], extra: g => { const c = document.createElement('canvas'); c.width = 256; c.height = 144; const x = c.getContext('2d'); x.fillStyle = '#071a2d'; x.fillRect(0, 0, 256, 144); x.fillStyle = '#e0b249'; x.fillRect(0, 0, 256, 6); x.fillRect(0, 138, 256, 6); x.font = '26px "Russo One",sans-serif'; x.textAlign = 'center'; x.fillText('THE ROYAL RACE', 128, 66); x.font = '700 17px Rajdhani,system-ui,sans-serif'; x.fillStyle = '#fff7dc'; x.fillText('HIPPODROME DU DOMAINE', 128, 98);
       const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Mesh(new THREE.PlaneGeometry(15, 8.2), new THREE.MeshBasicMaterial({ map: t, toneMapped: false })); s.position.set(-38, 10, -29.55); g.add(s) } }
   }
   // ---------- clôtures (poteaux + deux lisses) ----------
@@ -213,14 +250,14 @@ const domaine3d = (() => {
     for (const id of VILLAGE.order) steps.push(() => {
       const [x, z, , ry] = B[id], g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; S.add(g);
       const r = makers[id](lv(id)), mat = bldMat(); T.bmats[id] = mat;
-      if (r.P.length) { const m = mesh(r.P, mat); m.userData.id = id; g.add(m); pick.push(m) }
+      let ol = null; if (r.P.length) { const m = mesh(r.P, mat); m.userData.id = id; g.add(m); pick.push(m); ol = outline(m); g.add(ol) }
       if (r.fence) fences(r.fence, new THREE.Matrix4().compose(g.position, new THREE.Quaternion().setFromEuler(g.rotation), new THREE.Vector3(1, 1, 1)), fenceP);
+      const zn = r.zone ? zone(...r.zone) : null; if (zn) g.add(zn);
       if (r.extra) r.extra(g);
       if (r.sP) { sails = new THREE.Mesh(kit.merge(r.sP), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .8 })); sails.position.set(0, 16, 5.6); sails.castShadow = true; g.add(sails) }
       (r.flags || []).forEach(([fx, fy, fz], k) => { const f = kit.flagMesh(k % 2 ? C.red : C.navy, C.gold, 3.2, 2); f.position.set(fx, fy + 3.5, fz); f.scale.setScalar(1); g.add(f) });
-      // anneau doré au sol pour la sélection
-      const ring = new THREE.Mesh(new THREE.RingGeometry(1, 1.12, 64).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffd66b, transparent: true, opacity: 0, depthWrite: false })); const rr = { hippodrome: 66, carriere: 34, paddocks: 34, haras: 40 }[id] || 26; ring.scale.setScalar(rr); ring.position.y = .15; g.add(ring);
-      T.blds[id] = { g, ring, lv: lv(id), top: B[id][2] }
+      // 2.9 : plus d'anneau au sol pour la sélection : le bâtiment s'illumine lui-même (uHi dans bldMat)
+      T.blds[id] = { g, lv: lv(id), top: B[id][2], ol, zn }
     });
     steps.push(() => {
     T.pick = pick;
@@ -343,7 +380,7 @@ const domaine3d = (() => {
     const segs = []; for (const p of ROADS) { const q = catmull(p, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 6]) } { const q = catmull(RIVER, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 14]) }
     for (const b of PONTS) { for (const p of b.paths) { const q = catmull(p, 4); for (let i = 0; i < q.length - 1; i++) segs.push([q[i], q[i + 1], 6]) } const s2 = Math.sin(b.ry), c2 = Math.cos(b.ry); segs.push([[b.x - s2 * (b.E + 3), b.z - c2 * (b.E + 3)], [b.x + s2 * (b.E + 3), b.z + c2 * (b.E + 3)], 8]) }
     const dseg = (x, z, [a, b]) => { const dx = b[0] - a[0], dz = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1))); return Math.hypot(x - a[0] - dx * t, z - a[1] - dz * t) };
-    const FOOT = { haras: [48, 22], hippodrome: [70, 46], carriere: [38, 24], clinique: [26, 16], ecurie: [32, 26], chantier: [22, 18], moulin: [42, 16], paddocks: [36, 24] };
+    const FOOT = { haras: [48, 22], hippodrome: [70, 58], carriere: [38, 24], clinique: [26, 16], ecurie: [32, 26], chantier: [22, 18], moulin: [42, 16], paddocks: [36, 24] };
     const blocked = (x, z) => { for (const id in B) { const [bx_, bz] = B[id], [w, d] = FOOT[id]; if (Math.abs(x - bx_ - (id === 'moulin' ? 14 : 0)) < w && Math.abs(z - bz) < d) return true }
       if (Math.hypot(x + 6, z - 14) < 22) return true; for (const [X, Z, w, d] of LAWNS) if (w && Math.abs(x - X) < w / 2 + 2 && Math.abs(z - Z) < d / 2 + 2) return true; for (const s of segs) if (dseg(x, z, s) < s[2] + 1.5) return true; return false };
     // forêt extérieure (conifères surtout)
@@ -390,7 +427,10 @@ const domaine3d = (() => {
     for (const h of horses) {
       let x, z, yaw, run, g = 0, rate;
       if (h.kind === 'track') { h.s = (h.s + h.sp * dt) % 1e6; const L = 2 * Math.PI * Math.sqrt((h.lane ** 2 + (h.lane * .5) ** 2) / 2), a = -(h.s / L) * 6.2832, rx = h.lane, rz = h.lane * .5 - 2; x = hx + Math.cos(a) * rx; z = hz + Math.sin(a) * rz; const dx = Math.sin(a) * rx, dz = -Math.cos(a) * rz; yaw = Math.atan2(-dz, dx); run = 1; rate = 2.3 }
-      else if (h.kind === 'arena') { h.a -= h.sp * dt; const c = Math.cos(h.a), s = Math.sin(h.a), lx = c * 22, lz = s * 10, ca = Math.cos(-ar), sa = Math.sin(-ar); x = ax + lx * ca - lz * sa; z = az + lx * sa + lz * ca; const tx = -s * 22, tz = -c * 10, wx = tx * ca - tz * sa, wz = tx * sa + tz * ca; yaw = Math.atan2(wz, -wx) + Math.PI; run = .62; rate = 1.7 }
+      else if (h.kind === 'arena') { // 2.9 : tangente exacte (h.a décroît : dérivée de (cos, sin) = (sin, -cos)) — avant, la composante x avait le mauvais signe et
+        // les cavaliers remontaient les longueurs à reculons ; ovale élargi pour passer au large des obstacles
+        h.a -= h.sp * dt; const c = Math.cos(h.a), s = Math.sin(h.a), RX = 24, RZ = 11.5, lx = c * RX, lz = s * RZ, ca = Math.cos(-ar), sa = Math.sin(-ar); x = ax + lx * ca - lz * sa; z = az + lx * sa + lz * ca;
+        const tx = s * RX, tz = -c * RZ, wx = tx * ca - tz * sa, wz = tx * sa + tz * ca; yaw = Math.atan2(-wz, wx); run = .62; rate = 1.7 }
       else {
         if (t > h.until && h.mine && h.mine.inj) { h.st = 'idle'; h.until = t + 30 }
         else if (t > h.until) { const r = Math.random(); if (r < .45) { h.st = 'walk'; h.tx = h.F[0] + (Math.random() - .5) * h.F[2] * 1.6; h.tz = h.F[1] + (Math.random() - .5) * h.F[3] * 1.6; h.until = t + 20 } else { h.st = r < .85 ? 'graze' : 'idle'; h.until = t + 4 + Math.random() * 9 } }
@@ -495,7 +535,9 @@ const domaine3d = (() => {
     const sel = village.selected; if (sel !== selId) { selId = sel; if (sel && B[sel]) W3.goal = cadre(sel) }
     if (W3.goal) { const k = 1 - Math.pow(.02, dt); W3.tx += (W3.goal.x - W3.tx) * k; W3.tz += (W3.goal.z - W3.tz) * k; W3.dist += (W3.goal.d - W3.dist) * k; if (Math.hypot(W3.goal.x - W3.tx, W3.goal.z - W3.tz) < .3) W3.goal = null }
     const chk = t > (T.nextChk || 0); if (chk) T.nextChk = t + .5;
-    for (const id in T.blds) { const b = T.blds[id], s = id === selId, hv = id === hover; b.ring.material.opacity += ((s ? .55 + .3 * Math.sin(t * 4) : hv ? .35 : 0) - b.ring.material.opacity) * .2; T.bmats[id].userData.u.uHi.value += ((s ? .7 + .3 * Math.sin(t * 4) : hv ? .45 : 0) - T.bmats[id].userData.u.uHi.value) * .2;
+    R.getDrawingBufferSize(HL.res);
+    for (const id in T.blds) { const b = T.blds[id], s = id === selId, hv = id === hover, still = REDUCE_MOTION.matches, U = T.bmats[id].userData.u; U.uHi.value += ((s ? .85 + (still ? 0 : .25 * Math.sin(t * 3)) : hv ? .45 : 0) - U.uHi.value) * .18;
+      const h = U.uHi.value; if (b.ol) { b.ol.visible = h > .02; b.ol.material.uniforms.uA.value = Math.min(1, h * 1.05) } if (b.zn) { b.zn.visible = h > .02; b.zn.userData.fill.material.opacity = h * .16; b.zn.userData.edge.material.opacity = h * .55 }
       // un bâtiment amélioré ou construit est reconstruit (bannières, Salle des trophées)
       if (!chk) continue; let l = 1; try { l = dlv(id) } catch (e) { } if (l !== b.lv) rebuild(id) }
     if (chk && built && JSON.stringify(mineList()) !== mineSig) buildMine();
@@ -507,8 +549,8 @@ const domaine3d = (() => {
   }
   function rebuild(id) {
     const b = T.blds[id], l = dlv(id), r = ({ haras, ecurie, clinique, moulin, chantier, carriere, paddocks, hippodrome })[id](l); b.lv = l;
-    for (const c of [...b.g.children]) if (c !== b.ring && c !== sails) { b.g.remove(c); c.geometry && c.geometry.dispose() }
-    if (r.P.length) { const m = mesh(r.P, T.bmats[id]); m.userData.id = id; b.g.add(m); T.pick = T.pick.filter(o => o.userData.id !== id).concat(m) }
+    for (const c of [...b.g.children]) if (c !== sails && c !== b.zn) { b.g.remove(c); c.geometry && c.geometry.dispose(); if (c.userData.outline) c.material.dispose() }
+    b.ol = null; if (r.P.length) { const m = mesh(r.P, T.bmats[id]); m.userData.id = id; b.g.add(m); T.pick = T.pick.filter(o => o.userData.id !== id).concat(m); b.ol = outline(m); b.g.add(b.ol) }
     (r.flags || []).forEach(([fx, fy, fz], k) => { const f = K().flagMesh(k % 2 ? C.red : C.navy, C.gold, 3.2, 2); f.position.set(fx, fy + 3.5, fz); b.g.add(f) })
   }
   // ---------- activation ----------

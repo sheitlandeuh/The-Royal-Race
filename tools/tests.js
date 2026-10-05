@@ -209,6 +209,10 @@ export async function run({ quick = false } = {}) {
     if (threeRace && !threeRace.headless) { podiumTitle(threeRace.podium, MEETINGS[1]); const U = threeRace.podium.userData;
       pass('Podium : trois marches, bandeau au nom de la course', PODIUM_SLOTS.length === 3 && !!U.banner.map && U.conf.N > 100 && !!podiumGarland(), `bandeau ${U.bannerKey} · ${U.conf.N} confettis`) }
 
+    // 2.9 : au village, aucun cheval (piste, carrière, prés) ne passe à travers un bâtiment, une tribune, un obstacle ou une lice
+    if (domaine3d.on && domaine3d.croise) { let c = null; const t0 = performance.now(); while (!(c = domaine3d.croise()) && performance.now() - t0 < 60000) await new Promise(r => setTimeout(r, 300)); c = c || []; const par = {}; for (const q of c) par[q.what + ' → ' + q.id] = (par[q.what + ' → ' + q.id] || 0) + 1;
+      pass('Village : aucun cheval à travers un bâtiment ou une lice', !c.length, c.length ? Object.entries(par).map(([k, n]) => `${k} (${n})`).join(', ') : `piste, carrière et prés dégagés (${c.points} points, ${c.arbres} arbres)`) }
+
     // 12. aucun contenu factice visible
     const txt = document.body.innerText, bad = ['bientôt', 'Lorem', 'TODO', 'undefined', 'NaN'].filter(w => txt.includes(w));
     pass('Aucun texte factice ou cassé', !bad.length, bad.length ? 'trouvé : ' + bad.join(', ') : 'rien trouvé');

@@ -170,7 +170,16 @@ const domaine3d = (() => {
     for (const x of [x0 - 3, x1 + 3]) { part(P, bx(6, 20, 6), x, 10, zb + 4, C.wall2); part(P, new THREE.ConeGeometry(4.6, 6, 4).rotateY(Math.PI / 4), x, 23, zb + 4, C.roof2); windows(P, x, x, 14, zb + 7, 1) }
     // stalles de départ, écran géant, monument au centre
     // stalles de départ garées dans l'enceinte, le long de la lice intérieure (plus sur la piste où passent les chevaux)
-    for (let k = 0; k < 6; k++) part(P, bx(1.6, 3.4, 3.2), 28 + k * 1.8, 1.7, 8, C.green); part(P, bx(11.5, .5, 3.6), 32.5, 3.6, 8, C.trim);
+    // 2.9 : vraies stalles (cadre et cloisons verts, portes avant à barreaux blancs, portes arrière pleines, roues de remorquage)
+    { const sx = 32.5, sz = 8, n = 6, bw = 1.9, W = n * bw, l = sx - W / 2;
+      for (let k = 0; k <= n; k++) part(P, bx(.2, 3, 3.3), l + k * bw, 1.95, sz, C.green);
+      part(P, bx(W + .5, .45, 3.7), sx, 3.6, sz, C.green); part(P, bx(W + .7, .18, 3.9), sx, 3.9, sz, C.trim); part(P, bx(W + .2, .5, .14), sx, 3.15, sz + 1.72, C.trim);
+      for (let k = 0; k < n; k++) { const x = l + (k + .5) * bw;
+        part(P, bx(.62, .42, .08), x, 3.15, sz + 1.81, k % 2 ? C.red : C.navy); part(P, bx(bw - .3, 1.9, .1), x, 1.55, sz - 1.62, C.green);
+        for (const y of [.65, 2.35]) part(P, bx(bw - .3, .12, .1), x, y, sz + 1.66, C.trim); for (let b = 0; b < 5; b++) part(P, bx(.07, 1.7, .07), x - (bw - .5) / 2 + b * (bw - .5) / 4, 1.5, sz + 1.66, C.trim) }
+      for (const x of [l - .4, l + W + .4]) for (const z of [sz - 1.15, sz + 1.15]) part(P, new THREE.CylinderGeometry(.55, .55, .3, 14).rotateZ(Math.PI / 2), x, .55, z, 0x2a2a2a) }
+    // poteau d'arrivée face à la tribune, côté spectateurs de la lice extérieure : disque rouge à cœur blanc
+    part(P, new THREE.CylinderGeometry(.13, .16, 4.6, 8), 35, 2.3, -28.2, C.trim); part(P, new THREE.CylinderGeometry(.8, .8, .1, 24).rotateX(Math.PI / 2), 35, 4.9, -28.2, 0xc8202c); part(P, new THREE.CylinderGeometry(.42, .42, .14, 20).rotateX(Math.PI / 2), 35, 4.9, -28.2, C.trim);
     part(P, bx(16, 9, .8), -38, 10, -30, 0x0a1624); part(P, bx(17, 10, .6), -38, 10, -30.5, C.navy); for (const x of [-44, -32]) part(P, bx(.8, 6, .8), x, 3, -30.5, C.navy);
     part(P, bx(4, 2, 4), 0, 1, 0, C.stone); part(P, new THREE.CylinderGeometry(.9, 1.2, 8, 8), 0, 6, 0, C.trim); part(P, new THREE.ConeGeometry(1, 2.5, 8), 0, 11, 0, C.gold);
     return { P, fence: [ellipse(0, 0, 62.5, 32.5), ellipse(0, 0, 50, 21)], zone: [[ellipse(0, 0, 62.5, 32.5)], [ellipse(0, 0, 50, 21)]], flags: [[x0 - 3, 26.5, zb + 4], [x1 + 3, 26.5, zb + 4]], extra: g => { const c = document.createElement('canvas'); c.width = 256; c.height = 144; const x = c.getContext('2d'); x.fillStyle = '#071a2d'; x.fillRect(0, 0, 256, 144); x.fillStyle = '#e0b249'; x.fillRect(0, 0, 256, 6); x.fillRect(0, 138, 256, 6); x.font = '26px "Russo One",sans-serif'; x.textAlign = 'center'; x.fillText('THE ROYAL RACE', 128, 66); x.font = '700 17px Rajdhani,system-ui,sans-serif'; x.fillStyle = '#fff7dc'; x.fillText('HIPPODROME DU DOMAINE', 128, 98);
@@ -181,6 +190,8 @@ const domaine3d = (() => {
   const ellipse = (x, z, rx, rz, n = 72) => Array.from({ length: n + 1 }, (_, i) => [x + Math.cos(i / n * 6.2832) * rx, z + Math.sin(i / n * 6.2832) * rz]);
   const roundRect = (x, z, hw, hd, r, n = 10) => { const a = []; for (const [cx, cz, a0] of [[hw - r, -hd + r, -Math.PI / 2], [hw - r, hd - r, 0], [-hw + r, hd - r, Math.PI / 2], [-hw + r, -hd + r, Math.PI]]) for (let i = 0; i <= n; i++) { const t = a0 + i / n * Math.PI / 2; a.push([x + cx + Math.cos(t) * r, z + cz + Math.sin(t) * r]) } a.push(a[0]); return a };
   function fences(list, tr, P, col = C.trim) {
+    // tracé au sol de chaque lice (contrôle des chevaux : croise)
+    if (T) for (const path of list) (T.lices || (T.lices = [])).push(path.map(([x, z]) => { const v = new THREE.Vector3(x, 0, z).applyMatrix4(tr); return [v.x, v.z] }));
     for (const path of list) for (let i = 0; i < path.length - 1; i++) {
       const [ax, az] = path[i], [bx_, bz] = path[i + 1], L = Math.hypot(bx_ - ax, bz - az); if (L < .01) continue;
       const n = Math.max(1, Math.round(L / 3)), ang = -Math.atan2(bz - az, bx_ - ax);
@@ -203,6 +214,8 @@ const domaine3d = (() => {
       const E = 17, w = 9 + Math.sin(bi * .37) * 1.5, inn = [cx + nx * E, cz + nz * E], out = [cx - nx * E, cz - nz * E], paths = [[out, [out[0] - nx * 14 + tx / L * 4, out[1] - nz * 14 + tz / L * 4], [out[0] - nx * 30 + tx / L * 10, out[1] - nz * 30 + tz / L * 10]]];
       if (link) paths.push([inn, [inn[0] + nx * 12, inn[1] + nz * 12], [(inn[0] + nx * 12 + link[0]) / 2, (inn[1] + nz * 12 + link[1]) / 2], link]);
       return { x: cx, z: cz, ry: Math.atan2(nx, nz), w, E, paths } }) })();
+  // pré de l'écurie (centre x, z, largeur, profondeur) : clôture, chevaux en liberté, aucun arbre
+  const PRE = [141, 11, 24, 14];
   const LAWNS = [[-40, 40, 26, 26], [30, 42, 26, 26], [-42, -40, 22, 16], [32, 58, 0, 0], [-38, 88, 24, 30], [30, 88, 24, 30]];
   function catmull(pts, seg = 8) { const v = pts.map(([x, z]) => new THREE.Vector3(x, 0, z)); return new THREE.CatmullRomCurve3(v).getPoints(Math.max(2, (pts.length - 1) * seg)).map(p => [p.x, p.z]) }
   function groundTexture(season) {
@@ -261,7 +274,7 @@ const domaine3d = (() => {
     });
     steps.push(() => {
     T.pick = pick;
-    fences([rect(112, 4, 27, 13)], new THREE.Matrix4(), fenceP);
+    fences([rect(...PRE)], new THREE.Matrix4(), fenceP);
     if (fenceP.length) { const f = new THREE.Mesh(kit.merge(fenceP), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6 })); f.castShadow = true; f.receiveShadow = true; S.add(f) } },
     () => decor(season, Q), () => decos(), () => { buildHorses(); built = true });
     return steps
@@ -382,13 +395,15 @@ const domaine3d = (() => {
     const dseg = (x, z, [a, b]) => { const dx = b[0] - a[0], dz = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1))); return Math.hypot(x - a[0] - dx * t, z - a[1] - dz * t) };
     const FOOT = { haras: [48, 22], hippodrome: [70, 58], carriere: [38, 24], clinique: [26, 16], ecurie: [32, 26], chantier: [22, 18], moulin: [42, 16], paddocks: [36, 24] };
     const blocked = (x, z) => { for (const id in B) { const [bx_, bz] = B[id], [w, d] = FOOT[id]; if (Math.abs(x - bx_ - (id === 'moulin' ? 14 : 0)) < w && Math.abs(z - bz) < d) return true }
-      if (Math.hypot(x + 6, z - 14) < 22) return true; for (const [X, Z, w, d] of LAWNS) if (w && Math.abs(x - X) < w / 2 + 2 && Math.abs(z - Z) < d / 2 + 2) return true; for (const s of segs) if (dseg(x, z, s) < s[2] + 1.5) return true; return false };
+      if (Math.hypot(x + 6, z - 14) < 22 || (Math.abs(x - PRE[0]) < PRE[2] / 2 + 7 && Math.abs(z - PRE[1]) < PRE[3] / 2 + 7)) return true; for (const [X, Z, w, d] of LAWNS) if (w && Math.abs(x - X) < w / 2 + 2 && Math.abs(z - Z) < d / 2 + 2) return true; for (const s of segs) if (dseg(x, z, s) < s[2] + 1.5) return true; return false };
     // forêt extérieure (conifères surtout)
     for (let i = 0; i < 1400 * dens; i++) { const x = (r() - .5) * GW * 1.25, z = (r() - .5) * GD * 1.3, e = Math.pow(Math.abs(x) / 175, 4) + Math.pow(Math.abs(z) / 128, 4); if (e < 1 || blocked(x, z)) continue; list[r() < .78 ? 2 : 0].push([x, z, .55 + r() * .4]) }
     // bosquets à l'intérieur
     for (let i = 0; i < 700 * dens; i++) { const x = (r() - .5) * 340, z = (r() - .5) * 250, e = Math.pow(Math.abs(x) / 175, 4) + Math.pow(Math.abs(z) / 128, 4); if (e >= 1 || r() < .45 || blocked(x, z)) continue; list[r() < .5 ? 0 : r() < .6 ? 2 : 1].push([x, z, .4 + r() * .3]) }
     const bark = new THREE.MeshStandardMaterial({ color: 0x5b4633, roughness: 1 }), leaf = kit.leafMat(), c = new THREE.Color();
     const GREENS = season === 'automne' ? [[0xc2702a, 0xd9a03a, 0x9c4a22, 0x7f8a30], [0xd9b040, 0xc89a30], [0x2f5230, 0x3a5e36]] : season === 'hiver' ? [[0x8a8f86, 0x9a9690], [0x8c9088], [0x3e5a44, 0x4a664e]] : [[0x4f7a2e, 0x3f6a28, 0x6a8f3a, 0x587f30], [0x5d8a35, 0x4c7a2c], [0x2f5230, 0x3a5e36, 0x28482a]];
+    // emprise de chaque arbre à hauteur de cheval (tronc du chêne, houppier bas du peuplier et du conifère) : contrôle croise
+    T.arbres = list.flatMap((L, k) => L.map(([x, z, s]) => [x, z, [1.1, 3.3, 5.2][k] * s]));
     for (let k = 0; k < 3; k++) { const L = list[k]; if (!L.length) continue; const cr = new THREE.InstancedMesh(G[k].crown, leaf, L.length), tr = new THREE.InstancedMesh(G[k].trunk, bark, L.length);
       L.forEach(([x, z, s], i) => { const m = M(x, 0, z, r() * 6.28, s, s * (.9 + r() * .25), s); cr.setMatrixAt(i, m); tr.setMatrixAt(i, m); cr.setColorAt(i, c.set(GREENS[k][(r() * GREENS[k].length) | 0]).multiplyScalar(.85 + r() * .3)) });
       for (const o of [cr, tr]) { o.castShadow = !!Q.shadow; o.receiveShadow = true; o.instanceMatrix.needsUpdate = true; S.add(o) } cr.instanceColor.needsUpdate = true }
@@ -406,7 +421,10 @@ const domaine3d = (() => {
     horses = H; buildMine(); HORSE3D.ready(2).then(() => horses.forEach(h => h.m.traverse(o => { if (o.isMesh) o.castShadow = true })))
   }
   // les chevaux de ton écurie, en liberté dans les paddocks et le pré de l'écurie (le blessé reste au box devant l'écurie) ; leur nom s'affiche de près
-  const FIELDS = [[-107, 62, 10, 11], [-77, 62, 10, 11], [112, 4, 12, 5]];
+  // 2.9 : centres des deux paddocks (tournés de 0,15 rad) avancés vers l'avant, loin des abris du fond ; marges calculées pour que tout le
+  // cheval reste dans sa lice (contrôle : croise)
+  // pré de l'écurie : à l'est de l'allée de l'écurie (avant, posé en travers de l'allée, avec un arbre dedans)
+  const FIELDS = [[-106.5, 66.7, 9, 7.5], [-76.8, 62.2, 9, 7.5], [PRE[0], PRE[1], 10, 4.5]];
   let mineSig = '';
   const mineList = () => { try { return stable.data.horses.map(h => ({ id: h.id, name: h.name, coat: h.coat, inj: !!h.injury, tired: h.fatigue > 60 })) } catch (e) { return [] } };
   function buildMine() {
@@ -422,15 +440,43 @@ const domaine3d = (() => {
     b.innerHTML = `${h.mine.inj ? '🩹 ' : h.mine.tired ? '💤 ' : ''}${escapeHTML(h.mine.name)}`; b.addEventListener('pointerdown', e => e.stopPropagation());
     b.addEventListener('click', e => { e.stopPropagation(); try { stUI.horse = h.mine.id; openStable() } catch (x) { } }); ui.appendChild(b); return h.tag = b
   }
+  // trajets : piste de l'hippodrome (ovale du couloir, sens inverse des aiguilles vu du ciel) et ovale de la carrière
+  function onTrack(lane, s) {
+    const [hx, hz] = B.hippodrome, L = 2 * Math.PI * Math.sqrt((lane ** 2 + (lane * .5) ** 2) / 2), a = -(s / L) * 6.2832, rx = lane, rz = lane * .5 - 2;
+    return { x: hx + Math.cos(a) * rx, z: hz + Math.sin(a) * rz, yaw: Math.atan2(Math.cos(a) * rz, Math.sin(a) * rx), L }
+  }
+  // 2.9 : tangente exacte (a décroît : dérivée de (cos, sin) = (sin, -cos)) — avant, la composante x avait le mauvais signe et
+  // les cavaliers remontaient les longueurs à reculons ; ovale élargi pour passer au large des obstacles
+  function inArena(a) {
+    const [ax, az, , ar] = B.carriere, c = Math.cos(a), s = Math.sin(a), RX = 24, RZ = 11.5, lx = c * RX, lz = s * RZ, ca = Math.cos(-ar), sa = Math.sin(-ar), tx = s * RX, tz = -c * RZ;
+    return { x: ax + lx * ca - lz * sa, z: az + lx * sa + lz * ca, yaw: Math.atan2(-(tx * sa + tz * ca), tx * ca - tz * sa) }
+  }
+  // contrôle (tests) : points où un cheval du domaine, à l'échelle du village, toucherait un bâtiment, un obstacle ou une tribune —
+  // piste et carrière sur tout leur tour, chevaux en liberté partout où ils peuvent aller ; rend [] si tout est dégagé
+  function croise() {
+    if (!T || !T.pick || !built) return null; const out = [], rc = new THREE.Raycaster(), dn = new THREE.Vector3(0, -1, 0), o = new THREE.Vector3(), HL = 1.15 * 2.4, HW = .32 * 2.4;
+    // une lice entre (ax, az) et (x, z) ?
+    const seg = [], cut = (ax, az, x, z) => { for (const [px, pz, qx, qz] of seg) { const d = (x - ax) * (qz - pz) - (z - az) * (qx - px); if (Math.abs(d) < 1e-9) continue; const t = ((px - ax) * (qz - pz) - (pz - az) * (qx - px)) / d, u = ((px - ax) * (z - az) - (pz - az) * (x - ax)) / d; if (t > 0 && t < 1 && u >= 0 && u <= 1) return true } return false };
+    for (const L of T.lices || []) for (let i = 0; i < L.length - 1; i++) seg.push([L[i][0], L[i][1], L[i + 1][0], L[i + 1][1]]);
+    let n = 0; const hit = (x, z, what, ax, az) => { n++; o.set(x, 80, z); rc.set(o, dn); const h = rc.intersectObjects(T.pick, false)[0]; if (h && h.point.y > .3) out.push({ what, id: h.object.userData.id, x: +x.toFixed(1), z: +z.toFixed(1) });
+      else if (cut(ax, az, x, z)) out.push({ what, id: 'lice', x: +x.toFixed(1), z: +z.toFixed(1) });
+      else for (const [tx, tz, tr] of near) if (Math.hypot(x - tx, z - tz) < tr) { out.push({ what, id: 'arbre', x: +x.toFixed(1), z: +z.toFixed(1) }); break } };
+    let near = []; const zoneArbres = (x0, z0, R) => { near = (T.arbres || []).filter(([x, z]) => Math.hypot(x - x0, z - z0) < R + 8) };
+    // corps du cheval (tête, croupe, flancs) ; aucune lice entre ce point et l'origine (centre du cheval, ou centre du pré pour un cheval en liberté)
+    const body = (p, what, ox = p.x, oz = p.z) => { const c = Math.cos(p.yaw), s = -Math.sin(p.yaw); for (const [f, l] of [[1, 0], [-1, 0], [0, 1], [0, -1], [.5, 1], [.5, -1], [-.5, 1], [-.5, -1], [0, 0]]) hit(p.x + c * f * HL - s * l * HW, p.z + s * f * HL + c * l * HW, what, ox, oz) };
+    for (const h of horses) {
+      if (h.kind === 'track') { zoneArbres(B.hippodrome[0], B.hippodrome[1], h.lane + 4); const L = onTrack(h.lane, 0).L; for (let s = 0; s < L; s += 1) body(onTrack(h.lane, s), 'piste') }
+      else if (h.kind === 'arena') { zoneArbres(B.carriere[0], B.carriere[1], 30); for (let k = 0; k < 360; k++) body(inArena(k / 360 * 6.2832), 'carrière') }
+    }
+    // chevaux en liberté : rectangle de leurs destinations (marche en ligne droite, donc tout le rectangle), corps dans tous les sens
+    for (const F of FIELDS) { zoneArbres(F[0], F[1], F[2] + F[3] + 4); for (let u = -.8; u <= .8; u += .1) for (let v = -.8; v <= .8; v += .1) for (let k = 0; k < 8; k++) body({ x: F[0] + u * F[2], z: F[1] + v * F[3], yaw: k * Math.PI / 4 }, 'pré', F[0], F[1]) }
+    out.points = n; out.arbres = (T.arbres || []).length; return out
+  }
   function stepHorses(dt, t) {
-    const [hx, hz] = B.hippodrome, [ax, az, , ar] = B.carriere;
     for (const h of horses) {
       let x, z, yaw, run, g = 0, rate;
-      if (h.kind === 'track') { h.s = (h.s + h.sp * dt) % 1e6; const L = 2 * Math.PI * Math.sqrt((h.lane ** 2 + (h.lane * .5) ** 2) / 2), a = -(h.s / L) * 6.2832, rx = h.lane, rz = h.lane * .5 - 2; x = hx + Math.cos(a) * rx; z = hz + Math.sin(a) * rz; const dx = Math.sin(a) * rx, dz = -Math.cos(a) * rz; yaw = Math.atan2(-dz, dx); run = 1; rate = 2.3 }
-      else if (h.kind === 'arena') { // 2.9 : tangente exacte (h.a décroît : dérivée de (cos, sin) = (sin, -cos)) — avant, la composante x avait le mauvais signe et
-        // les cavaliers remontaient les longueurs à reculons ; ovale élargi pour passer au large des obstacles
-        h.a -= h.sp * dt; const c = Math.cos(h.a), s = Math.sin(h.a), RX = 24, RZ = 11.5, lx = c * RX, lz = s * RZ, ca = Math.cos(-ar), sa = Math.sin(-ar); x = ax + lx * ca - lz * sa; z = az + lx * sa + lz * ca;
-        const tx = s * RX, tz = -c * RZ, wx = tx * ca - tz * sa, wz = tx * sa + tz * ca; yaw = Math.atan2(-wz, wx); run = .62; rate = 1.7 }
+      if (h.kind === 'track') { h.s = (h.s + h.sp * dt) % 1e6; ({ x, z, yaw } = onTrack(h.lane, h.s)); run = 1; rate = 2.3 }
+      else if (h.kind === 'arena') { h.a -= h.sp * dt; ({ x, z, yaw } = inArena(h.a)); run = .62; rate = 1.7 }
       else {
         if (t > h.until && h.mine && h.mine.inj) { h.st = 'idle'; h.until = t + 30 }
         else if (t > h.until) { const r = Math.random(); if (r < .45) { h.st = 'walk'; h.tx = h.F[0] + (Math.random() - .5) * h.F[2] * 1.6; h.tz = h.F[1] + (Math.random() - .5) * h.F[3] * 1.6; h.until = t + 20 } else { h.st = r < .85 ? 'graze' : 'idle'; h.until = t + 4 + Math.random() * 9 } }
@@ -597,5 +643,6 @@ const domaine3d = (() => {
   }
   return { get on() { return on }, start, view: W3, supported, model, quality() { if (R) R.setPixelRatio(Math.min(QUALITY[settings.level()].pr, devicePixelRatio || 1) * settings.scale()) }, get stats() { return T && { ms: T.ms, tris: R && R.info.render.triangles, calls: R && R.info.render.calls, images: T.images || 0 } },
     // capture sans attendre requestAnimationFrame (panneau masqué) : fait avancer la vie de ms millisecondes puis dessine
+    croise,
     snap(ms = 0) { if (!on) return; const t = performance.now() / 1000; for (let k = 0; k < 4; k++) { stepHorses(ms / 4000, t); if (T.smoke) stepLife(ms / 4000, t) } raceWorld.uniforms.uTime.value = t; light(); camera(); R.render(S, cam); placeUI() } }
 })();

@@ -96,6 +96,42 @@ Un nouveau joueur ne voit que le domaine et la course. Les systèmes s’ouvrent
 La course est **déterministe** : avec la même graine (tirée à la création du plateau) et les mêmes actions du joueur, le résultat est identique. C’est ce qui permettra au serveur de revérifier les courses (étape 3).
 Voir `claude/the-royal-race-systeme-ecurie.md` (projet) pour les formules.
 
+## Nouveautés de la 3.0
+
+**Moteur 6 : des courses plus difficiles et moins prévisibles** (`src/js/28-strategie.js`, réglages `STRAT_FX`). Tout est tiré de la graine du plateau : le rejeu, les duels et une future vérification serveur restent exacts. Un enregistrement du moteur 4 ou 5 se refait avec ses propres règles (`raceEng`), et un duel se court au moteur de l'ami qui l'a envoyé.
+
+- **Conditions du jour**, annoncées sur l'écran des courses et rappelées dans l'en-tête de course :
+  - **Corde rapide ou lourde** (±0,8 % de vitesse le long de la lice, plus souvent lourde en terrain souple ou lourd). Avec une corde lourde, le bon chemin est à 3 ou 4 couloirs dans les lignes droites, à la corde dans les virages.
+  - **Vent dans la ligne d'arrivée.** De face : −1,2 % pour qui court à découvert, sillage ×1,5. Dans le dos : +0,4 %, sillage ×0,6.
+- **Rond de présentation.** Un adversaire peut être en forme (±2 %), terne, ou nerveux : il tire sur son jockey, va 2,5 % plus vite sur les premiers 45 % et dépense 45 % d'énergie en plus. Le pronostic en tient compte.
+- **Départ manqué.** Il ne se voit qu'à l'ouverture des stalles (−30 % de vitesse sur 0,9 s), y compris pour ton cheval : 2 à 12 % des courses selon son Départ et son calme.
+- **Adversaires**, chacun avec un plan :
+  - Un animateur accélère en tête pour décramponner le peloton (60 % des animateurs), un cheval « dans les dos » attaque avant la ligne droite (45 %) ; +2,2 % de vitesse, dépense ×1,6.
+  - Le jockey fin tacticien (plus souvent sur un cheval intelligent) reste dans le sillage au lieu de déborder le cheval qu'il rattrape. C'était le principal avantage du joueur sur l'IA.
+  - Doublé dans la ligne droite, un cheval calme ou « cœur de champion » riposte (+1,4 % pendant 2,2 s).
+  - Le sprint final part plus près du bon moment (erreur de jugement ×0,55).
+  - Un cheval à l'extérieur du tien peut garder sa ligne et te laisser enfermé.
+  - La moitié des jockeys connaît la piste et évite une corde lourde.
+- **Annonces** sur la ligne de commentaire, 2,5 s, sans rien par-dessus la course ; le speaker parle des accélérations et des ripostes.
+
+Mesuré au bot : bon joueur, cheval du mile, lecture du plateau et des conditions, `bot.counter`.
+
+| Course | Moteur 5 (2.9) | Moteur 6 (3.0) |
+|---|---|---|
+| 1 200 m (Prix des Écuries, course d'initiation) | 78 % de victoires | 72 % |
+| 1 600 m (distance idéale) | 41 % | 35 à 40 % |
+| 2 000 m, terrain souple (hors distance) | 26 % | 15 à 20 % |
+
+Sur 80 courses de 1 600 m :
+- corde ou vent particuliers dans 2 courses sur 3 ;
+- un ou deux adversaires marqués au rond de présentation par course ;
+- 0,6 accélération adverse par course ;
+- une riposte dans 3 courses sur 10 ;
+- un départ manqué (adversaire ou toi) dans 3 courses sur 10. Lire le plateau reste la meilleure tactique (test « Lecture du plateau ≥ meilleure tactique fixe »). Tests ajoutés :
+- « Moteur 6 : conditions, incidents et plans rejoués à l'identique » ;
+- « une course du moteur 5 garde ses règles » ;
+- « la corde et le vent changent la course ».
+
 ## Nouveautés de la 2.9
 
 **Jockey.** Couleurs au pixel (`08-horse3d`) : chaque sommet porte sa distance à chaque groupe de couleur (casaque, manches, culotte, bottes, peau, gants, revers ; `spec.groups` de `SCULPT`, attributs `gA` / `gB`) et le shader prend le groupe le plus proche, fondu sur un pixel : plus de bords « déchirés » qui suivaient les arêtes du maillage. Culotte, revers de botte et botte sont coupés le long de l'axe genou → cheville (revers plus haut devant). Le motif de la casaque est projeté autour du dos (angle autour de l'axe du buste, dérivées prises sur l'angle continu : aucune couture sous la poitrine), image de 384 px gardée par livrée. Visage plus court, nez, pommettes, oreilles (fondu propre à la primitive : `P.k`), jugulaire du casque ; la peau garde des ombres chaudes. Jockey plus fin en course (pas de 0,025 m au lieu de 0,03) et en gros plan (0,011).

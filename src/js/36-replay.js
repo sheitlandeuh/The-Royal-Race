@@ -5,11 +5,13 @@
 // ENGINE : version des formules de course ; un enregistrement d'une autre version ne peut pas être refait à l'identique (ok:null, why:'version').
 // 5 (2.7) : hippodromes (RACE.hippo, virages tirés du tracé). Le moteur 4 n'avait que l'Hippodrome Royal, dont les formules n'ont pas
 // changé : ses enregistrements (ENGINE_OK) se refont toujours à l'identique, sur l'Hippodrome Royal quoi qu'indique la course.
-const ENGINE=5,ENGINE_OK=[4,5];
+// 6 (3.0) : conditions du jour, observations, incidents et plans des adversaires (28-strategie), actifs seulement si raceEng >= 6 :
+// un enregistrement du moteur 4 ou 5 se refait avec ses propres règles (raceEng = r.e), un duel se court au moteur de l'ami.
+const ENGINE=6,ENGINE_OK=[4,5,6];
 const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o));let rec=null,busy=false,toCheck=[];
  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}},store=list=>{try{localStorage.setItem(KEY,JSON.stringify(list.slice(-10)))}catch(e){}};
  const at=(type,v)=>{if(rec&&!busy)rec.inputs.push([raceTime,type,v])};
- hooks.on('race:start',()=>{if(busy)return;rec={v:1,e:ENGINE,at:new Date().toISOString(),race:clone(RACE),field:clone(currentField),seed:raceSeed,player:clone(racePlayer),strategy:state.strategy,horse:stable.active().name,liv:{...stable.silks,coat:stable.active().coat},inputs:[]}});
+ hooks.on('race:start',()=>{if(busy)return;rec={v:1,e:raceEng||ENGINE,at:new Date().toISOString(),race:clone(RACE),field:clone(currentField),seed:raceSeed,player:clone(racePlayer),strategy:state.strategy,horse:stable.active().name,liv:{...stable.silks,coat:stable.active().coat},inputs:[]}});
  hooks.on('race:launch',()=>{if(rec&&!busy)rec.plan=moments.plan});
  hooks.on('race:steer',d=>at('steer',d));
  hooks.on('race:sprint',()=>at('sprint'));
@@ -24,10 +26,10 @@ const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o
  hooks.on('race:leave',()=>setTimeout(check,400));
  // refait la course sans rien afficher ni jouer de son, puis restaure l'état ; opts.track : trajectoire du joueur pas à pas (fantôme d'un duel)
  function verify(r,opts={}){const e=r&&r.e||1;if(!ENGINE_OK.includes(e))return{ok:null,why:'version'};if(busy||raceLoop>0)return{ok:null,why:'course en cours'};busy=true;
-  const keep={RACE,currentField,racePlayer,strategy:state.strategy,complete:completeRace,say:sound.say,bump:career.bump,tip:coach.tip,said:runRaceV2.said,tipd:runRaceV2.tipd,
+  const keep={RACE,currentField,racePlayer,strategy:state.strategy,complete:completeRace,say:sound.say,bump:career.bump,tip:coach.tip,eng:raceEng,said:runRaceV2.said,tipd:runRaceV2.tipd,
    progress,visualProgress,raceFinished,raceFinishTimes,finishOrder,rivalAI,raceTime,playerEnergy,playerFinal,playerPace,playerLane,playerTarget,autoSpeed,raceSeed,raceRng,stallOf,raceBlocked,lanes:rivalLanes.slice(),RS:{...RS}};
   try{completeRace=()=>{};sound.say=()=>{};career.bump=()=>{};coach.tip=()=>{};try{Object.defineProperty(navigator,'vibrate',{value:()=>false,configurable:true})}catch(e){}runRaceV2.said=1;runRaceV2.tipd=1;
-   RACE=clone(r.race);if(e<5)delete RACE.hippo;currentField=clone(r.field);racePlayer=clone(r.player);state.strategy=r.strategy;raceSeed=r.seed;raceRng=seeded(raceSeed);
+   raceEng=e;RACE=clone(r.race);if(e<5)delete RACE.hippo;currentField=clone(r.field);racePlayer=clone(r.player);state.strategy=r.strategy;raceSeed=r.seed;raceRng=seeded(raceSeed);
    resetRacers();raceLoop=-1;
    initRivalAI();if(r.plan)moments.plan=r.plan;
    let i=0,n=0;const I=r.inputs,tr=opts.track?{p:[0],l:[Math.round(playerLane)]}:null;
@@ -35,5 +37,5 @@ const replays=(()=>{const KEY='trr.replays',clone=o=>JSON.parse(JSON.stringify(o
    if(tr)tr.p.push(101);
    const times=raceFinishTimes.map(t=>+t.toFixed(3)),same=JSON.stringify(finishOrder)===JSON.stringify(r.result.order)&&times.every((t,k)=>Math.abs(t-r.result.times[k])<.002);
    return{ok:same,order:finishOrder.slice(),expected:r.result.order,times,expectedTimes:r.result.times,track:tr}}
-  finally{raceLoop=null;({progress,visualProgress,raceFinished,raceFinishTimes,finishOrder,rivalAI,raceTime,playerEnergy,playerFinal,playerPace,playerLane,playerTarget,autoSpeed,raceSeed,raceRng,stallOf,raceBlocked}=keep);keep.lanes.forEach((v,i)=>rivalLanes[i]=v);Object.assign(RS,keep.RS);RACE=keep.RACE;currentField=keep.currentField;racePlayer=keep.racePlayer;state.strategy=keep.strategy;completeRace=keep.complete;sound.say=keep.say;career.bump=keep.bump;coach.tip=keep.tip;try{delete navigator.vibrate}catch(e){}runRaceV2.said=keep.said;runRaceV2.tipd=keep.tipd;busy=false}}
+  finally{raceLoop=null;({progress,visualProgress,raceFinished,raceFinishTimes,finishOrder,rivalAI,raceTime,playerEnergy,playerFinal,playerPace,playerLane,playerTarget,autoSpeed,raceSeed,raceRng,stallOf,raceBlocked}=keep);keep.lanes.forEach((v,i)=>rivalLanes[i]=v);Object.assign(RS,keep.RS);RACE=keep.RACE;currentField=keep.currentField;racePlayer=keep.racePlayer;state.strategy=keep.strategy;completeRace=keep.complete;sound.say=keep.say;career.bump=keep.bump;coach.tip=keep.tip;try{delete navigator.vibrate}catch(e){}runRaceV2.said=keep.said;runRaceV2.tipd=keep.tipd;raceEng=keep.eng;busy=false}}
  return{get list(){return load()},get busy(){return busy},verify,last:()=>load().slice(-1)[0]}})();

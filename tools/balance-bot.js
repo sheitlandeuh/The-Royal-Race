@@ -41,8 +41,10 @@ export const bot = window.bot = (() => {
     const a = nearbyHorses(0).find(h => Math.abs(h.l - playerLane) < HORSE_W), slow = a && a.gap < 1.2 && (playerFinal || raceBlocked[0] > 2 || speedOf(a.j) < racePlayer.cruise * .99 || progress[0] > 62);
     const sideFree = d => !progress.some((p, j) => j && !raceFinished[j] && Math.abs(p - progress[0]) < HORSE_LEN * 1.6 && (laneOf(j) - playerLane) * d > 0 && Math.abs(laneOf(j) - playerLane) < HORSE_W + 6);
     if (slow) { const d = playerLane - 12 >= 7 && sideFree(-1) ? -1 : 1; playerTarget = clampRace(playerLane + d * 12, 7, 93); st.pass = 12 }
-    else playerTarget = 10;
+    // 3.0 : corde lourde annoncée → à 3-4 couloirs de la lice dans les lignes droites, à la corde dans les virages
+    else playerTarget = lourde() && courseTurn(Math.min(1, progress[0] / 100)) < .1 && progress[0] < 93 ? 30 : 10;
   }
+  const lourde = () => raceEng >= 6 && currentField && currentField.cond && currentField.cond.corde < 0;
   function one(policy, meet = 'm2', tactic = 'stalker', N = 50) {
     let s = 0, w = 0; const cnt = {};
     for (let k = 1; k <= N; k++) { const r = race(meet, k * 7919, tactic, policy); s += r.rank; w += r.rank === 1; r.log.forEach(x => cnt[x] = (cnt[x] || 0) + 1) }
@@ -74,7 +76,8 @@ export const bot = window.bot = (() => {
     return `${kind} ${meet} ${tactic} : vu ${seen}× · change le rang ${changed}× · 'a' meilleur ${better}× · écart moyen ${(diff / Math.max(1, seen)).toFixed(2)} place (positif = 'a' mieux)`;
   }
   // tactique choisie en lisant le plateau : course lente → mener, un seul animateur → dans les dos, course rapide → attendre
-  const counter = () => { const n = currentField.rivals.filter(r => r.tac === 'leader').length; return n === 0 ? 'leader' : n >= 2 ? 'finisher' : 'stalker' };
+  // 3.0 : avec le vent de face dans la ligne droite, mener à découvert coûte : on attend dans les dos même quand personne ne veut mener
+  const counter = () => { const n = currentField.rivals.filter(r => r.tac === 'leader').length, C = currentField.cond || {}; return n === 0 ? (C.vent > 0 ? 'stalker' : 'leader') : n >= 2 ? 'finisher' : 'stalker' };
   function tactics(meet, N = 40, policy = {}) {
     window.__noSave = true; const done = completeRace; completeRace = () => {}; const out = {};
     try { for (const mode of ['leader', 'stalker', 'finisher', 'lecture']) { let s = 0, w = 0;
@@ -84,5 +87,5 @@ export const bot = window.bot = (() => {
     finally { completeRace = done }
     return out;
   }
-  return { race, one, run, pair, tactics, smart, gestion, headless, get gl() { return gl } };
+  return { race, one, run, pair, tactics, smart, gestion, headless, counter, get gl() { return gl } };
 })();

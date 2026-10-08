@@ -54,7 +54,7 @@ const duel=(()=>{const KEY='trr.duels';let D={list:[],wins:0,losses:0};try{Objec
    <p class="hint">${escapeHTML(safeRace(r.race).n)} · ${fmt(r.race.dist)} m · terrain ${TERRAINS[r.race.terrain].n.toLowerCase()}</p><div class="duel-time"><b>${t2(r.result.times[0])} s</b><small>${me}${me===1?'er':'e'} sur 6</small></div>
    <p class="hint">Même course, mêmes adversaires, même départ : avec ton propre cheval, bats son temps. Son fantôme court à côté de toi. Gratuit, sans fatigue ni trophées.</p>
    <div class="race-entry"><button class="action green" data-duel-go="${escapeHTML(d.id)}">⚔️ RELEVER LE DÉFI</button></div></div>`;$('#panel').classList.add('open')}
- function meeting(d){const R=safeRace(d.rec.race,d.rec.e||1);return{...R,id:'duel',src:R.id,n:`Duel · ${R.n}`,duel:true,defi:false,tour:false}}
+ function meeting(d){const R=safeRace(d.rec.race,d.rec.e||1);return{...R,id:'duel',src:R.id,n:`Duel · ${R.n}`,duel:true,defi:false,tour:false,eng:d.rec.e||1}}
  function select(d){while(coach.open)coach.hide();const tr=check(d);if(tr===null)return toast('Un instant…');if(tr==='old'){toast('Ce duel vient d’une ancienne version du jeu : demande à ton ami de t’en envoyer un nouveau');return false}if(tr===false){toast('Ce duel n’a pas pu être vérifié : le temps de ton ami ne correspond pas à sa course');return false}
   cur=d;G=tr;RACE=meeting(d);currentField=null;buildField();return true}
  // (openCourses remettrait une course du programme : on ouvre l'écran directement)

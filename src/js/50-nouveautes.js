@@ -1,6 +1,9 @@
 /* ===== Quoi de neuf : présenté une seule fois par version aux joueurs qui avaient déjà commencé leur partie (seulement ce qu'ils n'ont pas encore vu) =====
    Un nouveau joueur découvre tout au fil des déblocages (35-onboarding) : il ne voit jamais cet écran. */
 const NOUVEAUTES=[
+ ['🌬️','Conditions du jour','Corde rapide ou lourde, vent de face ou dans le dos dans la ligne droite : annoncés avant le départ, ils changent la bonne tactique et la bonne trajectoire. Au rond de présentation, repère les chevaux en forme, ternes ou nerveux.',0,'3.0'],
+ ['🧠','Adversaires plus malins','Les jockeys habiles restent dans le sillage au lieu de déborder trop tôt, les animateurs accélèrent pour décramponner le peloton, un cheval doublé dans la ligne droite peut riposter, et l’on peut te laisser enfermé à la corde.',0,'3.0'],
+ ['🎲','Courses imprévisibles','Départ manqué (le tien aussi, plus rare avec un bon Départ et un cheval calme), cheval qui tire sur son jockey, accélérations en course : chaque course se joue différemment. Tout reste rejouable à l’identique et équitable en duel.',0,'3.0'],
  ['🏇','Cheval et jockey plus fins','Casaque nette jusque sur les flancs, bottes à revers, gants et culotte aux bords francs ; visage, oreilles et jugulaire du casque. Le cheval porte un vrai filet qui suit sa tête, des yeux sous l’arcade, et une selle moulée sur le dos, avec ses quartiers de cuir.',0,'2.9'],
  ['✨','Bâtiment choisi en lumière','Plus d’anneau autour du bâtiment choisi au village : il s’illumine d’un contour doré ; la piste, la carrière et les paddocks s’éclairent au sol.',0,'2.9'],
  ['🐎','Village remis d’aplomb','Les cavaliers de la carrière avancent enfin dans le bon sens, les chevaux de l’hippodrome ne traversent plus la tribune ni les stalles, le pré de l’écurie quitte l’allée. Nouvelles stalles de départ et poteau d’arrivée.',0,'2.9'],

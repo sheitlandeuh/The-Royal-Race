@@ -183,6 +183,28 @@ export async function run({ quick = false } = {}) {
     { const r = { e: 5, race: { id: 'lien', dist: 1600, terrain: 'bon', hippo: 'cimes' } }, o = { e: 4, race: { id: 'm3', dist: 2000, terrain: 'souple' } };
       const a = duel.safeRace(r.race, 5).hippo, b = duel.safeRace(o.race, 4).hippo, c = duel.safeRace({ id: 'm3', dist: 2000, terrain: 'souple', hippo: 'cote' }, 5).hippo;
       pass('Hippodromes : un duel garde son hippodrome', a === 'cimes' && b === undefined && c === 'foret', `lien → ${a} · ancien lien (moteur 4) → ${b || 'Hippodrome Royal'} · course du programme → ${c} (celui du programme, pas celui du lien)`) }
+    // 3.0 (moteur 6) : conditions du jour, observations, incidents et plans des adversaires — tirés de la graine, enregistrés avec le plateau,
+    // rejoués à l'identique ; une course du moteur 5 (duel d'un ami resté en 2.9) garde ses règles ; la corde et le vent changent vraiment la course
+    { const run6 = (seed, setup, opt = {}) => { RACE = { ...MEETINGS[1], ...(opt.race || {}) }; currentField = null; buildField(seed); setup && setup(currentField); Object.assign(stable.active(), { fatigue: 10, form: 62, moral: 72 }); state.feed = 99999; state.strategy = opt.tac || 'stalker';
+        bot.headless(); startRace(); if (threeRace.headless) $('#raceScreen').classList.remove('open'); openGates(); clearInterval(raceLoop); raceLoop = -1; let n = 0;
+        while (finishOrder.length < 6 && n < 9000) { if (coach.open) coach.hide(); if (opt.steer && n % 53 === 0) steer(n % 106 ? 1 : -1); if (opt.rail) playerTarget = 10;
+          if (!playerFinal && progress[0] > 35 && sprintReach(racePlayer, playerEnergy, racePlayer.cruise) >= remainingM(progress[0])) sprint(); runRaceV2(); n++ }
+        raceLoop = null; const r = replays.last(), S = strat.state, inc = { on: S.on, slowMe: S.me.slow, moves: rivalAI.filter(a => a.mv && a.mv.on !== undefined).length, fights: rivalAI.filter(a => a.fought).length }, t = raceFinishTimes[0];
+        while (coach.open) coach.hide(); const v = replays.verify(r); leaveRace(); while (coach.open) coach.hide(); return { r, ok: v.ok, inc, t } };
+      const forced = F => { F.cond = { corde: -1, vent: 1, obs: F.rivals.map((x, k) => ({ q: ['tire', 'forme+', 'forme-', null, null][k], slow: k === 3 })) } };
+      let ok = 0, moves = 0, seen = 0; for (let k = 1; k <= 3; k++) { const o = run6(k * 50021, forced, { steer: true, tac: ['leader', 'stalker', 'finisher'][k - 1] }); ok += o.ok === true && o.r.e === ENGINE && o.inc.on; moves += o.inc.moves; seen += o.r.field.cond.obs[0].q === 'tire'; await tick() }
+      pass('Moteur 6 : conditions, incidents et plans rejoués à l’identique', ok === 3 && seen === 3, `${ok}/3 rejeux identiques · conditions enregistrées ${seen}/3 · ${moves} accélérations d’adversaires`);
+      const o5 = run6(77777, forced, { steer: true, race: { eng: 5 } });
+      pass('Moteur 6 : une course du moteur 5 garde ses règles', o5.ok === true && o5.r.e === 5 && !o5.inc.on, `enregistrée au moteur ${o5.r.e} · rejeu ${o5.ok ? 'identique' : 'DIFFÉRENT'} · aléas ${o5.inc.on ? 'ACTIFS' : 'inactifs'}`);
+      // corde rapide / lourde, même graine, cheval à la corde ; vent de face : courir à découvert en tête coûte
+      const T = (corde, vent, tac) => run6(31337, F => { F.cond = { corde, vent, obs: F.rivals.map(() => ({ q: null, slow: false })) } }, { rail: true, tac }).t;
+      const rap = T(1, 0, 'stalker'), lou = T(-1, 0, 'stalker'); await tick();
+      // vent dans la ligne droite : la règle elle-même (un cheval de tête abrité dans un sillage profite au contraire du vent de face)
+      const S = strat.state, keep = { F: currentField, on: S.on, eng: raceEng, lane: playerLane }, W = v => { currentField = { seed: 1, rivals: [], cond: { corde: 0, vent: v, obs: [] } }; raceEng = 6; S.on = true; playerLane = 50;
+        const a = strat.step(0, { own: 85, shelter: false, attacking: false, energy: 50 }), b = strat.step(0, { own: 85, shelter: true, attacking: false, energy: 50 }); return [a.c, b.dr] };
+      let face, dos; try { face = W(1); dos = W(-1) } finally { currentField = keep.F; S.on = keep.on; raceEng = keep.eng; playerLane = keep.lane }
+      pass('Moteur 6 : la corde et le vent changent la course', lou - rap > .3 && face[0] < 1 && dos[0] > 1 && face[1] > 1 && dos[1] < 1, `à la corde : rapide ${sec(rap, 2)} · lourde ${sec(lou, 2)} · à découvert dans la ligne droite : vent de face ×${face[0].toFixed(3)}, dans le dos ×${dos[0].toFixed(3)} · sillage ×${face[1]} / ×${dos[1]}`) }
+
     if (threeRace && !threeRace.headless) { const frames = n => new Promise(r => { const f = () => --n > 0 ? requestAnimationFrame(f) : r(); requestAnimationFrame(f) }), M = [];
       for (const id of ['royal', 'cote', 'royal', 'cote', 'royal']) { RACE = { ...MEETINGS[1], hippo: id }; raceVenue(threeRace); threeRace.renderer.render(threeRace.scene, threeRace.camera); await frames(2); M.push(threeRace.renderer.info.memory.geometries + '/' + threeRace.renderer.info.memory.textures) }
       RACE = { ...MEETINGS[1] }; raceVenue(threeRace); const g = M.map(x => x.split('/').map(Number));
